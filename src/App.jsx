@@ -1,2 +1,2 @@
-import App from './super-admin-console.jsx';
+import App from './factory-portal-complete_2.jsx';
 export default App;
