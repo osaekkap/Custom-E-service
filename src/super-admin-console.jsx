@@ -1,29 +1,61 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const RESPONSIVE_CSS = `
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+  *, *::before, *::after { box-sizing: border-box; }
+  body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 15px; }
+  .rsp-grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+  .rsp-grid-2 { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
+  .rsp-grid-2-eq { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .rsp-grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+  .rsp-grid-form { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; }
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .sidebar-overlay { display: none; }
+  .nav-btn:hover { background: rgba(0,201,167,0.1) !important; color: #00C9A7 !important; }
+  .card-hover:hover { border-color: #2A4070 !important; box-shadow: 0 4px 24px rgba(0,0,0,0.25) !important; }
+  tr.row-hover:hover td { background: #172444; }
+  @media (max-width: 900px) {
+    .rsp-grid-4 { grid-template-columns: repeat(2,1fr); }
+    .rsp-grid-2, .rsp-grid-2-eq, .rsp-grid-form { grid-template-columns: 1fr; }
+    .rsp-grid-3 { grid-template-columns: 1fr 1fr; }
+    .main-sidebar { transform: translateX(-100%); transition: transform 0.25s ease; position: fixed !important; z-index: 200; height: 100vh; }
+    .main-sidebar.open { transform: translateX(0); }
+    .sidebar-overlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 199; }
+    .hamburger-btn { display: flex !important; }
+    .main-content { padding: 20px !important; }
+  }
+  @media (max-width: 600px) {
+    .rsp-grid-4 { grid-template-columns: 1fr 1fr; }
+    .rsp-grid-3 { grid-template-columns: 1fr; }
+    .main-content { padding: 14px !important; }
+  }
+  .hamburger-btn { display: none; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; padding: 8px; }
+`;
 
 // ─── Design tokens ───────────────────────────────────────────────
 const C = {
-  bg0: "#080E1A",
-  bg1: "#0D1627",
-  bg2: "#111E35",
-  bg3: "#172444",
-  border: "#1E2F4E",
-  borderHi: "#2A4070",
-  teal: "#00C9A7",
-  tealDim: "#00997F",
-  tealBg: "rgba(0,201,167,0.08)",
+  bg0: "#060D1A",
+  bg1: "#0B1525",
+  bg2: "#0F1D30",
+  bg3: "#152238",
+  border: "#1A2B42",
+  borderHi: "#243D5C",
+  teal: "#00D4B0",
+  tealDim: "#00A88A",
+  tealBg: "rgba(0,212,176,0.09)",
   amber: "#F59E0B",
   amberBg: "rgba(245,158,11,0.1)",
-  blue: "#3B82F6",
-  blueBg: "rgba(59,130,246,0.1)",
-  red: "#EF4444",
-  redBg: "rgba(239,68,68,0.08)",
-  green: "#22C55E",
-  greenBg: "rgba(34,197,94,0.08)",
-  purple: "#A78BFA",
-  purpleBg: "rgba(167,139,250,0.1)",
+  blue: "#60A5FA",
+  blueBg: "rgba(96,165,250,0.1)",
+  red: "#F87171",
+  redBg: "rgba(248,113,113,0.09)",
+  green: "#34D399",
+  greenBg: "rgba(52,211,153,0.09)",
+  purple: "#C084FC",
+  purpleBg: "rgba(192,132,252,0.1)",
   text: "#E2E8F0",
   textMid: "#94A3B8",
-  textDim: "#475569",
+  textDim: "#4E6480",
   mono: "'JetBrains Mono', 'Courier New', monospace",
 };
 
@@ -102,9 +134,9 @@ const fmt = {
 function Pill({ label, color, bg, border }) {
   return (
     <span style={{
-      display: "inline-block", padding: "2px 9px", borderRadius: 20,
-      fontSize: 10, fontWeight: 700, letterSpacing: "0.5px",
-      color, background: bg, border: `1px solid ${border || color + "44"}`,
+      display: "inline-block", padding: "3px 11px", borderRadius: 20,
+      fontSize: 11, fontWeight: 700, letterSpacing: "0.4px",
+      color, background: bg, border: `1px solid ${border || color + "55"}`,
       textTransform: "uppercase",
     }}>{label}</span>
   );
@@ -132,9 +164,11 @@ function StatusPill({ status }) {
 
 function Card({ children, style = {} }) {
   return (
-    <div style={{
+    <div className="card-hover" style={{
       background: C.bg2, border: `1px solid ${C.border}`,
-      borderRadius: 12, ...style,
+      borderRadius: 16, transition: "border-color 0.2s, box-shadow 0.2s",
+      boxShadow: "0 2px 12px rgba(0,0,0,0.2)",
+      ...style,
     }}>{children}</div>
   );
 }
@@ -142,12 +176,12 @@ function Card({ children, style = {} }) {
 function CardHeader({ title, sub, action }) {
   return (
     <div style={{
-      padding: "16px 20px", borderBottom: `1px solid ${C.border}`,
+      padding: "18px 24px", borderBottom: `1px solid ${C.border}`,
       display: "flex", alignItems: "center", justifyContent: "space-between",
     }}>
       <div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{title}</div>
-        {sub && <div style={{ fontSize: 11, color: C.textDim, marginTop: 2 }}>{sub}</div>}
+        <div style={{ fontSize: 15, fontWeight: 700, color: C.text, letterSpacing: "-0.2px" }}>{title}</div>
+        {sub && <div style={{ fontSize: 12, color: C.textDim, marginTop: 3 }}>{sub}</div>}
       </div>
       {action}
     </div>
@@ -156,10 +190,10 @@ function CardHeader({ title, sub, action }) {
 
 function Stat({ label, value, sub, color = C.teal }) {
   return (
-    <div style={{ padding: "16px 20px" }}>
-      <div style={{ fontSize: 11, color: C.textDim, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>{label}</div>
-      <div style={{ fontSize: 28, fontWeight: 800, color, fontFamily: C.mono, marginBottom: 4 }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: C.textDim }}>{sub}</div>}
+    <div style={{ padding: "20px 24px" }}>
+      <div style={{ fontSize: 11, color: C.textDim, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 10 }}>{label}</div>
+      <div style={{ fontSize: 32, fontWeight: 800, color, fontFamily: C.mono, marginBottom: 5, letterSpacing: "-0.5px" }}>{value}</div>
+      {sub && <div style={{ fontSize: 12, color: C.textDim }}>{sub}</div>}
     </div>
   );
 }
@@ -174,58 +208,60 @@ const NAV = [
   { id: "new_tenant",icon: "+", label: "Add Tenant" },
 ];
 
-function Sidebar({ active, onNav }) {
+function Sidebar({ active, onNav, onClose }) {
   return (
-    <div style={{
-      width: 210, background: C.bg0, borderRight: `1px solid ${C.border}`,
+    <div className="main-sidebar" style={{
+      width: 230, background: C.bg0, borderRight: `1px solid ${C.border}`,
       display: "flex", flexDirection: "column", flexShrink: 0,
       position: "sticky", top: 0, height: "100vh",
     }}>
       {/* Brand */}
-      <div style={{ padding: "22px 20px 18px", borderBottom: `1px solid ${C.border}` }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ padding: "24px 22px 20px", borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{
-            width: 30, height: 30, borderRadius: 8,
-            background: C.teal, display: "flex", alignItems: "center",
-            justifyContent: "center", fontSize: 14, color: C.bg0,
+            width: 36, height: 36, borderRadius: 10,
+            background: `linear-gradient(135deg, ${C.teal}, ${C.tealDim})`,
+            display: "flex", alignItems: "center",
+            justifyContent: "center", fontSize: 18, color: C.bg0,
+            boxShadow: `0 0 16px ${C.teal}44`,
           }}>⚓</div>
           <div>
-            <div style={{ fontFamily: C.mono, fontSize: 11, fontWeight: 700, color: C.teal, letterSpacing: "1px" }}>CUSTOMS-EDOC</div>
-            <div style={{ fontSize: 10, color: C.textDim, marginTop: 1 }}>Super Admin</div>
+            <div style={{ fontFamily: C.mono, fontSize: 12, fontWeight: 700, color: C.teal, letterSpacing: "1px" }}>CUSTOMS-EDOC</div>
+            <div style={{ fontSize: 11, color: C.textDim, marginTop: 2 }}>Super Admin Console</div>
           </div>
         </div>
       </div>
 
       {/* Operator badge */}
-      <div style={{ padding: "12px 16px", borderBottom: `1px solid ${C.border}` }}>
-        <div style={{ background: C.bg3, borderRadius: 8, padding: "8px 12px", border: `1px solid ${C.border}` }}>
-          <div style={{ fontSize: 9, color: C.teal, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", marginBottom: 3 }}>Operator</div>
-          <div style={{ fontSize: 12, color: C.text, fontWeight: 600 }}>LogiConnect Co., Ltd.</div>
-          <div style={{ fontSize: 10, color: C.textDim, marginTop: 2 }}>admin@logiconnect.co.th</div>
+      <div style={{ padding: "14px 18px", borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ background: C.bg3, borderRadius: 10, padding: "10px 14px", border: `1px solid ${C.borderHi}` }}>
+          <div style={{ fontSize: 9, color: C.teal, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", marginBottom: 4 }}>Operator</div>
+          <div style={{ fontSize: 13, color: C.text, fontWeight: 600 }}>LogiConnect Co., Ltd.</div>
+          <div style={{ fontSize: 11, color: C.textDim, marginTop: 3 }}>admin@logiconnect.co.th</div>
         </div>
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, padding: "12px 10px" }}>
+      <nav style={{ flex: 1, padding: "14px 12px" }}>
         {NAV.map(item => {
           const isActive = active === item.id;
           return (
-            <button key={item.id} onClick={() => onNav(item.id)} style={{
+            <button key={item.id} className="nav-btn" onClick={() => { onNav(item.id); onClose && onClose(); }} style={{
               display: "flex", alignItems: "center", gap: 10,
-              width: "100%", padding: "9px 12px", borderRadius: 8, marginBottom: 2,
+              width: "100%", padding: "10px 14px", borderRadius: 10, marginBottom: 3,
               background: isActive ? C.tealBg : "transparent",
-              border: `1px solid ${isActive ? C.teal + "44" : "transparent"}`,
+              border: `1px solid ${isActive ? C.teal + "55" : "transparent"}`,
               color: isActive ? C.teal : C.textMid,
               cursor: "pointer", textAlign: "left",
-              fontSize: 13, fontWeight: isActive ? 600 : 400,
-              transition: "all 0.1s",
+              fontSize: 14, fontWeight: isActive ? 600 : 400,
+              transition: "all 0.15s",
             }}>
-              <span style={{ fontSize: 14, width: 18, textAlign: "center", fontFamily: C.mono }}>{item.icon}</span>
+              <span style={{ fontSize: 15, width: 20, textAlign: "center", fontFamily: C.mono }}>{item.icon}</span>
               {item.label}
               {item.id === "billing" && (
                 <span style={{
                   marginLeft: "auto", background: C.red, color: "#fff",
-                  borderRadius: 10, padding: "1px 6px", fontSize: 9, fontWeight: 700,
+                  borderRadius: 10, padding: "2px 7px", fontSize: 10, fontWeight: 700,
                 }}>2</span>
               )}
             </button>
@@ -267,7 +303,7 @@ function OverviewPage({ onNav }) {
       </div>
 
       {/* KPI row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 20 }}>
+      <div className="rsp-grid-4" style={{ marginBottom: 20 }}>
         {[
           { label: "Active tenants", value: activeCount, sub: `${TENANTS.length} total registered`, color: C.teal },
           { label: "Jobs this month", value: totalJobs, sub: "Across all factories", color: C.blue },
@@ -280,7 +316,7 @@ function OverviewPage({ onNav }) {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 16, marginBottom: 16 }}>
+      <div className="rsp-grid-2" style={{ marginBottom: 16 }}>
         {/* Tenant summary table */}
         <Card>
           <CardHeader title="Tenant summary" sub="All registered factories" action={
@@ -405,7 +441,8 @@ function TenantListPage({ onSelect, onNew }) {
 
       {/* Table */}
       <Card>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div className="table-wrap">
+        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
           <thead>
             <tr style={{ borderBottom: `1px solid ${C.border}` }}>
               {["Tenant", "Billing", "Jobs (Mar)", "Revenue", "Outstanding", "API", "Status", ""].map(h => (
@@ -469,6 +506,7 @@ function TenantListPage({ onSelect, onNew }) {
             ))}
           </tbody>
         </table>
+        </div>
       </Card>
     </div>
   );
@@ -506,7 +544,7 @@ function TenantDetailPage({ tenant, onBack }) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div className="rsp-grid-2-eq" style={{}}>
         {/* Left: Settings */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
@@ -616,7 +654,7 @@ function TenantDetailPage({ tenant, onBack }) {
         {/* Right: Stats + history */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {/* Stats */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="rsp-grid-2-eq" style={{}}>
             {[
               { label: "Jobs this month", value: tenant.stats.jobsMonth, color: C.blue },
               { label: "Total jobs", value: tenant.stats.jobsTotal, color: C.teal },
@@ -698,7 +736,7 @@ function BillingPage() {
       </div>
 
       {/* Summary */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginBottom: 20 }}>
+      <div className="rsp-grid-3" style={{ marginBottom: 20 }}>
         {[
           { label: "Pending collection", value: fmt.thb(totalPending * 35), color: C.amber },
           { label: "Overdue", value: fmt.thb(totalOverdue * 35), color: C.red },
@@ -722,7 +760,8 @@ function BillingPage() {
       </div>
 
       <Card>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div className="table-wrap">
+        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
           <thead>
             <tr style={{ borderBottom: `1px solid ${C.border}` }}>
               {["Invoice", "Tenant", "Jobs", "Amount", "Issued", "Due date", "Status", ""].map(h => (
@@ -754,6 +793,7 @@ function BillingPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </Card>
     </div>
   );
@@ -805,7 +845,7 @@ function AddTenantPage({ onBack }) {
       </Card>
 
       {/* Step content */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 20 }}>
+      <div className="rsp-grid-form" style={{}}>
         <Card>
           {step === 1 && (
             <div>
@@ -1051,7 +1091,8 @@ function SystemPage() {
 
       <Card style={{ marginBottom: 16 }}>
         <CardHeader title="API connections" sub="Real-time status" />
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div className="table-wrap">
+        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
           <thead>
             <tr style={{ borderBottom: `1px solid ${C.border}` }}>
               {["Service", "Endpoint", "Latency", "Uptime", "Req (24h)", "Status"].map(h => (
@@ -1072,6 +1113,7 @@ function SystemPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </Card>
 
       <Card>
@@ -1106,6 +1148,14 @@ function SystemPage() {
 export default function App() {
   const [screen, setScreen] = useState("overview");
   const [selectedTenant, setSelectedTenant] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const styleEl = document.createElement("style");
+    styleEl.textContent = RESPONSIVE_CSS;
+    document.head.appendChild(styleEl);
+    return () => document.head.removeChild(styleEl);
+  }, []);
 
   const handleNav = (id) => {
     setSelectedTenant(null);
@@ -1142,8 +1192,20 @@ export default function App() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: C.bg1, fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif" }}>
-      <Sidebar active={screen} onNav={handleNav} />
-      <main style={{ flex: 1, padding: "28px 32px", overflowY: "auto", minHeight: "100vh" }}>
+      {/* Mobile overlay */}
+      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+
+      <Sidebar active={screen} onNav={handleNav} onClose={() => setSidebarOpen(false)}
+        className={sidebarOpen ? "open" : ""} />
+
+      <main className="main-content" style={{ flex: 1, padding: "28px 32px", overflowY: "auto", minHeight: "100vh", overflowX: "hidden" }}>
+        {/* Mobile header */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+          <button className="hamburger-btn" onClick={() => setSidebarOpen(o => !o)}
+            style={{ color: C.text, border: `1px solid ${C.border}`, borderRadius: 8, padding: "7px 10px", background: C.bg2 }}>
+            ☰
+          </button>
+        </div>
         {renderContent()}
       </main>
     </div>
