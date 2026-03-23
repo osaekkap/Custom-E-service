@@ -5,6 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { BillingService } from '../billing/billing.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { UpdateJobStatusDto } from './dto/update-job-status.dto';
@@ -29,7 +30,10 @@ const STATUS_TRANSITIONS: Partial<Record<JobStatus, JobStatus[]>> = {
 
 @Injectable()
 export class JobsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private billingService: BillingService,
+  ) {}
 
   /** POST /jobs */
   async create(dto: CreateJobDto, user: RequestUser) {
@@ -212,6 +216,11 @@ export class JobsService {
         },
       }),
     ]);
+
+    // Auto-create billing item when job reaches COMPLETED
+    if (dto.status === JobStatus.COMPLETED) {
+      await this.billingService.createBillingItemForJob(id).catch(() => null);
+    }
 
     return updated;
   }
