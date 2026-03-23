@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma:*)",
+      "Bash(npm install:*)",
+      "Bash(winget --version)",
+      "Bash(scoop --version)",
+      "Bash(docker info:*)",
+      "Bash(npm run:*)",
+      "Bash(npx supabase:*)",
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"ยืนยัน\" npx prisma migrate reset --force)",
+      "Bash(PGPASSWORD=postgres psql -h 127.0.0.1 -p 54322 -U postgres -d postgres -c \"\\\\dt public.*\")",
+      "Bash(grep -v \"^$\")",
+      "Bash(node -e \"const p = require\\(''''@prisma/client''''\\); console.log\\(Object.keys\\(p\\).join\\(''''\\\\n''''\\)\\)\")",
+      "Bash(node -e \":*)"
+    ]
+  }
+}
