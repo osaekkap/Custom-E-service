@@ -9,6 +9,7 @@ import { JobsModule } from './jobs/jobs.module';
 import { MasterModule } from './master/master.module';
 import { DeclarationsModule } from './declarations/declarations.module';
 import { BillingModule } from './billing/billing.module';
+import { DocumentsModule } from './documents/documents.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { BillingModule } from './billing/billing.module';
     MasterModule,
     DeclarationsModule,
     BillingModule,
+    DocumentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
