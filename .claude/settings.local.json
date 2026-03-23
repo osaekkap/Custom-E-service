@@ -12,7 +12,9 @@
       "Bash(PGPASSWORD=postgres psql -h 127.0.0.1 -p 54322 -U postgres -d postgres -c \"\\\\dt public.*\")",
       "Bash(grep -v \"^$\")",
       "Bash(node -e \"const p = require\\(''''@prisma/client''''\\); console.log\\(Object.keys\\(p\\).join\\(''''\\\\n''''\\)\\)\")",
-      "Bash(node -e \":*)"
+      "Bash(node -e \":*)",
+      "Bash(grep -A3 '\"\"prisma\"\"' /c/Users/Admin/Documents/NKTech/Custom-E-service/backend/package.json)",
+      "Bash(git -C /c/Users/Admin/Documents/NKTech/Custom-E-service ls-files --error-unmatch backend/src/app.module.ts)"
     ]
   }
 }
