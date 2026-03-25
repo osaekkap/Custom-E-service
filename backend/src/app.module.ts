@@ -13,6 +13,7 @@ import { BillingModule } from './billing/billing.module';
 import { DocumentsModule } from './documents/documents.module';
 import { AuditModule } from './audit/audit.module';
 import { AuditInterceptor } from './audit/audit.interceptor';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { AuditInterceptor } from './audit/audit.interceptor';
     BillingModule,
     DocumentsModule,
     AuditModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [

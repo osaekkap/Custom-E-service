@@ -804,17 +804,66 @@ function NewShipment({ onBack, onCreated }) {
   const [submitMethod, setSubmitMethod] = useState("nsw");
   const [submitting, setSubmitting] = useState(false);
   const [submitErr, setSubmitErr] = useState("");
+  const [extracting, setExtracting] = useState(false);
+  const [extractErr, setExtractErr] = useState("");
+  const [extracted, setExtracted] = useState(null); // AI result
+  const [uploadedFiles, setUploadedFiles] = useState({ invoice: null, packingList: null, booking: null });
   const [form, setForm] = useState({
     type: "EXPORT",
-    vesselName: "MSC AURORA V.124",
-    containerNo: "MSCU7823410",
-    portOfLoading: "Laem Chabang (THLCH)",
-    portOfDischarge: "Busan, Korea",
-    etd: "2026-03-25",
-    consigneeNameEn: "Samsung Electronics Korea",
+    vesselName: "",
+    containerNo: "",
+    portOfLoading: "",
+    portOfDischarge: "",
+    etd: "",
+    consigneeNameEn: "",
     currency: "USD",
   });
   const STEPS = ["Upload documents","AI extraction & verify","Review & submit"];
+
+  // Populate form from extracted AI data
+  const applyExtracted = (data) => {
+    setForm(f => ({
+      ...f,
+      vesselName: data.vessel || f.vesselName,
+      containerNo: data.containerNo || f.containerNo,
+      portOfLoading: data.portOfLoading || f.portOfLoading,
+      portOfDischarge: data.portOfDischarge || f.portOfDischarge,
+      etd: data.etd || f.etd,
+      consigneeNameEn: data.consignee || f.consigneeNameEn,
+      currency: data.currency || f.currency,
+    }));
+  };
+
+  const handleFileSelect = (field) => (e) => {
+    const file = e.target.files?.[0] || null;
+    setUploadedFiles(prev => ({ ...prev, [field]: file }));
+    setExtractErr("");
+  };
+
+  const handleExtract = async () => {
+    if (!uploadedFiles.invoice) {
+      setExtractErr("กรุณาอัปโหลด Commercial Invoice ก่อน");
+      return;
+    }
+    setExtracting(true);
+    setExtractErr("");
+    try {
+      const fd = new FormData();
+      fd.append("invoice", uploadedFiles.invoice);
+      if (uploadedFiles.packingList) fd.append("packingList", uploadedFiles.packingList);
+      if (uploadedFiles.booking) fd.append("booking", uploadedFiles.booking);
+      const resp = await client.post("/ai/extract-invoice", fd, { headers: { "Content-Type": "multipart/form-data" } });
+      const data = resp.data;
+      setExtracted(data);
+      applyExtracted(data);
+      setStep(2);
+    } catch(e) {
+      const msg = e?.response?.data?.message;
+      setExtractErr(Array.isArray(msg) ? msg.join(", ") : (msg || "AI extraction failed"));
+    } finally {
+      setExtracting(false);
+    }
+  };
 
   const handleCreateJob = async () => {
     setSubmitting(true);
@@ -878,31 +927,63 @@ function NewShipment({ onBack, onCreated }) {
         <div>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:14, marginBottom:16 }}>
             {[
-              { title:"Commercial Invoice",    accept:"PDF, XLSX, CSV", required:true  },
-              { title:"Packing List",          accept:"PDF, XLSX, CSV", required:true  },
-              { title:"Booking Confirmation",  accept:"PDF",            required:false },
-            ].map((doc,i) => (
-              <Card key={i} style={{ padding:"24px 18px", textAlign:"center", cursor:"pointer", border:`2px dashed ${BORDER}`, background:BG }}
-                onMouseEnter={e=>e.currentTarget.style.borderColor=BLUE}
-                onMouseLeave={e=>e.currentTarget.style.borderColor=BORDER}>
-                <div style={{ fontSize:28, marginBottom:10 }}>📄</div>
-                <div style={{ fontSize:13, fontWeight:700, color:TEXT, marginBottom:4 }}>
-                  {doc.title} {doc.required && <span style={{ color:"#DC2626" }}>*</span>}
-                </div>
-                <div style={{ fontSize:11, color:TEXT3, marginBottom:14 }}>{doc.accept} · Max 20 MB</div>
-                <Btn variant="secondary" style={{ fontSize:11 }}>Choose file</Btn>
-              </Card>
-            ))}
+              { title:"Commercial Invoice",   field:"invoice",      accept:".pdf,.xlsx,.xls,.csv", required:true  },
+              { title:"Packing List",         field:"packingList",  accept:".pdf,.xlsx,.xls,.csv", required:false },
+              { title:"Booking Confirmation", field:"booking",      accept:".pdf",                 required:false },
+            ].map((doc) => {
+              const file = uploadedFiles[doc.field];
+              const hasFile = !!file;
+              return (
+                <label key={doc.field} htmlFor={`upload-${doc.field}`} style={{ cursor:"pointer" }}>
+                  <input
+                    id={`upload-${doc.field}`}
+                    type="file"
+                    accept={doc.accept}
+                    style={{ display:"none" }}
+                    onChange={handleFileSelect(doc.field)}
+                  />
+                  <Card style={{
+                    padding:"24px 18px", textAlign:"center",
+                    border:`2px dashed ${hasFile ? "#22C55E" : BORDER}`,
+                    background: hasFile ? "#F0FDF4" : BG,
+                    transition:"all 0.2s",
+                  }}>
+                    <div style={{ fontSize:28, marginBottom:10 }}>{hasFile ? "✅" : "📄"}</div>
+                    <div style={{ fontSize:13, fontWeight:700, color:TEXT, marginBottom:4 }}>
+                      {doc.title} {doc.required && <span style={{ color:"#DC2626" }}>*</span>}
+                    </div>
+                    {hasFile ? (
+                      <div style={{ fontSize:11, color:"#16A34A", fontWeight:600, marginBottom:8 }}>
+                        {file.name}<br/>
+                        <span style={{ fontWeight:400, color:TEXT3 }}>({(file.size/1024).toFixed(0)} KB)</span>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize:11, color:TEXT3, marginBottom:14 }}>
+                        {doc.accept.replace(/\./g,"").toUpperCase().split(",").join(", ")} · Max 20 MB
+                      </div>
+                    )}
+                    <div style={{
+                      display:"inline-block", padding:"6px 16px", borderRadius:7,
+                      border:`1px solid ${hasFile?"#22C55E":BORDER}`,
+                      background:hasFile?"#DCFCE7":W,
+                      fontSize:11, fontWeight:600, color:hasFile?"#16A34A":TEXT2,
+                    }}>
+                      {hasFile ? "Change file" : "Choose file"}
+                    </div>
+                  </Card>
+                </label>
+              );
+            })}
           </div>
 
           <Card style={{ padding:"14px 18px", marginBottom:16 }}>
             <div style={{ fontSize:12, fontWeight:600, color:TEXT, marginBottom:10 }}>AI extraction settings</div>
             <div style={{ display:"flex", gap:24 }}>
               {[
-                { label:"Extraction mode",   value:"DECLARATION_PREP" },
-                { label:"AI provider",       value:"Gemini Flash 2.0" },
-                { label:"Fallback",          value:"GLM-4V → OpenRouter" },
-                { label:"Thai translation",  value:"Auto-enabled" },
+                { label:"AI Provider",    value:"Claude Opus 4.6 (Anthropic)" },
+                { label:"Task",          value:"Export Declaration Prep" },
+                { label:"HS Code match", value:"Auto — from invoice text" },
+                { label:"Language",      value:"EN + TH auto-detect" },
               ].map((r,i) => (
                 <div key={i}>
                   <div style={{ fontSize:10, color:TEXT3, fontWeight:600, marginBottom:2 }}>{r.label}</div>
@@ -912,86 +993,130 @@ function NewShipment({ onBack, onCreated }) {
             </div>
           </Card>
 
+          {extractErr && (
+            <div style={{ marginBottom:12, padding:"10px 14px", borderRadius:8, background:"#FEF2F2", border:"1px solid #FECACA", fontSize:12, color:"#DC2626" }}>
+              {extractErr}
+            </div>
+          )}
+
           <div style={{ display:"flex", justifyContent:"flex-end" }}>
-            <Btn onClick={() => setStep(2)}>Extract with AI →</Btn>
+            <Btn
+              onClick={handleExtract}
+              disabled={extracting || !uploadedFiles.invoice}
+              style={{ opacity: (!uploadedFiles.invoice) ? 0.5 : 1, minWidth:180 }}
+            >
+              {extracting ? (
+                <span style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <span style={{ display:"inline-block", width:14, height:14, border:"2px solid #fff", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 0.8s linear infinite" }}/>
+                  กำลัง Extract…
+                </span>
+              ) : "Extract with AI →"}
+            </Btn>
           </div>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       )}
 
-      {step===2 && (
+      {step===2 && extracted && (
         <div>
           {/* AI status bar */}
-          <div style={{ background:"#F0FDF4", border:"1px solid #BBF7D0", borderRadius:10, padding:"12px 18px", marginBottom:16, display:"flex", alignItems:"center", gap:12 }}>
-            <div style={{ width:8, height:8, borderRadius:"50%", background:"#22C55E" }}/>
-            <span style={{ fontSize:12, fontWeight:700, color:"#15803D" }}>AI Extraction complete</span>
-            <span style={{ fontSize:11, color:"#16A34A" }}>Gemini Flash · 14 items · 13 HS matched · 1 missing</span>
-            <div style={{ marginLeft:"auto", background:"#FEF3C7", border:"1px solid #FDE68A", borderRadius:20, padding:"2px 10px", fontSize:10, fontWeight:700, color:"#D97706" }}>1 item needs HS code</div>
-          </div>
+          {(() => {
+            const items = extracted.items || [];
+            const matched = items.filter(it => it.hsCode).length;
+            const missing = items.length - matched;
+            const confColor = extracted.confidence === "high" ? "#15803D" : extracted.confidence === "medium" ? "#D97706" : "#DC2626";
+            const confBg = extracted.confidence === "high" ? "#F0FDF4" : extracted.confidence === "medium" ? "#FFFBEB" : "#FEF2F2";
+            const confBorder = extracted.confidence === "high" ? "#BBF7D0" : extracted.confidence === "medium" ? "#FDE68A" : "#FECACA";
+            return (
+              <div style={{ background:confBg, border:`1px solid ${confBorder}`, borderRadius:10, padding:"12px 18px", marginBottom:16, display:"flex", alignItems:"center", gap:12 }}>
+                <div style={{ width:8, height:8, borderRadius:"50%", background:confColor }}/>
+                <span style={{ fontSize:12, fontWeight:700, color:confColor }}>AI Extraction complete</span>
+                <span style={{ fontSize:11, color:confColor }}>Claude Opus 4.6 · {items.length} items · {matched} HS matched{missing > 0 ? ` · ${missing} missing` : ""}</span>
+                {missing > 0 && (
+                  <div style={{ marginLeft:"auto", background:"#FEF3C7", border:"1px solid #FDE68A", borderRadius:20, padding:"2px 10px", fontSize:10, fontWeight:700, color:"#D97706" }}>
+                    {missing} item{missing>1?"s":""} need HS code
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
-          {/* Header fields */}
+          {/* Header fields — editable, pre-filled from AI */}
           <Card style={{ padding:"16px 20px", marginBottom:14 }}>
-            <div style={{ fontSize:12, fontWeight:700, color:TEXT, marginBottom:12 }}>Shipment header</div>
+            <div style={{ fontSize:12, fontWeight:700, color:TEXT, marginBottom:12 }}>Shipment header <span style={{ fontSize:10, fontWeight:400, color:TEXT3 }}>— แก้ไขได้</span></div>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12 }}>
               {[
-                { label:"Shipper", val:"บริษัท ไทยอิเล็กทรอนิกส์ จำกัด" },
-                { label:"Consignee", val:"Samsung Electronics Korea" },
-                { label:"Vessel", val:"MSC AURORA V.124" },
-                { label:"Container", val:"MSCU7823410" },
-                { label:"Port of Loading", val:"Laem Chabang (THLCH)" },
-                { label:"Port of Discharge", val:"Busan, Korea" },
-                { label:"ETD", val:"2026-03-25" },
-                { label:"Exchange Rate", val:"35.75 THB/USD" },
-              ].map((f,i) => (
-                <div key={i}>
+                { label:"Shipper",            key:"shipper",         val: extracted.shipper || "" },
+                { label:"Consignee",          key:"consigneeNameEn", val: form.consigneeNameEn },
+                { label:"Vessel",             key:"vesselName",      val: form.vesselName },
+                { label:"Container No.",      key:"containerNo",     val: form.containerNo },
+                { label:"Port of Loading",    key:"portOfLoading",   val: form.portOfLoading },
+                { label:"Port of Discharge",  key:"portOfDischarge", val: form.portOfDischarge },
+                { label:"ETD",                key:"etd",             val: form.etd },
+                { label:"Currency",           key:"currency",        val: form.currency },
+              ].map((f) => (
+                <div key={f.key}>
                   <label style={{ fontSize:10, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase" }}>{f.label}</label>
-                  <input defaultValue={f.val} style={{ width:"100%", background:"#FFFFFF", border:`1px solid ${BORDER}`, borderRadius:7, padding:"7px 10px", fontSize:11, color:TEXT, boxSizing:"border-box" }}/>
+                  <input
+                    value={f.val}
+                    onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+                    style={{ width:"100%", background:"#FFFFFF", border:`1px solid ${BORDER}`, borderRadius:7, padding:"7px 10px", fontSize:11, color:TEXT, boxSizing:"border-box" }}
+                  />
                 </div>
               ))}
             </div>
           </Card>
 
-          {/* Items table */}
+          {/* Items table — real AI data */}
           <Card style={{ marginBottom:14 }}>
-            <SectionHeader title="Extracted items" sub="Review and confirm HS codes" />
+            <SectionHeader title={`Extracted items (${(extracted.items||[]).length})`} sub="Review and fill missing HS codes" />
             <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
               <thead>
                 <tr style={{ background:BG, borderBottom:`1px solid ${BORDER}` }}>
-                  {["#","Description","Thai description","HS Code","Qty","Unit","FOB/unit","Status"].map(h=>(
+                  {["#","Description","Thai","HS Code","Qty","Unit","FOB","Status"].map(h=>(
                     <th key={h} style={{ padding:"8px 14px", textAlign:"left", fontSize:10, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {[
-                  [1,"Semiconductor IC Controller","วงจรรวมไมโครคอนโทรลเลอร์","8542.31.10","2,000","pcs","$24.50",true],
-                  [2,"PCB Assembly Board","แผงวงจรพิมพ์","8534.00.10","500","pcs","$85.00",true],
-                  [3,"LCD Display 7-inch","จอแสดงผลแอลซีดี","8524.12.90","300","pcs","$45.20",true],
-                  [4,"Power Supply Unit 12V","แหล่งจ่ายไฟ 12V",null,"150","pcs","$18.00",false],
-                  [5,"Enclosure Housing ABS","กล่องพลาสติก ABS","3926.90.99","200","pcs","$12.50",true],
-                ].map((row,i) => (
-                  <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}`, background:row[7]?W:"#FFFBEB" }}>
-                    <td style={{ padding:"9px 14px", color:TEXT3 }}>{row[0]}</td>
-                    <td style={{ padding:"9px 14px", fontWeight:500, color:TEXT }}>{row[1]}</td>
-                    <td style={{ padding:"9px 14px", color:TEXT2, fontSize:11 }}>{row[2]}</td>
-                    <td style={{ padding:"9px 14px" }}>
-                      {row[3]
-                        ? <span style={{ fontFamily:MONO, fontSize:11, color:"#2563EB", fontWeight:600 }}>{row[3]}</span>
-                        : <input placeholder="Enter HS code" style={{ border:`1px solid #FCD34D`, borderRadius:6, padding:"4px 8px", fontSize:11, width:110, background:"#FFFBEB" }}/>
-                      }
-                    </td>
-                    <td style={{ padding:"9px 14px", fontFamily:MONO, color:TEXT2 }}>{row[4]}</td>
-                    <td style={{ padding:"9px 14px", color:TEXT2 }}>{row[5]}</td>
-                    <td style={{ padding:"9px 14px", color:TEXT2 }}>{row[6]}</td>
-                    <td style={{ padding:"9px 14px" }}>
-                      <span style={{
-                        padding:"2px 8px", borderRadius:20, fontSize:10, fontWeight:700,
-                        background:row[7]?"#F0FDF4":"#FEF3C7",
-                        color:row[7]?"#16A34A":"#D97706",
-                        border:`1px solid ${row[7]?"#BBF7D0":"#FDE68A"}`,
-                      }}>{row[7]?"AI Match":"Missing"}</span>
-                    </td>
-                  </tr>
-                ))}
+                {(extracted.items||[]).map((item, i) => {
+                  const hasHs = !!(item.hsCode);
+                  return (
+                    <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}`, background: hasHs ? W : "#FFFBEB" }}>
+                      <td style={{ padding:"9px 14px", color:TEXT3 }}>{item.seqNo ?? i+1}</td>
+                      <td style={{ padding:"9px 14px", fontWeight:500, color:TEXT, maxWidth:200 }}>{item.descriptionEn}</td>
+                      <td style={{ padding:"9px 14px", color:TEXT2, fontSize:11, maxWidth:160 }}>{item.descriptionTh || "—"}</td>
+                      <td style={{ padding:"9px 14px" }}>
+                        {hasHs
+                          ? <span style={{ fontFamily:MONO, fontSize:11, color:BLUE, fontWeight:600 }}>{item.hsCode}</span>
+                          : <input
+                              placeholder="กรอก HS code"
+                              defaultValue=""
+                              onChange={e => {
+                                const val = e.target.value;
+                                setExtracted(prev => ({
+                                  ...prev,
+                                  items: prev.items.map((it, idx) => idx === i ? { ...it, hsCode: val || null } : it),
+                                }));
+                              }}
+                              style={{ border:`1px solid #FCD34D`, borderRadius:6, padding:"4px 8px", fontSize:11, width:110, background:"#FFFBEB" }}
+                            />
+                        }
+                      </td>
+                      <td style={{ padding:"9px 14px", fontFamily:MONO, color:TEXT2 }}>{item.quantity?.toLocaleString()}</td>
+                      <td style={{ padding:"9px 14px", color:TEXT2 }}>{item.quantityUnit}</td>
+                      <td style={{ padding:"9px 14px", color:TEXT2 }}>{item.fobForeign != null ? `${form.currency || "USD"} ${Number(item.fobForeign).toLocaleString(undefined,{minimumFractionDigits:2})}` : "—"}</td>
+                      <td style={{ padding:"9px 14px" }}>
+                        <span style={{
+                          padding:"2px 8px", borderRadius:6, fontSize:10, fontWeight:700,
+                          background: hasHs ? "#F0FDF4" : "#FEF3C7",
+                          color: hasHs ? "#16A34A" : "#D97706",
+                          border:`1px solid ${hasHs?"#BBF7D0":"#FDE68A"}`,
+                        }}>{hasHs ? "✓ AI Match" : "Missing"}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </Card>
