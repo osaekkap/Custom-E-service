@@ -8,10 +8,15 @@ async function bootstrap() {
   // Support comma-separated origins e.g. "https://app.example.com,http://localhost:5173"
   const rawOrigins = process.env.FRONTEND_URL ?? 'http://localhost:5173';
   const allowedOrigins = rawOrigins.split(',').map((o) => o.trim());
+  const isDev = process.env.NODE_ENV !== 'production';
   app.enableCors({
     origin: (origin, cb) => {
-      // Allow non-browser clients (Postman, server-to-server) and listed origins
-      if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+      // Allow non-browser clients (Postman, server-to-server)
+      if (!origin) return cb(null, true);
+      // In dev: allow any localhost port (Vite may use 5173, 5174, 5175…)
+      if (isDev && /^http:\/\/localhost:\d+$/.test(origin)) return cb(null, true);
+      // Production: check explicit allow-list
+      if (allowedOrigins.includes(origin)) return cb(null, true);
       cb(new Error(`CORS: origin ${origin} not allowed`));
     },
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
