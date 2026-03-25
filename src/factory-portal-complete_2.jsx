@@ -2450,17 +2450,36 @@ function SettingsCompany() {
 }
 
 function SettingsUsers() {
+  const perms = usePermissions();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [inviteModal, setInviteModal] = useState(false);
-  const [inviteForm, setInviteForm] = useState({ email:"", fullName:"", role:"USER", password:"" });
+  const [inviteForm, setInviteForm] = useState({ email:"", fullName:"", role:"CUSTOMER", password:"" });
   const [inviting, setInviting] = useState(false);
   const [inviteErr, setInviteErr] = useState("");
   const [inviteSuccess, setInviteSuccess] = useState(null); // { email, password }
   const [editModal, setEditModal] = useState(null); // { user, role }
-  const [editRole, setEditRole] = useState("USER");
+  const [editRole, setEditRole] = useState("CUSTOMER");
   const [savingRole, setSavingRole] = useState(false);
   const [showInvitePw, setShowInvitePw] = useState(false);
+
+  // Role options visible to the current user when inviting / editing
+  // CUSTOMER_ADMIN (factory) → only factory-side roles
+  // NKTech ADMIN → all roles
+  const ROLE_OPTIONS = perms.isCustomerAdmin
+    ? [
+        { value:"CUSTOMER",       label:"ลูกค้า — ยื่น Shipment + ดูข้อมูลตัวเอง" },
+        { value:"CUSTOMER_ADMIN", label:"โรงงาน Admin — จัดการ Users + Billing ของบริษัท" },
+        { value:"VIEWER",         label:"Viewer — ดูได้อย่างเดียว" },
+      ]
+    : [
+        { value:"CUSTOMER",       label:"ลูกค้า — ยื่น Shipment + ดูข้อมูลตัวเอง" },
+        { value:"CUSTOMER_ADMIN", label:"โรงงาน Admin — จัดการ Users + Billing ของบริษัท" },
+        { value:"STAFF",          label:"เจ้าหน้าที่ — ทำใบขน + NSW (NKTech)" },
+        { value:"MANAGER",        label:"ผู้บริหาร — ดู Reports + อนุมัติ Billing (NKTech)" },
+        { value:"TENANT_ADMIN",   label:"Admin — สิทธิ์เต็ม (NKTech)" },
+        { value:"VIEWER",         label:"Viewer — ดูได้อย่างเดียว" },
+      ];
   const [pwCopied, setPwCopied] = useState(false);
 
   const loadUsers = () => {
@@ -2583,12 +2602,7 @@ function SettingsUsers() {
                 <label style={{ fontSize:14, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>Role</label>
                 <select value={inviteForm.role} onChange={e => setInviteForm(f=>({...f,role:e.target.value}))}
                   style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:14, background:"#FFFFFF", boxSizing:"border-box" }}>
-                  <option value="CUSTOMER">ลูกค้า — ยื่น Shipment + ดูข้อมูลตัวเอง</option>
-                  <option value="CUSTOMER_ADMIN">โรงงาน Admin — จัดการ Users + Billing ของบริษัท</option>
-                  <option value="STAFF">เจ้าหน้าที่ — ทำใบขน + NSW (NKTech)</option>
-                  <option value="MANAGER">ผู้บริหาร — ดู Reports + อนุมัติ Billing (NKTech)</option>
-                  <option value="TENANT_ADMIN">Admin — สิทธิ์เต็ม (NKTech)</option>
-                  <option value="VIEWER">Viewer — ดูได้อย่างเดียว</option>
+                  {ROLE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
               {inviteErr && <div style={{ padding:"8px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, fontSize:14, color:"#DC2626" }}>{inviteErr}</div>}
@@ -2611,12 +2625,7 @@ function SettingsUsers() {
               <label style={{ fontSize:14, color:TEXT3, fontWeight:600, display:"block", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.5px" }}>Role</label>
               <select value={editRole} onChange={e => setEditRole(e.target.value)}
                 style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:15, background:"#FFFFFF" }}>
-                <option value="CUSTOMER">ลูกค้า — ยื่น Shipment + ดูข้อมูลตัวเอง</option>
-                <option value="CUSTOMER_ADMIN">โรงงาน Admin — จัดการ Users + Billing</option>
-                <option value="STAFF">เจ้าหน้าที่ — ทำใบขน + NSW (NKTech)</option>
-                <option value="MANAGER">ผู้บริหาร — ดู Reports + อนุมัติ Billing (NKTech)</option>
-                <option value="TENANT_ADMIN">Admin — สิทธิ์เต็ม (NKTech)</option>
-                <option value="VIEWER">Viewer — ดูได้อย่างเดียว</option>
+                  {ROLE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
             <div style={{ display:"flex", gap:10, marginTop:20, justifyContent:"flex-end" }}>
