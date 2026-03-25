@@ -3,6 +3,8 @@ import { AuthContext } from "./stores/AuthContext.jsx";
 import LoginScreen from "./LoginScreen.jsx";
 import RegisterScreen from "./RegisterScreen.jsx";
 import { jobsApi } from "./api/jobsApi.js";
+import { customerApi } from "./api/customerApi.js";
+import client from "./api/client.js";
 
 // ─── Constants ────────────────────────────────────────────────────
 const STATUS = {
@@ -114,6 +116,10 @@ const NAV = [
 function Sidebar({ active, onNav }) {
   const auth = useContext(AuthContext);
   const userEmail = auth?.user?.email || "";
+  const customer = auth?.user?.customer;
+  const companyName = customer?.companyNameTh || customer?.companyNameEn || "—";
+  const tenantId = customer ? `${customer.code}` : "—";
+
   return (
     <div style={{ width:220, background:"#0B1929", minHeight:"100vh", display:"flex", flexDirection:"column", flexShrink:0, position:"sticky", top:0, height:"100vh" }}>
       <div style={{ padding:"20px 18px 16px", borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
@@ -127,10 +133,10 @@ function Sidebar({ active, onNav }) {
       </div>
 
       <div style={{ padding:"10px 14px", borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
-        <div style={{ background:"rgba(14,165,233,0.08)", borderRadius:8, padding:"8px 12px", border:"1px solid rgba(14,165,233,0.2)", cursor:"pointer" }}>
+        <div style={{ background:"rgba(14,165,233,0.08)", borderRadius:8, padding:"8px 12px", border:"1px solid rgba(14,165,233,0.2)", cursor:"pointer" }} onClick={() => onNav("settings")}>
           <div style={{ fontSize:9, color:"#0EA5E9", fontWeight:700, letterSpacing:"0.8px", textTransform:"uppercase", marginBottom:3 }}>Active factory</div>
-          <div style={{ fontSize:12, color:"#E2E8F0", fontWeight:600 }}>ไทยอิเล็กทรอนิกส์ จำกัด</div>
-          <div style={{ fontSize:10, color:"#475569", marginTop:2 }}>T001 · THEL</div>
+          <div style={{ fontSize:12, color:"#E2E8F0", fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{companyName}</div>
+          <div style={{ fontSize:10, color:"#475569", marginTop:2 }}>{tenantId}</div>
         </div>
       </div>
 
@@ -174,20 +180,40 @@ function Sidebar({ active, onNav }) {
 
 // ─── DASHBOARD ────────────────────────────────────────────────────
 function Dashboard({ onNav }) {
-  const pending = SHIPMENTS.filter(s => ["NSW_PROCESSING","CUSTOMS_REVIEW","SUBMITTED"].includes(s.status));
+  const auth = useContext(AuthContext);
+  const [jobs, setJobs] = useState([]);
+  const companyName = auth?.user?.customer?.companyNameTh || auth?.user?.customer?.companyNameEn || "บริษัท";
+
+  useEffect(() => {
+    jobsApi.list().then(data => {
+      const arr = data?.data ?? (Array.isArray(data) ? data : []);
+      setJobs(arr);
+    }).catch(() => {});
+  }, []);
+
+  // derive stats from real jobs (fallback to 0 if no data)
+  const thisMonth = new Date().toISOString().substring(0,7);
+  const monthJobs = jobs.filter(j => (j.createdAt||"").startsWith(thisMonth));
+  const pending = jobs.filter(j => ["NSW_PROCESSING","CUSTOMS_REVIEW","SUBMITTED"].includes(j.status));
+  const cleared = jobs.filter(j => ["CLEARED","COMPLETED"].includes(j.status));
+  const pendingUi = (jobs.length > 0 ? pending : SHIPMENTS.filter(s => ["NSW_PROCESSING","CUSTOMS_REVIEW","SUBMITTED"].includes(s.status)));
+  const recentUi = jobs.length > 0 ? jobs.slice(0,5).map(mapJob) : SHIPMENTS.slice(0,5);
+
+  const mon = new Date().toLocaleString("th-TH",{month:"long", year:"numeric"});
+
   return (
     <div>
       <div style={{ marginBottom:20 }}>
         <h1 style={{ margin:0, fontSize:20, fontWeight:800, color:TEXT }}>Dashboard</h1>
-        <p style={{ margin:"3px 0 0", fontSize:12, color:TEXT3 }}>บริษัท ไทยอิเล็กทรอนิกส์ จำกัด · March 2026</p>
+        <p style={{ margin:"3px 0 0", fontSize:12, color:TEXT3 }}>{companyName} · {mon}</p>
       </div>
 
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14, marginBottom:20 }}>
         {[
-          { label:"Jobs this month", value:"42",   sub:"↑ 8 vs last month",   color:"#0EA5E9" },
-          { label:"Awaiting clearance", value:"3", sub:"NSW + Customs queue", color:"#F59E0B" },
-          { label:"Cleared today",   value:"8",    sub:"All export jobs",      color:"#22C55E" },
-          { label:"FOB value (Mar)", value:"$4.2M",sub:"Total exported",       color:"#8B5CF6" },
+          { label:"Jobs this month",    value: jobs.length>0 ? String(monthJobs.length) : "—", sub:"ทั้งหมดในเดือนนี้",   color:"#0EA5E9" },
+          { label:"Awaiting clearance", value: jobs.length>0 ? String(pending.length) : "—",   sub:"NSW + Customs queue", color:"#F59E0B" },
+          { label:"Cleared / Done",     value: jobs.length>0 ? String(cleared.length) : "—",   sub:"All export jobs",     color:"#22C55E" },
+          { label:"Total jobs",         value: jobs.length>0 ? String(jobs.length) : "—",       sub:"ทั้งหมดในระบบ",       color:"#8B5CF6" },
         ].map((k,i) => (
           <Card key={i} style={{ padding:"16px 18px" }}>
             <div style={{ fontSize:10, color:TEXT3, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:10 }}>{k.label}</div>
@@ -200,10 +226,11 @@ function Dashboard({ onNav }) {
       <div style={{ display:"grid", gridTemplateColumns:"1.4fr 1fr", gap:16 }}>
         <Card>
           <SectionHeader title="Recent shipments" right={<Btn variant="ghost" onClick={() => onNav("shipments")} style={{ fontSize:11 }}>View all →</Btn>} />
-          {SHIPMENTS.slice(0,5).map((s,i) => (
+          {recentUi.length === 0 && <div style={{ padding:"20px", fontSize:12, color:TEXT3, textAlign:"center" }}>ยังไม่มี shipment</div>}
+          {recentUi.map((s,i) => (
             <div key={i} onClick={() => onNav("shipment_detail", s)} style={{
               display:"flex", justifyContent:"space-between", alignItems:"center",
-              padding:"11px 20px", borderBottom:i<4?`1px solid ${BORDER2}`:"none",
+              padding:"11px 20px", borderBottom:i<recentUi.length-1?`1px solid ${BORDER2}`:"none",
               cursor:"pointer",
             }}
             onMouseEnter={e=>e.currentTarget.style.background=BG}
@@ -223,14 +250,14 @@ function Dashboard({ onNav }) {
         <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
           <Card>
             <SectionHeader title="Jobs awaiting clearance" />
-            {pending.length === 0 && <div style={{ padding:"20px", fontSize:12, color:TEXT3, textAlign:"center" }}>All clear</div>}
-            {pending.map((s,i) => (
-              <div key={i} style={{ padding:"10px 18px", borderBottom:i<pending.length-1?`1px solid ${BORDER2}`:"none" }}>
+            {pendingUi.length === 0 && <div style={{ padding:"20px", fontSize:12, color:TEXT3, textAlign:"center" }}>All clear ✓</div>}
+            {pendingUi.slice(0,5).map((s,i) => (
+              <div key={i} style={{ padding:"10px 18px", borderBottom:i<Math.min(pendingUi.length,5)-1?`1px solid ${BORDER2}`:"none" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-                  <span style={{ fontSize:12, fontWeight:700, color:TEXT, fontFamily:MONO }}>{s.id}</span>
+                  <span style={{ fontSize:12, fontWeight:700, color:TEXT, fontFamily:MONO }}>{s.id || s.jobNo}</span>
                   <Badge status={s.status} />
                 </div>
-                <div style={{ fontSize:11, color:TEXT3 }}>{s.fob} · {s.date}</div>
+                <div style={{ fontSize:11, color:TEXT3 }}>{s.fob} · {s.date || s.createdAt?.substring(0,10)}</div>
               </div>
             ))}
           </Card>
@@ -546,10 +573,46 @@ function ShipmentDetail({ job, onBack }) {
 }
 
 // ─── NEW SHIPMENT WIZARD ──────────────────────────────────────────
-function NewShipment({ onBack }) {
+function NewShipment({ onBack, onCreated }) {
   const [step, setStep] = useState(1);
   const [submitMethod, setSubmitMethod] = useState("nsw");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitErr, setSubmitErr] = useState("");
+  const [form, setForm] = useState({
+    type: "EXPORT",
+    vesselName: "MSC AURORA V.124",
+    containerNo: "MSCU7823410",
+    portOfLoading: "Laem Chabang (THLCH)",
+    portOfDischarge: "Busan, Korea",
+    etd: "2026-03-25",
+    consigneeNameEn: "Samsung Electronics Korea",
+    currency: "USD",
+  });
   const STEPS = ["Upload documents","AI extraction & verify","Review & submit"];
+
+  const handleCreateJob = async () => {
+    setSubmitting(true);
+    setSubmitErr("");
+    try {
+      const job = await jobsApi.create({
+        type: form.type,
+        vesselName: form.vesselName || undefined,
+        containerNo: form.containerNo || undefined,
+        portOfLoading: form.portOfLoading || undefined,
+        portOfDischarge: form.portOfDischarge || undefined,
+        etd: form.etd || undefined,
+        consigneeNameEn: form.consigneeNameEn || undefined,
+        currency: form.currency || "USD",
+      });
+      if (onCreated) onCreated(job);
+      else onBack();
+    } catch(e) {
+      const msg = e?.response?.data?.message;
+      setSubmitErr(Array.isArray(msg) ? msg.join(", ") : (msg || "เกิดข้อผิดพลาด"));
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div>
@@ -773,12 +836,13 @@ function NewShipment({ onBack }) {
               </div>
             </div>
 
+            {submitErr && <div style={{ padding:"8px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, fontSize:12, color:"#DC2626" }}>{submitErr}</div>}
             <div style={{ display:"flex", gap:10 }}>
               <Btn variant="secondary" onClick={() => setStep(2)} style={{ flex:1, textAlign:"center" }}>← Back</Btn>
-              <button style={{
-                flex:2, background:BLUE, color:"#fff", border:"none", borderRadius:8,
-                padding:"11px", fontSize:13, fontWeight:700, cursor:"pointer",
-              }}>Submit to NSW →</button>
+              <button onClick={handleCreateJob} disabled={submitting} style={{
+                flex:2, background:submitting?"#94A3B8":BLUE, color:"#fff", border:"none", borderRadius:8,
+                padding:"11px", fontSize:13, fontWeight:700, cursor:submitting?"not-allowed":"pointer",
+              }}>{submitting ? "กำลังสร้าง job…" : "สร้าง Job & Submit to NSW →"}</button>
             </div>
           </div>
         </div>
@@ -789,13 +853,23 @@ function NewShipment({ onBack }) {
 
 // ─── NSW TRACKING ─────────────────────────────────────────────────
 function NSWTracking() {
-  const active = SHIPMENTS.filter(s=>!["COMPLETED","DRAFT"].includes(s.status));
+  const [allJobs, setAllJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    jobsApi.list().then(data => {
+      const arr = data?.data ?? (Array.isArray(data) ? data : []);
+      setAllJobs(arr.length > 0 ? arr.map(mapJob) : SHIPMENTS);
+    }).catch(() => setAllJobs(SHIPMENTS)).finally(() => setLoading(false));
+  }, []);
+
+  const active = allJobs.filter(s=>!["COMPLETED","DRAFT"].includes(s.status));
 
   return (
     <div>
       <div style={{ marginBottom:18 }}>
         <h1 style={{ margin:0, fontSize:20, fontWeight:800, color:TEXT }}>NSW Tracking</h1>
-        <p style={{ margin:"3px 0 0", fontSize:12, color:TEXT3 }}>Real-time submission status</p>
+        <p style={{ margin:"3px 0 0", fontSize:12, color:TEXT3 }}>{loading ? "Loading…" : `${active.length} jobs in progress`}</p>
       </div>
 
       <div style={{ background:W, border:`1px solid ${BORDER}`, borderRadius:10, padding:"12px 20px", marginBottom:20, display:"flex", alignItems:"center", gap:20 }}>
@@ -867,6 +941,14 @@ function NSWTracking() {
 // ─── DECLARATIONS ─────────────────────────────────────────────────
 function Declarations() {
   const [view, setView] = useState("list");
+  const [jobs, setJobs] = useState(null); // null = loading
+  useEffect(() => {
+    jobsApi.list().then(data => {
+      const arr = data?.data ?? (Array.isArray(data) ? data : []);
+      setJobs(arr.length > 0 ? arr.map(mapJob) : SHIPMENTS);
+    }).catch(() => setJobs(SHIPMENTS));
+  }, []);
+  const declList = (jobs || SHIPMENTS).filter(s=>s.status!=="DRAFT");
 
   return (
     <div>
@@ -890,14 +972,14 @@ function Declarations() {
       {/* Summary bar */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:18 }}>
         {[
-          { label:"Export declarations",  value:"38",    color:"#2563EB" },
-          { label:"Import declarations",  value:"12",    color:"#D97706" },
-          { label:"Pending submission",   value:"3",     color:"#7C3AED" },
-          { label:"Cleared this month",   value:"42",    color:"#16A34A" },
+          { label:"Export declarations",  value: String(declList.filter(s=>s.type==="Export").length), color:"#2563EB" },
+          { label:"Import declarations",  value: String(declList.filter(s=>s.type==="Import").length), color:"#D97706" },
+          { label:"Pending submission",   value: String(declList.filter(s=>["DRAFT","PREPARING"].includes(s.status)).length), color:"#7C3AED" },
+          { label:"Cleared",             value: String(declList.filter(s=>["CLEARED","COMPLETED"].includes(s.status)).length), color:"#16A34A" },
         ].map((s,i) => (
           <Card key={i} style={{ padding:"14px 18px" }}>
             <div style={{ fontSize:10, color:TEXT3, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:8 }}>{s.label}</div>
-            <div style={{ fontSize:22, fontWeight:800, color:s.color, fontFamily:MONO }}>{s.value}</div>
+            <div style={{ fontSize:22, fontWeight:800, color:s.color, fontFamily:MONO }}>{jobs===null?"…":s.value}</div>
           </Card>
         ))}
       </div>
@@ -918,7 +1000,7 @@ function Declarations() {
             </tr>
           </thead>
           <tbody>
-            {SHIPMENTS.filter(s=>s.status!=="DRAFT").map((s,i) => (
+            {declList.map((s,i) => (
               <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}`, cursor:"pointer" }}
                 onMouseEnter={e=>e.currentTarget.style.background=BG}
                 onMouseLeave={e=>e.currentTarget.style.background=W}>
@@ -1256,6 +1338,201 @@ function Reports() {
 }
 
 // ─── SETTINGS ─────────────────────────────────────────────────────
+function SettingsCompany() {
+  const auth = useContext(AuthContext);
+  const cust = auth?.user?.customer;
+  const [form, setForm] = useState({
+    companyNameTh: cust?.companyNameTh || "",
+    companyNameEn: cust?.companyNameEn || "",
+    taxId:         cust?.taxId || "",
+    address:       cust?.address || "",
+    phone:         cust?.phone || "",
+    email:         auth?.user?.email || "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [errMsg, setErrMsg] = useState("");
+
+  // Load full customer profile
+  useEffect(() => {
+    customerApi.getMy().then(data => {
+      setForm(f => ({
+        ...f,
+        companyNameTh: data.companyNameTh || f.companyNameTh,
+        companyNameEn: data.companyNameEn || f.companyNameEn,
+        taxId:         data.taxId || f.taxId,
+        address:       data.address || f.address,
+        phone:         data.phone || f.phone,
+        email:         data.email || f.email,
+      }));
+    }).catch(() => {});
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true); setSaved(false); setErrMsg("");
+    try {
+      await customerApi.updateMy({
+        companyNameTh: form.companyNameTh || undefined,
+        companyNameEn: form.companyNameEn || undefined,
+        address:       form.address || undefined,
+        phone:         form.phone || undefined,
+        email:         form.email || undefined,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch(e) {
+      const m = e?.response?.data?.message;
+      setErrMsg(Array.isArray(m) ? m.join(", ") : (m || "Save failed"));
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div style={{ display:"grid", gridTemplateColumns:"1.4fr 1fr", gap:16 }}>
+      <Card>
+        <SectionHeader title="Company profile" />
+        <div style={{ padding:"20px", display:"flex", flexDirection:"column", gap:14 }}>
+          {[
+            ["ชื่อบริษัท (ภาษาไทย)", "companyNameTh"],
+            ["Company Name (English)", "companyNameEn"],
+            ["เลขประจำตัวผู้เสียภาษี (Tax ID)", "taxId", true],
+            ["ที่อยู่", "address"],
+            ["เบอร์โทร", "phone"],
+            ["อีเมลบริษัท", "email"],
+          ].map(([l, k, readonly]) => (
+            <div key={k}>
+              <label style={{ fontSize:11, color:TEXT3, fontWeight:600, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.5px" }}>{l}</label>
+              <input
+                value={form[k]}
+                readOnly={readonly}
+                onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
+                style={{ width:"100%", background: readonly?"#F1F5F9":BG, border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:12, color: readonly?TEXT3:TEXT, boxSizing:"border-box", cursor: readonly?"not-allowed":"text" }}
+              />
+            </div>
+          ))}
+          {errMsg && <div style={{ padding:"8px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, fontSize:12, color:"#DC2626" }}>{errMsg}</div>}
+          {saved  && <div style={{ padding:"8px 12px", background:"#F0FDF4", border:"1px solid #BBF7D0", borderRadius:8, fontSize:12, color:"#16A34A" }}>✓ บันทึกสำเร็จ</div>}
+          <Btn onClick={handleSave} style={{ alignSelf:"flex-start" }}>{saving ? "Saving…" : "Save changes"}</Btn>
+        </div>
+      </Card>
+      <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+        <Card>
+          <SectionHeader title="Service plan" />
+          <div style={{ padding:"16px 20px" }}>
+            <div style={{ background:BG, borderRadius:8, padding:"14px", border:`1px solid ${BORDER}`, marginBottom:12 }}>
+              <div style={{ fontSize:10, color:TEXT3, marginBottom:4, textTransform:"uppercase", fontWeight:600 }}>Current plan</div>
+              <div style={{ fontSize:16, fontWeight:800, color:TEXT }}>Standard</div>
+              <div style={{ fontSize:11, color:TEXT3, marginTop:4 }}>฿450 per job · Per-job billing</div>
+            </div>
+            {[
+              ["Status", cust?.status || "ACTIVE"],
+              ["Customer code", cust?.code || "—"],
+              ["Tax ID", form.taxId || "—"],
+              ["T&C version", cust?.tcVersion || "—"],
+            ].map(([l,v],i) => (
+              <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:i<3?`1px solid ${BORDER2}`:"none" }}>
+                <span style={{ fontSize:11, color:TEXT3 }}>{l}</span>
+                <span style={{ fontSize:11, fontWeight:600, color: l==="Status"&&v==="TRIAL"?"#D97706":TEXT }}>{v}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function SettingsUsers() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    customerApi.listUsers().then(data => {
+      setUsers(Array.isArray(data) ? data : (data?.data ?? []));
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <Card>
+      <SectionHeader title="Organisation users" sub="Manage access for your team" right={<Btn>+ Invite user</Btn>}/>
+      {loading && <div style={{ padding:"20px", textAlign:"center", fontSize:12, color:TEXT3 }}>Loading users…</div>}
+      {!loading && users.length === 0 && <div style={{ padding:"20px", textAlign:"center", fontSize:12, color:TEXT3 }}>ยังไม่มีผู้ใช้ในระบบ</div>}
+      {users.length > 0 && (
+        <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+          <thead>
+            <tr style={{ background:BG, borderBottom:`1px solid ${BORDER}` }}>
+              {["Name","Email","Role","Status",""].map(h=>(
+                <th key={h} style={{ padding:"9px 18px", textAlign:"left", fontSize:10, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px" }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u,i) => {
+              const name = u.profile?.fullName || u.fullName || "—";
+              const email = u.profile?.email || u.email || "—";
+              const role = u.role || "USER";
+              return (
+                <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}` }}>
+                  <td style={{ padding:"13px 18px" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                      <div style={{ width:32, height:32, borderRadius:"50%", background:"#0EA5E915", border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:BLUE }}>
+                        {name.charAt(0)}
+                      </div>
+                      <span style={{ fontSize:13, fontWeight:600, color:TEXT }}>{name}</span>
+                    </div>
+                  </td>
+                  <td style={{ padding:"13px 18px", color:TEXT2 }}>{email}</td>
+                  <td style={{ padding:"13px 18px" }}>
+                    <Tag label={role} color={role==="TENANT_ADMIN"?BLUE:role==="USER"?"#7C3AED":TEXT3}/>
+                  </td>
+                  <td style={{ padding:"13px 18px" }}>
+                    <Tag label="Active" color="#16A34A"/>
+                  </td>
+                  <td style={{ padding:"13px 18px", display:"flex", gap:6 }}>
+                    <Btn variant="ghost" style={{ fontSize:10 }}>Edit role</Btn>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+    </Card>
+  );
+}
+
+function SettingsNotifications() {
+  const ITEMS = [
+    ["Job submitted to NSW",   true ],
+    ["NSW approval received",  true ],
+    ["Customs cleared",        true ],
+    ["Job rejected",           true ],
+    ["Invoice issued",         true ],
+    ["Monthly summary report", false],
+    ["New user invited",       false],
+  ];
+  const [notifs, setNotifs] = useState(ITEMS.map(([,v]) => v));
+  const toggle = (i) => setNotifs(n => n.map((v, idx) => idx===i ? !v : v));
+
+  return (
+    <Card style={{ maxWidth:560 }}>
+      <SectionHeader title="Email notifications" />
+      <div style={{ padding:"20px", display:"flex", flexDirection:"column", gap:14 }}>
+        {ITEMS.map(([label], i) => (
+          <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 0", borderBottom:i<ITEMS.length-1?`1px solid ${BORDER2}`:"none" }}>
+            <span style={{ fontSize:13, color:TEXT }}>{label}</span>
+            <button onClick={() => toggle(i)} style={{
+              width:44, height:24, borderRadius:12, border:"none", cursor:"pointer", position:"relative",
+              background:notifs[i]?BLUE:"#E2E8F0", transition:"background 0.15s",
+            }}>
+              <div style={{ width:18, height:18, borderRadius:"50%", background:"#fff", position:"absolute", top:3, left:notifs[i]?23:3, transition:"left 0.15s" }}/>
+            </button>
+          </div>
+        ))}
+        <Btn style={{ alignSelf:"flex-start" }} onClick={() => alert("Notification settings saved ✓")}>Save preferences</Btn>
+      </div>
+    </Card>
+  );
+}
+
 function Settings() {
   const [tab, setTab] = useState("company");
 
@@ -1276,123 +1553,9 @@ function Settings() {
         ))}
       </div>
 
-      {tab==="company" && (
-        <div style={{ display:"grid", gridTemplateColumns:"1.4fr 1fr", gap:16 }}>
-          <Card>
-            <SectionHeader title="Company profile" />
-            <div style={{ padding:"20px", display:"flex", flexDirection:"column", gap:14 }}>
-              {[
-                ["Company name (Thai)", "บริษัท ไทยอิเล็กทรอนิกส์ จำกัด"],
-                ["Tax ID", "0105561000123"],
-                ["Address", "123 ถ.พระราม 2 แขวงบางมด เขตจอมทอง กรุงเทพฯ 10150"],
-                ["Phone", "02-123-4567"],
-                ["Email", "somchai@thaielectronics.co.th"],
-              ].map(([l,v],i) => (
-                <div key={i}>
-                  <label style={{ fontSize:11, color:TEXT3, fontWeight:600, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.5px" }}>{l}</label>
-                  <input defaultValue={v} style={{ width:"100%", background:BG, border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:12, color:TEXT, boxSizing:"border-box" }}/>
-                </div>
-              ))}
-              <Btn style={{ alignSelf:"flex-start" }}>Save changes</Btn>
-            </div>
-          </Card>
-          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-            <Card>
-              <SectionHeader title="Service plan" />
-              <div style={{ padding:"16px 20px" }}>
-                <div style={{ background:BG, borderRadius:8, padding:"14px", border:`1px solid ${BORDER}`, marginBottom:12 }}>
-                  <div style={{ fontSize:10, color:TEXT3, marginBottom:4, textTransform:"uppercase", fontWeight:600 }}>Current plan</div>
-                  <div style={{ fontSize:16, fontWeight:800, color:TEXT }}>Standard</div>
-                  <div style={{ fontSize:11, color:TEXT3, marginTop:4 }}>฿450 per job · Per-job billing</div>
-                </div>
-                {[
-                  ["Provider","LogiConnect Co., Ltd."],
-                  ["Contact","admin@logiconnect.co.th"],
-                  ["Member since","September 2025"],
-                  ["Tenant ID","T001 · THEL"],
-                ].map(([l,v],i) => (
-                  <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:i<3?`1px solid ${BORDER2}`:"none" }}>
-                    <span style={{ fontSize:11, color:TEXT3 }}>{l}</span>
-                    <span style={{ fontSize:11, fontWeight:600, color:TEXT }}>{v}</span>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
-        </div>
-      )}
-
-      {tab==="users" && (
-        <Card>
-          <SectionHeader title="Factory users" sub="Manage access for your team" right={<Btn>+ Invite user</Btn>}/>
-          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
-            <thead>
-              <tr style={{ background:BG, borderBottom:`1px solid ${BORDER}` }}>
-                {["Name","Email","Role","Last active","Status",""].map(h=>(
-                  <th key={h} style={{ padding:"9px 18px", textAlign:"left", fontSize:10, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px" }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { name:"สมชาย ใจดี",   email:"somchai@thaielectronics.co.th", role:"ADMIN",  last:"Now",       active:true },
-                { name:"วิภา สวัสดี",  email:"vipa@thaielectronics.co.th",    role:"USER",   last:"2h ago",    active:true },
-                { name:"ธนา มั่งมี",   email:"thana@thaielectronics.co.th",   role:"VIEWER", last:"3 days ago",active:false },
-              ].map((u,i) => (
-                <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}` }}>
-                  <td style={{ padding:"13px 18px" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                      <div style={{ width:32, height:32, borderRadius:"50%", background:"#0EA5E915", border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:BLUE }}>
-                        {u.name.charAt(0)}
-                      </div>
-                      <span style={{ fontSize:13, fontWeight:600, color:TEXT }}>{u.name}</span>
-                    </div>
-                  </td>
-                  <td style={{ padding:"13px 18px", color:TEXT2 }}>{u.email}</td>
-                  <td style={{ padding:"13px 18px" }}>
-                    <Tag label={u.role} color={u.role==="ADMIN"?BLUE:u.role==="USER"?"#7C3AED":TEXT3}/>
-                  </td>
-                  <td style={{ padding:"13px 18px", color:TEXT3, fontSize:11 }}>{u.last}</td>
-                  <td style={{ padding:"13px 18px" }}>
-                    <Tag label={u.active?"Active":"Inactive"} color={u.active?"#16A34A":"#DC2626"}/>
-                  </td>
-                  <td style={{ padding:"13px 18px", display:"flex", gap:6 }}>
-                    <Btn variant="ghost" style={{ fontSize:10 }}>Edit role</Btn>
-                    {u.role!=="ADMIN" && <Btn variant="danger" style={{ fontSize:10 }}>Remove</Btn>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
-      )}
-
-      {tab==="notifications" && (
-        <Card style={{ maxWidth:560 }}>
-          <SectionHeader title="Email notifications" />
-          <div style={{ padding:"20px", display:"flex", flexDirection:"column", gap:14 }}>
-            {[
-              ["Job submitted to NSW",    true ],
-              ["NSW approval received",   true ],
-              ["Customs cleared",         true ],
-              ["Job rejected",            true ],
-              ["Invoice issued",          true ],
-              ["Monthly summary report",  false],
-              ["New user invited",        false],
-            ].map(([label, on], i) => (
-              <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 0", borderBottom:i<6?`1px solid ${BORDER2}`:"none" }}>
-                <span style={{ fontSize:13, color:TEXT }}>{label}</span>
-                <button style={{
-                  width:44, height:24, borderRadius:12, border:"none", cursor:"pointer", position:"relative",
-                  background:on?BLUE:"#E2E8F0", transition:"background 0.15s",
-                }}>
-                  <div style={{ width:18, height:18, borderRadius:"50%", background:"#fff", position:"absolute", top:3, left:on?23:3, transition:"left 0.15s" }}/>
-                </button>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
+      {tab==="company"       && <SettingsCompany />}
+      {tab==="users"         && <SettingsUsers />}
+      {tab==="notifications" && <SettingsNotifications />}
 
       {tab==="security" && (
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
@@ -1459,7 +1622,7 @@ export default function App() {
       case "dashboard":     return <Dashboard onNav={handleNav}/>;
       case "shipments":     return <ShipmentList onNew={() => handleNav("new")} onDetail={job => handleNav("shipment_detail",job)}/>;
       case "shipment_detail": return <ShipmentDetail job={detailJob} onBack={() => setScreen("shipments")}/>;
-      case "new":           return <NewShipment onBack={() => setScreen("shipments")}/>;
+      case "new":           return <NewShipment onBack={() => setScreen("shipments")} onCreated={() => { setScreen("shipments"); }}/>;
       case "nsw":           return <NSWTracking/>;
       case "declarations":  return <Declarations/>;
       case "master":        return <MasterData/>;
