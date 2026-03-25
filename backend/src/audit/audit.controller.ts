@@ -1,0 +1,49 @@
+import {
+  Controller, Get, Query, Request, UseGuards,
+} from '@nestjs/common';
+import { AuditService } from './audit.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '@prisma/client';
+import { RequestUser } from '../auth/jwt.strategy';
+import { IsOptional, IsInt, Min, Max } from 'class-validator';
+import { Type } from 'class-transformer';
+
+class QueryAuditDto {
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(500)
+  limit?: number = 100;
+
+  @IsOptional() @Type(() => Number) @IsInt() @Min(0)
+  skip?: number = 0;
+}
+
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Controller('audit-logs')
+export class AuditController {
+  constructor(private readonly auditService: AuditService) {}
+
+  /**
+   * GET /api/audit-logs
+   * TENANT_ADMIN → ดู log ของบริษัทตัวเอง
+   * SUPER_ADMIN   → ดู log ทั้งหมด
+   */
+  @Roles(Role.TENANT_ADMIN, Role.SUPER_ADMIN, Role.USER)
+  @Get()
+  getLogs(
+    @Request() req: { user: RequestUser },
+    @Query() query: QueryAuditDto,
+  ) {
+    const { limit = 100, skip = 0 } = query;
+
+    if (req.user.role === Role.SUPER_ADMIN) {
+      return this.auditService.findAll(limit, skip);
+    }
+
+    if (req.user.customerId) {
+      return this.auditService.findByCustomer(req.user.customerId, limit, skip);
+    }
+
+    return this.auditService.findByActor(req.user.userId, limit, skip);
+  }
+}

@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Request, Req, Ip } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Request, Req, Ip, Headers } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -12,8 +12,12 @@ export class AuthController {
 
   /** POST /api/auth/login */
   @Post('login')
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  login(
+    @Body() dto: LoginDto,
+    @Ip() ip: string,
+    @Headers('user-agent') ua: string,
+  ) {
+    return this.authService.login(dto, ip, ua);
   }
 
   /** POST /api/auth/register — สร้าง user ใหม่สำหรับ customer (ต้อง login ก่อน) */

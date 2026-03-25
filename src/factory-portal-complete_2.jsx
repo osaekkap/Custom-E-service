@@ -4,6 +4,7 @@ import LoginScreen from "./LoginScreen.jsx";
 import RegisterScreen from "./RegisterScreen.jsx";
 import { jobsApi } from "./api/jobsApi.js";
 import { customerApi } from "./api/customerApi.js";
+import { auditApi } from "./api/auditApi.js";
 import client from "./api/client.js";
 
 // ─── Constants ────────────────────────────────────────────────────
@@ -1337,6 +1338,200 @@ function Reports() {
   );
 }
 
+// ─── ACTION LABELS ────────────────────────────────────────────────
+const ACTION_LABELS = {
+  LOGIN:               { label:"เข้าสู่ระบบ",       icon:"🔐", color:"#0EA5E9" },
+  REGISTER_B2B:        { label:"สมัครใช้งาน B2B",   icon:"🏢", color:"#7C3AED" },
+  REGISTER_USER:       { label:"สร้างผู้ใช้",        icon:"👤", color:"#7C3AED" },
+  CREATE_JOB:          { label:"สร้าง Shipment",     icon:"📦", color:"#16A34A" },
+  UPDATE_JOB:          { label:"แก้ไข Shipment",     icon:"✏️", color:"#D97706" },
+  UPDATE_JOB_STATUS:   { label:"เปลี่ยนสถานะ Job",   icon:"🔄", color:"#D97706" },
+  DELETE_JOB:          { label:"ลบ Shipment",        icon:"🗑️", color:"#DC2626" },
+  CREATE_DECLARATION:  { label:"สร้างใบขนสินค้า",   icon:"📄", color:"#16A34A" },
+  SUBMIT_DECLARATION:  { label:"ยื่นใบขนฯ NSW",      icon:"🚀", color:"#0EA5E9" },
+  UPDATE_DECLARATION:  { label:"แก้ไขใบขนสินค้า",   icon:"✏️", color:"#D97706" },
+  UPLOAD_DOCUMENT:     { label:"อัปโหลดเอกสาร",     icon:"📎", color:"#16A34A" },
+  REFRESH_DOCUMENT:    { label:"รีเฟรช URL เอกสาร", icon:"🔗", color:"#64748B" },
+  UPDATE_COMPANY:      { label:"แก้ไขข้อมูลบริษัท", icon:"🏭", color:"#7C3AED" },
+  INVITE_USER:         { label:"เชิญผู้ใช้",         icon:"📧", color:"#16A34A" },
+  UPDATE_USER_ROLE:    { label:"เปลี่ยน Role",       icon:"🔑", color:"#D97706" },
+  REMOVE_USER:         { label:"ลบผู้ใช้",           icon:"🚫", color:"#DC2626" },
+};
+
+function AuditActionBadge({ action, status }) {
+  const meta = ACTION_LABELS[action] || { label: action, icon:"⚡", color:"#64748B" };
+  const failed = status === "FAILED";
+  return (
+    <span style={{
+      display:"inline-flex", alignItems:"center", gap:4,
+      padding:"2px 8px", borderRadius:20, fontSize:10, fontWeight:700,
+      background: failed?"#FEF2F2":`${meta.color}12`,
+      color: failed?"#DC2626":meta.color,
+      border:`1px solid ${failed?"#FECACA":`${meta.color}30`}`,
+    }}>
+      {meta.icon} {meta.label}
+      {failed && <span style={{ marginLeft:2, fontSize:9 }}>✗</span>}
+    </span>
+  );
+}
+
+function SettingsSecurity() {
+  const auth = useContext(AuthContext);
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
+  const [filter, setFilter] = useState("ALL");
+  const [pwForm, setPwForm] = useState({ current:"", next:"", confirm:"" });
+  const [pwErr, setPwErr] = useState("");
+  const [pwOk, setPwOk] = useState(false);
+
+  useEffect(() => {
+    auditApi.list({ limit: 200 }).then(data => {
+      setLogs(data?.data ?? (Array.isArray(data) ? data : []));
+      setTotal(data?.total ?? 0);
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  const FILTERS = ["ALL","LOGIN","JOB","DECLARATION","USER","COMPANY"];
+  const shown = filter === "ALL" ? logs : logs.filter(l => {
+    if (filter === "LOGIN")       return l.action === "LOGIN";
+    if (filter === "JOB")         return l.entityType === "JOB";
+    if (filter === "DECLARATION") return l.entityType === "DECLARATION";
+    if (filter === "USER")        return l.entityType === "USER";
+    if (filter === "COMPANY")     return l.entityType === "CUSTOMER";
+    return true;
+  });
+
+  // Last login entry
+  const lastLogin = logs.find(l => l.action === "LOGIN" && l.status !== "FAILED");
+  const lastLoginTime = lastLogin
+    ? new Date(lastLogin.createdAt).toLocaleString("th-TH", { dateStyle:"medium", timeStyle:"short" })
+    : "—";
+  const lastIp = lastLogin?.ipAddress || "—";
+
+  const handleChangePassword = async () => {
+    setPwErr(""); setPwOk(false);
+    if (!pwForm.current) return setPwErr("กรุณากรอกรหัสผ่านปัจจุบัน");
+    if (pwForm.next.length < 8) return setPwErr("รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัว");
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(pwForm.next)) return setPwErr("ต้องมีตัวพิมพ์ใหญ่ พิมพ์เล็ก และตัวเลข");
+    if (pwForm.next !== pwForm.confirm) return setPwErr("รหัสผ่านไม่ตรงกัน");
+    try {
+      await client.post("/auth/change-password", { currentPassword: pwForm.current, newPassword: pwForm.next });
+      setPwOk(true);
+      setPwForm({ current:"", next:"", confirm:"" });
+    } catch(e) {
+      setPwErr(e?.response?.data?.message || "เปลี่ยนรหัสผ่านไม่สำเร็จ");
+    }
+  };
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+      {/* Session info + Change password */}
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+        <Card>
+          <SectionHeader title="เปลี่ยนรหัสผ่าน" />
+          <div style={{ padding:"20px", display:"flex", flexDirection:"column", gap:12 }}>
+            {[["รหัสผ่านปัจจุบัน","current"],["รหัสผ่านใหม่","next"],["ยืนยันรหัสผ่านใหม่","confirm"]].map(([l,k]) => (
+              <div key={k}>
+                <label style={{ fontSize:11, color:TEXT3, fontWeight:600, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.5px" }}>{l}</label>
+                <input type="password" placeholder="••••••••" value={pwForm[k]}
+                  onChange={e => setPwForm(f => ({ ...f, [k]: e.target.value }))}
+                  style={{ width:"100%", background:BG, border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:12, color:TEXT, boxSizing:"border-box" }}/>
+              </div>
+            ))}
+            {pwErr && <div style={{ padding:"8px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, fontSize:12, color:"#DC2626" }}>{pwErr}</div>}
+            {pwOk  && <div style={{ padding:"8px 12px", background:"#F0FDF4", border:"1px solid #BBF7D0", borderRadius:8, fontSize:12, color:"#16A34A" }}>✓ เปลี่ยนรหัสผ่านสำเร็จ</div>}
+            <Btn onClick={handleChangePassword} style={{ alignSelf:"flex-start" }}>Update password</Btn>
+          </div>
+        </Card>
+        <Card>
+          <SectionHeader title="Session & access" />
+          <div style={{ padding:"16px 20px" }}>
+            {[
+              ["Last login",    lastLoginTime],
+              ["IP address",    lastIp],
+              ["Session",       "JWT · 8h validity"],
+              ["ISO 27001",     "Compliant — Audit log active ✓"],
+            ].map(([l,v],i) => (
+              <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"9px 0", borderBottom:i<3?`1px solid ${BORDER2}`:"none" }}>
+                <span style={{ fontSize:11, color:TEXT3 }}>{l}</span>
+                <span style={{ fontSize:11, fontWeight:600, color: l==="ISO 27001"?"#16A34A":TEXT }}>{v}</span>
+              </div>
+            ))}
+            <Btn variant="danger" onClick={auth?.logout} style={{ marginTop:16, width:"100%", textAlign:"center" }}>Sign out</Btn>
+          </div>
+        </Card>
+      </div>
+
+      {/* Audit Log Table */}
+      <Card>
+        <SectionHeader
+          title="Audit Log — ประวัติการใช้งาน"
+          sub={loading ? "Loading…" : `${total} รายการทั้งหมด · แสดง ${shown.length} รายการล่าสุด`}
+          right={
+            <div style={{ display:"flex", gap:6 }}>
+              {FILTERS.map(f => (
+                <button key={f} onClick={() => setFilter(f)} style={{
+                  padding:"4px 10px", borderRadius:20, fontSize:10, fontWeight:600, cursor:"pointer",
+                  background: filter===f ? BLUE : "transparent",
+                  color: filter===f ? "#fff" : TEXT2,
+                  border:`1px solid ${filter===f ? BLUE : BORDER}`,
+                }}>{f}</button>
+              ))}
+            </div>
+          }
+        />
+        {loading && <div style={{ padding:"24px", textAlign:"center", fontSize:12, color:TEXT3 }}>Loading audit logs…</div>}
+        {!loading && shown.length === 0 && <div style={{ padding:"24px", textAlign:"center", fontSize:12, color:TEXT3 }}>ยังไม่มีประวัติการใช้งาน</div>}
+        {shown.length > 0 && (
+          <div style={{ overflowX:"auto" }}>
+            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+              <thead>
+                <tr style={{ background:BG, borderBottom:`1px solid ${BORDER}` }}>
+                  {["วันเวลา","Action","ผู้ใช้","IP Address","Status"].map(h => (
+                    <th key={h} style={{ padding:"8px 16px", textAlign:"left", fontSize:10, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px", whiteSpace:"nowrap" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {shown.map((log, i) => {
+                  const dt = new Date(log.createdAt).toLocaleString("th-TH", { dateStyle:"short", timeStyle:"medium" });
+                  const failed = log.status === "FAILED" || (log.detail && log.detail.error);
+                  return (
+                    <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}`, background: failed?"#FFFBEB":W }}
+                      onMouseEnter={e=>e.currentTarget.style.background=BG}
+                      onMouseLeave={e=>e.currentTarget.style.background=failed?"#FFFBEB":W}>
+                      <td style={{ padding:"10px 16px", fontFamily:MONO, fontSize:10, color:TEXT3, whiteSpace:"nowrap" }}>{dt}</td>
+                      <td style={{ padding:"10px 16px" }}>
+                        <AuditActionBadge action={log.action} status={log.status} />
+                        {log.entityId && <span style={{ marginLeft:6, fontSize:10, color:TEXT3, fontFamily:MONO }}>{log.entityId.substring(0,8)}…</span>}
+                      </td>
+                      <td style={{ padding:"10px 16px", fontSize:11, color:TEXT2 }}>
+                        {log.actorEmail || "—"}
+                      </td>
+                      <td style={{ padding:"10px 16px", fontFamily:MONO, fontSize:10, color:TEXT2 }}>
+                        {log.ipAddress || "—"}
+                      </td>
+                      <td style={{ padding:"10px 16px" }}>
+                        <span style={{
+                          padding:"2px 7px", borderRadius:20, fontSize:9, fontWeight:700,
+                          background: failed?"#FEF2F2":"#F0FDF4",
+                          color: failed?"#DC2626":"#16A34A",
+                          border:`1px solid ${failed?"#FECACA":"#BBF7D0"}`,
+                        }}>{failed?"FAILED":"SUCCESS"}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
 // ─── SETTINGS ─────────────────────────────────────────────────────
 function SettingsCompany() {
   const auth = useContext(AuthContext);
@@ -1557,39 +1752,7 @@ function Settings() {
       {tab==="users"         && <SettingsUsers />}
       {tab==="notifications" && <SettingsNotifications />}
 
-      {tab==="security" && (
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
-          <Card>
-            <SectionHeader title="Change password" />
-            <div style={{ padding:"20px", display:"flex", flexDirection:"column", gap:12 }}>
-              {["Current password","New password","Confirm new password"].map((l,i) => (
-                <div key={i}>
-                  <label style={{ fontSize:11, color:TEXT3, fontWeight:600, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.5px" }}>{l}</label>
-                  <input type="password" placeholder="••••••••" style={{ width:"100%", background:BG, border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:12, color:TEXT, boxSizing:"border-box" }}/>
-                </div>
-              ))}
-              <Btn style={{ alignSelf:"flex-start" }}>Update password</Btn>
-            </div>
-          </Card>
-          <Card>
-            <SectionHeader title="Session & access" />
-            <div style={{ padding:"16px 20px" }}>
-              {[
-                ["Last login",         "Today 08:30 · Bangkok, TH"],
-                ["Session expires",    "In 4 hours"],
-                ["IP address",         "101.10.xx.xx"],
-                ["ISO 27001",          "Compliant — Audit log active"],
-              ].map(([l,v],i) => (
-                <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"9px 0", borderBottom:i<3?`1px solid ${BORDER2}`:"none" }}>
-                  <span style={{ fontSize:11, color:TEXT3 }}>{l}</span>
-                  <span style={{ fontSize:11, fontWeight:600, color:TEXT }}>{v}</span>
-                </div>
-              ))}
-              <Btn variant="danger" style={{ marginTop:16, width:"100%", textAlign:"center" }}>Sign out all devices</Btn>
-            </div>
-          </Card>
-        </div>
-      )}
+      {tab==="security" && <SettingsSecurity />}
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { createClient } from '@supabase/supabase-js';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditService } from '../audit/audit.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { RegisterB2bDto } from './dto/register-b2b.dto';
@@ -22,6 +23,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private config: ConfigService,
+    private auditService: AuditService,
   ) {
     this.supabase = createClient(
       this.config.get<string>('SUPABASE_URL') ?? '',
@@ -30,13 +32,23 @@ export class AuthService {
   }
 
   /** POST /auth/login */
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
     // 1. Verify credentials via Supabase Auth
     const { data, error } = await this.supabase.auth.signInWithPassword({
       email: dto.email,
       password: dto.password,
     });
     if (error || !data.user) {
+      // Log failed login attempt
+      this.auditService.log({
+        actorEmail: dto.email,
+        action: 'LOGIN',
+        entityType: 'AUTH',
+        status: 'FAILED',
+        ipAddress,
+        userAgent,
+        detail: { reason: 'Invalid credentials' },
+      });
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -68,6 +80,19 @@ export class AuthService {
       customer_id: customerId,
     };
     const token = this.jwtService.sign(payload);
+
+    // Log successful login
+    this.auditService.log({
+      actorId:    supabaseUser.id,
+      actorEmail: supabaseUser.email,
+      customerId,
+      action:     'LOGIN',
+      entityType: 'AUTH',
+      status:     'SUCCESS',
+      ipAddress,
+      userAgent,
+      detail: { role, customerCode: customerUser?.customer?.code },
+    });
 
     return {
       access_token: token,
