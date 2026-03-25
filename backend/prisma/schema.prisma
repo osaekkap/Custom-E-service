@@ -452,6 +452,48 @@ model ExportDeclaration {
   signedAt      DateTime?
   submittedAt   DateTime?
 
+  // ── XSD v4.00 — Exporter (auto-populated from Exporter master) ──────
+  exporterTaxId    String?  @db.VarChar(17)   // Seq.3  Exporter/TaxNumber
+  exporterBranch   String?  @db.VarChar(6)    // Seq.4  Exporter/Branch
+  exporterNameTh   String?  @db.VarChar(120)  // Seq.5  Exporter/ThaiName
+  exporterNameEn   String?  @db.VarChar(70)   // Seq.6  Exporter/EnglishName
+  exporterAddress  String?  @db.VarChar(70)   // Seq.7  Exporter/StreetAndNumber
+
+  // ── XSD v4.00 — Agent/Broker ────────────────────────────────────────
+  agentBranch      String?  @db.VarChar(6)    // Seq.13 Agent/Branch
+
+  // ── XSD v4.00 — AuthorisedPerson ────────────────────────────────────
+  managerIdCard    String?  @db.VarChar(17)   // Seq.16 ManagerIDCard
+  managerName      String?  @db.VarChar(35)   // Seq.17 ManagerName
+
+  // ── XSD v4.00 — BorderTransportMeans ────────────────────────────────
+  cargoTypeCode    String?  @db.VarChar(1)    // Seq.19 CargoTypeCode (UNECE Rec.21)
+  vesselName       String?  @db.VarChar(35)   // Seq.20 VesselName (auto from job)
+  departureDate    DateTime?                  // Seq.21 DepartureDate (auto from job.etd)
+
+  // ── XSD v4.00 — Bill of Lading ──────────────────────────────────────
+  masterBl         String?  @db.VarChar(35)   // Seq.22 BillofLading/Master
+  houseBl          String?  @db.VarChar(35)   // Seq.23 BillofLading/House
+
+  // ── XSD v4.00 — Package & Weight ────────────────────────────────────
+  shippingMarks    String?  @db.VarChar(512)  // Seq.28 ShippingMarks
+  packageUnitCode  String?  @db.VarChar(2)    // Seq.30 TotalPackage/UnitCode
+  totalNetWeight   Decimal? @db.Decimal(11,3) // Seq.31 TotalNetWeight
+  netWeightUnit    String?  @db.VarChar(3)    // Seq.32 NetWeightUnitCode
+  totalGrossWeight Decimal? @db.Decimal(11,3) // Seq.33 TotalGrossWeight
+  grossWeightUnit  String?  @db.VarChar(3)    // Seq.34 GrossWeightUnitCode
+
+  // ── XSD v4.00 — FOB & Financial ─────────────────────────────────────
+  totalFobForeign  Decimal? @db.Decimal(16,2) // Seq.37 FOBValue/Foreign
+  paymentMethod    String?  @db.VarChar(1)    // Seq.45 PaymentMethod (a1)
+  guaranteeMethod  String?  @db.VarChar(1)    // Seq.51 ObligationGuarantee/Method
+
+  // ── XSD v4.00 — NSW / Reference ─────────────────────────────────────
+  nswReferenceNumber    String?  @db.VarChar(13)  // Seq.1  ReferenceNumber (an13)
+  declarationDocType    String?  @db.VarChar(1)   // Seq.2  DocumentType (default "E")
+  nswRegistrationId     String?  @db.VarChar(35)  // Seq.66 RegistrationID (Sender ID)
+  exportTaxIncentivesId String?  @db.VarChar(17)  // Seq.57 ExportTaxIncentivesID
+
   // Submission tracking
   submissionMethod SubmissionMethod?
   submissionStatus SubmissionStatus @default(PENDING)

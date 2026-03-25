@@ -13,6 +13,7 @@ export class CreateDeclarationDto {
   @MaxLength(100)
   invoiceRef?: string;
 
+  // ── AuthorisedPerson ──────────────────────────────────────────────
   @IsOptional()
   @IsString()
   @MaxLength(50)
@@ -25,6 +26,17 @@ export class CreateDeclarationDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(17)
+  managerIdCard?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(35)
+  managerName?: string;
+
+  // ── Agent/Broker ─────────────────────────────────────────────────
+  @IsOptional()
+  @IsString()
   @MaxLength(255)
   brokerName?: string;
 
@@ -34,9 +46,56 @@ export class CreateDeclarationDto {
   brokerTaxId?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(6)
+  agentBranch?: string;
+
+  // ── Exporter (overrides auto-populated from master) ───────────────
+  @IsOptional()
+  @IsString()
+  @MaxLength(17)
+  exporterTaxId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(6)
+  exporterBranch?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  exporterNameTh?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(70)
+  exporterNameEn?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(70)
+  exporterAddress?: string;
+
+  // ── Transport ────────────────────────────────────────────────────
+  @IsOptional()
   @IsEnum(TransportMode)
   transportMode?: TransportMode;
 
+  @IsOptional()
+  @IsString()
+  @MaxLength(1)
+  cargoTypeCode?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(35)
+  vesselName?: string;
+
+  @IsOptional()
+  @IsDateString()
+  departureDate?: string;
+
+  // ── Port ─────────────────────────────────────────────────────────
   @IsOptional()
   @IsString()
   @MaxLength(10)
@@ -62,9 +121,54 @@ export class CreateDeclarationDto {
   @MaxLength(5)
   destinationCode?: string;
 
+  // ── Bill of Lading ───────────────────────────────────────────────
+  @IsOptional()
+  @IsString()
+  @MaxLength(35)
+  masterBl?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(35)
+  houseBl?: string;
+
+  // ── Package & Weight ─────────────────────────────────────────────
   @IsOptional()
   @IsInt()
   totalPackages?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(512)
+  shippingMarks?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2)
+  packageUnitCode?: string;
+
+  @IsOptional()
+  @IsNumber()
+  totalNetWeight?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(3)
+  netWeightUnit?: string;
+
+  @IsOptional()
+  @IsNumber()
+  totalGrossWeight?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(3)
+  grossWeightUnit?: string;
+
+  // ── FOB & Exchange ───────────────────────────────────────────────
+  @IsOptional()
+  @IsNumber()
+  totalFobForeign?: number;
 
   @IsOptional()
   @IsNumber()
@@ -79,6 +183,39 @@ export class CreateDeclarationDto {
   @IsDateString()
   exchangeRateDate?: string;
 
+  // ── Financial ────────────────────────────────────────────────────
+  @IsOptional()
+  @IsString()
+  @MaxLength(1)
+  paymentMethod?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1)
+  guaranteeMethod?: string;
+
+  // ── NSW / Reference ──────────────────────────────────────────────
+  @IsOptional()
+  @IsString()
+  @MaxLength(13)
+  nswReferenceNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1)
+  declarationDocType?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(35)
+  nswRegistrationId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(17)
+  exportTaxIncentivesId?: string;
+
+  // ── Signatory ────────────────────────────────────────────────────
   @IsOptional()
   @IsString()
   signatoryName?: string;

@@ -27,27 +27,78 @@ export class DeclarationsService {
   async create(jobId: string, dto: CreateDeclarationDto, user: RequestUser) {
     const job = await this.assertJobAccess(jobId, user);
 
+    // Auto-populate Exporter info from default Exporter master
+    const defaultExporter = await this.prisma.exporter.findFirst({
+      where: { customerId: job.customerId, isDefault: true },
+    });
+
     return this.prisma.exportDeclaration.create({
       data: {
         jobId,
         customerId: job.customerId,
         declarationType: dto.declarationType,
         invoiceRef: dto.invoiceRef,
-        agentCardNo: dto.agentCardNo ?? job.customer?.agentCardNo,
-        agentName: dto.agentName ?? job.customer?.agentName,
-        brokerName: dto.brokerName ?? job.customer?.brokerName,
-        brokerTaxId: dto.brokerTaxId ?? job.customer?.brokerTaxId,
+
+        // Exporter (from master, overrideable via DTO)
+        exporterTaxId:   dto.exporterTaxId   ?? defaultExporter?.taxId,
+        exporterBranch:  dto.exporterBranch  ?? '0',
+        exporterNameTh:  dto.exporterNameTh  ?? defaultExporter?.nameTh,
+        exporterNameEn:  dto.exporterNameEn  ?? defaultExporter?.nameEn ?? undefined,
+        exporterAddress: dto.exporterAddress ?? defaultExporter?.address?.substring(0, 70) ?? undefined,
+
+        // Agent/Broker (from Customer master)
+        agentCardNo:  dto.agentCardNo  ?? job.customer?.agentCardNo,
+        agentName:    dto.agentName    ?? job.customer?.agentName,
+        agentBranch:  dto.agentBranch  ?? '0',
+        managerIdCard: dto.managerIdCard,
+        managerName:   dto.managerName,
+        brokerName:   dto.brokerName   ?? job.customer?.brokerName,
+        brokerTaxId:  dto.brokerTaxId  ?? job.customer?.brokerTaxId,
+
+        // Transport (from LogisticsJob)
         transportMode: dto.transportMode ?? job.transportMode,
+        cargoTypeCode: dto.cargoTypeCode,
+        vesselName:    dto.vesselName    ?? job.vesselName ?? undefined,
+        departureDate: dto.departureDate ? new Date(dto.departureDate) : job.etd ?? undefined,
+
+        // Bill of Lading
+        masterBl: dto.masterBl,
+        houseBl:  dto.houseBl,
+
+        // Port (from LogisticsJob)
         portOfReleaseCode: dto.portOfReleaseCode ?? job.portOfReleaseCode,
-        portOfLoading: dto.portOfLoading ?? job.portOfLoading,
+        portOfLoading:     dto.portOfLoading     ?? job.portOfLoading,
         portOfLoadingCode: dto.portOfLoadingCode ?? job.portOfLoadingCode,
         soldToCountryCode: dto.soldToCountryCode,
-        destinationCode: dto.destinationCode,
-        totalPackages: dto.totalPackages,
-        exchangeRate: dto.exchangeRate,
-        exchangeCurrency: dto.exchangeCurrency,
+        destinationCode:   dto.destinationCode,
+
+        // Package & Weight
+        totalPackages:    dto.totalPackages,
+        shippingMarks:    dto.shippingMarks,
+        packageUnitCode:  dto.packageUnitCode,
+        totalNetWeight:   dto.totalNetWeight,
+        netWeightUnit:    dto.netWeightUnit ?? 'KGM',
+        totalGrossWeight: dto.totalGrossWeight,
+        grossWeightUnit:  dto.grossWeightUnit ?? 'KGM',
+
+        // FOB & Exchange
+        totalFobForeign:  dto.totalFobForeign,
+        exchangeRate:     dto.exchangeRate,
+        exchangeCurrency: dto.exchangeCurrency ?? job.currency,
         exchangeRateDate: dto.exchangeRateDate ? new Date(dto.exchangeRateDate) : undefined,
-        signatoryName: dto.signatoryName,
+
+        // Financial
+        paymentMethod:   dto.paymentMethod  ?? 'D',
+        guaranteeMethod: dto.guaranteeMethod ?? 'A',
+
+        // NSW / Reference
+        declarationDocType:    dto.declarationDocType    ?? 'E',
+        nswReferenceNumber:    dto.nswReferenceNumber,
+        nswRegistrationId:     dto.nswRegistrationId     ?? job.customer?.nswAgentCode ?? undefined,
+        exportTaxIncentivesId: dto.exportTaxIncentivesId,
+
+        // Signatory
+        signatoryName:    dto.signatoryName,
         submissionMethod: dto.submissionMethod,
       },
     });
@@ -167,6 +218,7 @@ export class DeclarationsService {
           select: {
             agentCardNo: true, agentName: true,
             brokerName: true, brokerTaxId: true,
+            nswAgentCode: true,
           },
         },
       },
