@@ -208,7 +208,7 @@ const NAV = [
   { id: "new_tenant",icon: "+", label: "Add Tenant" },
 ];
 
-function Sidebar({ active, onNav, onClose }) {
+function Sidebar({ active, onNav, onClose, onExit }) {
   return (
     <div className="main-sidebar" style={{
       width: 230, background: C.bg0, borderRight: `1px solid ${C.border}`,
@@ -268,6 +268,20 @@ function Sidebar({ active, onNav, onClose }) {
           );
         })}
       </nav>
+
+      {onExit && (
+        <div style={{ padding: "12px 16px" }}>
+          <button onClick={onExit} onMouseEnter={e => { e.currentTarget.style.background = C.bg3; e.currentTarget.style.color = C.text; }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = C.textMid; }} style={{
+            width: "100%", padding: "10px", borderRadius: 8,
+            background: "transparent", border: `1px solid ${C.borderHi}`,
+            color: C.textMid, cursor: "pointer", fontSize: 14, fontWeight: 600,
+            display: "flex", alignItems: "center", gap: 8, justifyContent: "center",
+            transition: "all 0.15s"
+          }}>
+            ⎋ Exit to Portal
+          </button>
+        </div>
+      )}
 
       {/* System status */}
       <div style={{ padding: "12px 16px", borderTop: `1px solid ${C.border}` }}>
@@ -1145,7 +1159,7 @@ function SystemPage() {
 }
 
 // ─── APP SHELL ────────────────────────────────────────────────────
-export default function App() {
+export default function App({ onExit }) {
   const [screen, setScreen] = useState("overview");
   const [selectedTenant, setSelectedTenant] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -1196,7 +1210,7 @@ export default function App() {
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
 
       <Sidebar active={screen} onNav={handleNav} onClose={() => setSidebarOpen(false)}
-        className={sidebarOpen ? "open" : ""} />
+        className={sidebarOpen ? "open" : ""} onExit={onExit} />
 
       <main className="main-content" style={{ flex: 1, padding: "28px 32px", overflowY: "auto", minHeight: "100vh", overflowX: "hidden" }}>
         {/* Mobile header */}

@@ -2704,7 +2704,7 @@ export default function App() {
   }
 
   if (screen === "superadmin") {
-    return <SuperAdminConsole />;
+    return <SuperAdminConsole onExit={() => setScreen("dashboard")} />;
   }
 
   const handleNav = (id, data) => {
