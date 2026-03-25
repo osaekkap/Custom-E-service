@@ -7,6 +7,8 @@ import { customerApi } from "./api/customerApi.js";
 import { auditApi } from "./api/auditApi.js";
 import client from "./api/client.js";
 import { AreaChart, Area, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import CustomerDashboard from "./CustomerDashboard.jsx";
+import FinanceDashboard from "./FinanceDashboard.jsx";
 
 // ─── Constants ────────────────────────────────────────────────────
 const STATUS = {
@@ -267,6 +269,24 @@ function Sidebar({ active, onNav }) {
 
 // ─── DASHBOARD ────────────────────────────────────────────────────
 function Dashboard({ onNav }) {
+  const [role, setRole] = useState("customer");
+  return (
+    <div style={{ paddingBottom: 40 }}>
+      {/* Role Switcher */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 24, padding: '16px', background: '#fff', borderRadius: 12, border: '1px solid var(--border-main)' }}>
+        <button onClick={() => setRole('customer')} style={{ background: role === 'customer' ? 'var(--primary)' : 'transparent', color: role === 'customer' ? '#fff' : 'var(--text-muted)', padding: '10px 20px', borderRadius: 8, border: `1px solid ${role === 'customer' ? 'var(--primary)' : 'var(--border-main)'}`, cursor: 'pointer', fontWeight: 600 }}>👨‍💼 Customer View</button>
+        <button onClick={() => setRole('finance')} style={{ background: role === 'finance' ? 'var(--primary)' : 'transparent', color: role === 'finance' ? '#fff' : 'var(--text-muted)', padding: '10px 20px', borderRadius: 8, border: `1px solid ${role === 'finance' ? 'var(--primary)' : 'var(--border-main)'}`, cursor: 'pointer', fontWeight: 600 }}>📊 Finance View</button>
+        <button onClick={() => setRole('default')} style={{ background: role === 'default' ? 'var(--primary)' : 'transparent', color: role === 'default' ? '#fff' : 'var(--text-muted)', padding: '10px 20px', borderRadius: 8, border: `1px solid ${role === 'default' ? 'var(--primary)' : 'var(--border-main)'}`, cursor: 'pointer', fontWeight: 600 }}>🏛️ Original B2B View</button>
+      </div>
+
+      {role === 'customer' && <CustomerDashboard />}
+      {role === 'finance' && <FinanceDashboard />}
+      {role === 'default' && <DefaultDashboard onNav={onNav} />}
+    </div>
+  )
+}
+
+function DefaultDashboard({ onNav }) {
   const auth = useContext(AuthContext);
   const [jobs, setJobs] = useState([]);
   const companyName = auth?.user?.customer?.companyNameTh || auth?.user?.customer?.companyNameEn || "\u0e1a\u0e23\u0e34\u0e29\u0e31\u0e17";
