@@ -3,19 +3,24 @@ import { AuthContext } from '../stores/AuthContext.jsx';
 
 /**
  * Role definitions:
- *  SUPER_ADMIN  — NKTech system admin (full access to everything)
- *  TENANT_ADMIN — แอดมิน: full access within tenant + user management
- *  MANAGER      — ผู้บริหาร: view all + approve billing, read-only on forms
- *  STAFF        — เจ้าหน้าที่: handle declarations + NSW, no billing management
- *  CUSTOMER     — ลูกค้า: own shipments/billing only, can create shipments
- *  USER         — Legacy alias → treated same as STAFF
- *  VIEWER       — Read-only everything, no edits
+ *
+ *  ── NKTech internal (no customerId) ──────────────────────────────
+ *  SUPER_ADMIN    — ระบบทั้งหมด (full access)
+ *  TENANT_ADMIN   — NKTech แอดมิน (full access incl. Declarations & Master Data)
+ *  MANAGER        — NKTech ผู้บริหาร (view all + approve billing, read-only forms)
+ *  STAFF / USER   — NKTech เจ้าหน้าที่ (handle declarations + NSW)
+ *
+ *  ── Factory / Customer (scoped by customerId) ────────────────────
+ *  CUSTOMER_ADMIN — โรงงาน แอดมิน (manage own company users/billing/shipments)
+ *  CUSTOMER       — โรงงาน ลูกค้า (own shipments + billing, read-only)
+ *  VIEWER         — Read-only ทุกอย่าง
  */
 
-const ADMIN_ROLES     = ['SUPER_ADMIN', 'TENANT_ADMIN'];
-const INTERNAL_ROLES  = ['SUPER_ADMIN', 'TENANT_ADMIN', 'MANAGER', 'STAFF', 'USER'];
-const MANAGER_UP      = ['SUPER_ADMIN', 'TENANT_ADMIN', 'MANAGER'];
-const STAFF_UP        = ['SUPER_ADMIN', 'TENANT_ADMIN', 'MANAGER', 'STAFF', 'USER'];
+const NKTECH_ADMIN    = ['SUPER_ADMIN', 'TENANT_ADMIN'];
+const NKTECH_INTERNAL = ['SUPER_ADMIN', 'TENANT_ADMIN', 'MANAGER', 'STAFF', 'USER'];
+const NKTECH_MANAGER_UP = ['SUPER_ADMIN', 'TENANT_ADMIN', 'MANAGER'];
+const CUSTOMER_SIDE   = ['CUSTOMER_ADMIN', 'CUSTOMER'];
+const ALL_CAN_CREATE  = [...NKTECH_INTERNAL, 'CUSTOMER_ADMIN', 'CUSTOMER'];
 
 export function usePermissions() {
   const auth = useContext(AuthContext);
@@ -25,66 +30,56 @@ export function usePermissions() {
     role,
 
     // ─── Shipments ───────────────────────────────────────────────
-    /** Can see the Shipments screen */
-    canViewShipments: true, // all roles see shipments (own or all)
-    /** Can create a new shipment */
-    canCreateShipment: [...STAFF_UP, 'CUSTOMER'].includes(role),
-    /** Sees ALL customers' shipments (internal staff) vs only own (customer) */
-    canViewAllShipments: INTERNAL_ROLES.includes(role),
+    canViewShipments:    true,
+    canCreateShipment:   ALL_CAN_CREATE.includes(role),
+    /** Internal NKTech → see all customers; Factory → own company only */
+    canViewAllShipments: NKTECH_INTERNAL.includes(role),
 
-    // ─── Declarations ────────────────────────────────────────────
-    /** Can see the Declarations screen */
-    canViewDeclarations: STAFF_UP.includes(role),
-    /** Can create / edit declarations */
+    // ─── Declarations (NKTech internal only) ─────────────────────
+    canViewDeclarations: NKTECH_INTERNAL.includes(role),
     canEditDeclarations: ['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF', 'USER'].includes(role),
 
     // ─── NSW Tracking ────────────────────────────────────────────
-    canViewNsw: true, // all roles (filtered by own vs all)
-    canViewAllNsw: INTERNAL_ROLES.includes(role),
+    canViewNsw:    true,
+    canViewAllNsw: NKTECH_INTERNAL.includes(role),
 
-    // ─── Master Data ─────────────────────────────────────────────
-    /** Can see Master Data screen */
-    canViewMasterData: STAFF_UP.includes(role),
-    /** Can edit master data (HS codes, exporters, etc.) */
+    // ─── Master Data (NKTech internal only) ──────────────────────
+    canViewMasterData: NKTECH_INTERNAL.includes(role),
     canEditMasterData: ['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF', 'USER'].includes(role),
 
     // ─── Billing ─────────────────────────────────────────────────
-    /** Can see the Billing screen */
-    canViewBilling: [...MANAGER_UP, 'CUSTOMER'].includes(role),
-    /** Can approve / create invoices */
-    canApproveBilling: MANAGER_UP.includes(role),
-    /** Sees all customers' billing (internal) vs own only (customer) */
-    canViewAllBilling: MANAGER_UP.includes(role),
+    canViewBilling: [...NKTECH_MANAGER_UP, 'CUSTOMER_ADMIN', 'CUSTOMER'].includes(role),
+    /** CUSTOMER_ADMIN + NKTech manager+ can approve/manage invoices */
+    canApproveBilling: [...NKTECH_MANAGER_UP, 'CUSTOMER_ADMIN'].includes(role),
+    canViewAllBilling: NKTECH_MANAGER_UP.includes(role),
 
     // ─── Reports ─────────────────────────────────────────────────
-    canViewReports: true, // all roles see reports (own data scope)
-    canViewAllReports: INTERNAL_ROLES.includes(role),
+    canViewReports:    true,
+    canViewAllReports: NKTECH_INTERNAL.includes(role),
 
     // ─── Settings ────────────────────────────────────────────────
-    /** Can open Settings screen at all */
-    canViewSettings: MANAGER_UP.includes(role),
-    /** Can manage users (invite, remove, change roles) */
-    canManageUsers: ADMIN_ROLES.includes(role),
-    /** Can edit company settings */
-    canEditCompanySettings: ADMIN_ROLES.includes(role),
-    /** Read-only on Settings > Company (Manager can view) */
-    canViewCompanySettings: MANAGER_UP.includes(role),
+    canViewSettings:      [...NKTECH_MANAGER_UP, 'CUSTOMER_ADMIN'].includes(role),
+    /** CUSTOMER_ADMIN can manage users within their own company */
+    canManageUsers:       [...NKTECH_ADMIN, 'CUSTOMER_ADMIN'].includes(role),
+    canEditCompanySettings: [...NKTECH_ADMIN, 'CUSTOMER_ADMIN'].includes(role),
+    canViewCompanySettings: [...NKTECH_MANAGER_UP, 'CUSTOMER_ADMIN'].includes(role),
 
     // ─── Super Admin Console ─────────────────────────────────────
     canViewSuperAdmin: role === 'SUPER_ADMIN',
 
     // ─── Convenience flags ───────────────────────────────────────
-    isSuperAdmin:  role === 'SUPER_ADMIN',
-    isAdmin:       ADMIN_ROLES.includes(role),
-    isManager:     role === 'MANAGER',
-    isStaff:       role === 'STAFF' || role === 'USER',
-    isCustomer:    role === 'CUSTOMER',
-    isViewer:      role === 'VIEWER',
-    isInternalUser: INTERNAL_ROLES.includes(role),
+    isSuperAdmin:    role === 'SUPER_ADMIN',
+    isAdmin:         NKTECH_ADMIN.includes(role),
+    isManager:       role === 'MANAGER',
+    isStaff:         role === 'STAFF' || role === 'USER',
+    isCustomerAdmin: role === 'CUSTOMER_ADMIN',
+    isCustomer:      role === 'CUSTOMER',
+    isViewer:        role === 'VIEWER',
+    isInternalUser:  NKTECH_INTERNAL.includes(role),
+    isFactoryUser:   CUSTOMER_SIDE.includes(role),
 
-    /** Returns true if the user has read-only access to a given screen (can view but not edit) */
     isReadOnly: (screen) => {
-      if (ADMIN_ROLES.includes(role)) return false; // admins always full access
+      if ([...NKTECH_ADMIN, 'CUSTOMER_ADMIN'].includes(role)) return false;
       if (role === 'MANAGER') {
         return ['declarations', 'master', 'shipments', 'nsw', 'settings'].includes(screen);
       }

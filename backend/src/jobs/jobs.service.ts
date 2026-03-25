@@ -89,8 +89,8 @@ export class JobsService {
     const { status, type, search, page = 1, limit = 20 } = query;
     const skip = (page - 1) * limit;
 
-    // SUPER_ADMIN or internal staff (no customerId) → see all jobs, optionally filter by customerId
-    // CUSTOMER / tenant-scoped users → see only their customer's jobs
+    // SUPER_ADMIN or internal NKTech staff (no customerId) → see all jobs
+    // CUSTOMER_ADMIN / CUSTOMER / tenant-scoped users → see only their customer's jobs
     const isInternalStaff =
       user.role === Role.SUPER_ADMIN ||
       (user.customerId == null &&
@@ -277,7 +277,8 @@ export class JobsService {
 
   private assertAccess(jobCustomerId: string, user: RequestUser) {
     if (user.role === Role.SUPER_ADMIN) return;
-    // Internal staff (TENANT_ADMIN, MANAGER, STAFF) without customerId can access all jobs
+    // Internal NKTech staff (TENANT_ADMIN, MANAGER, STAFF) without customerId → access all jobs
+    // CUSTOMER_ADMIN is scoped to their own customerId (handled by the customerId check below)
     if (
       user.customerId == null &&
       ([Role.TENANT_ADMIN, Role.MANAGER, Role.STAFF] as string[]).includes(user.role)

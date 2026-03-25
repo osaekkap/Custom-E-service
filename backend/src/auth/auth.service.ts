@@ -276,7 +276,7 @@ export class AuthService {
         data: {
           customerId: customer.id,
           profileId: supabaseUser.id,
-          role: Role.TENANT_ADMIN,
+          role: Role.CUSTOMER_ADMIN, // factory admin — scoped to own company
         },
       });
 

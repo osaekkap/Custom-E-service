@@ -136,13 +136,14 @@ function Tag({ label, color="#0EA5E9" }) {
 // ─── Role badge helper ─────────────────────────────────────────────
 function RoleBadge({ role }) {
   const map = {
-    SUPER_ADMIN:  { label:"Super Admin", color:"#7C3AED" },
-    TENANT_ADMIN: { label:"Admin",       color:"#2563EB" },
-    MANAGER:      { label:"ผู้บริหาร",   color:"#0284C7" },
-    STAFF:        { label:"เจ้าหน้าที่", color:"#059669" },
-    USER:         { label:"เจ้าหน้าที่", color:"#059669" },
-    CUSTOMER:     { label:"ลูกค้า",      color:"#D97706" },
-    VIEWER:       { label:"Viewer",      color:"#94A3B8" },
+    SUPER_ADMIN:    { label:"Super Admin",  color:"#7C3AED" },
+    TENANT_ADMIN:   { label:"Admin",        color:"#2563EB" },
+    MANAGER:        { label:"ผู้บริหาร",    color:"#0284C7" },
+    STAFF:          { label:"เจ้าหน้าที่",  color:"#059669" },
+    USER:           { label:"เจ้าหน้าที่",  color:"#059669" },
+    CUSTOMER_ADMIN: { label:"โรงงาน Admin", color:"#7C3AED" },
+    CUSTOMER:       { label:"ลูกค้า",       color:"#D97706" },
+    VIEWER:         { label:"Viewer",       color:"#94A3B8" },
   };
   const m = map[role] || { label: role, color:"#94A3B8" };
   return (
@@ -163,17 +164,18 @@ function Sidebar({ active, onNav }) {
   const role    = auth?.user?.role || "VIEWER";
   const initials = email.charAt(0).toUpperCase();
 
+  const isFactoryUser = perms.isCustomerAdmin || perms.isCustomer;
   const ALL_NAV = [
     ...(perms.canViewSuperAdmin ? [{ id:"superadmin", label:"Administration", icon:"👑" }] : []),
-    { id:"dashboard",    label:"Dashboard",                       icon:"▦",  show: true },
-    { id:"shipments",    label: perms.isCustomer ? "My Shipments" : "Shipments", icon:"≡", badge: 3, show: true },
-    { id:"new",          label:"New Shipment",                    icon:"+",  show: perms.canCreateShipment },
-    { id:"nsw",          label:"NSW Tracking",                    icon:"⊙",  show: true },
-    { id:"declarations", label:"Declarations",                    icon:"◫",  show: perms.canViewDeclarations },
-    { id:"master",       label:"Master Data",                     icon:"⊞",  show: perms.canViewMasterData },
-    { id:"billing",      label: perms.isCustomer ? "My Billing" : "Billing", icon:"◧", show: perms.canViewBilling },
-    { id:"reports",      label:"Reports",                         icon:"⌗",  show: true },
-    { id:"settings",     label:"Settings",                        icon:"⚙",  show: perms.canViewSettings },
+    { id:"dashboard",    label:"Dashboard",                               icon:"▦",  show: true },
+    { id:"shipments",    label: isFactoryUser ? "Shipments ของฉัน" : "Shipments", icon:"≡", badge: 3, show: true },
+    { id:"new",          label:"New Shipment",                            icon:"+",  show: perms.canCreateShipment },
+    { id:"nsw",          label:"NSW Tracking",                            icon:"⊙",  show: true },
+    { id:"declarations", label:"Declarations",                            icon:"◫",  show: perms.canViewDeclarations },
+    { id:"master",       label:"Master Data",                             icon:"⊞",  show: perms.canViewMasterData },
+    { id:"billing",      label: isFactoryUser ? "Billing ของฉัน" : "Billing", icon:"◧", show: perms.canViewBilling },
+    { id:"reports",      label:"Reports",                                 icon:"⌗",  show: true },
+    { id:"settings",     label:"Settings",                                icon:"⚙",  show: perms.canViewSettings },
   ];
 
   const NAV = ALL_NAV.filter(item => item.show !== false);
@@ -312,8 +314,8 @@ function Dashboard({ onNav }) {
   const perms = usePermissions();
 
   // Route to the right dashboard view based on real role
-  if (perms.isCustomer) return <CustomerDashboard />;
-  if (perms.isManager)  return <FinanceDashboard />;
+  if (perms.isCustomer || perms.isCustomerAdmin) return <CustomerDashboard />;
+  if (perms.isManager) return <FinanceDashboard />;
   if (perms.isSuperAdmin || perms.isAdmin) {
     // Admin/SuperAdmin can switch between views for demo purposes
     const [view, setView] = useState("default");
@@ -2581,11 +2583,12 @@ function SettingsUsers() {
                 <label style={{ fontSize:14, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>Role</label>
                 <select value={inviteForm.role} onChange={e => setInviteForm(f=>({...f,role:e.target.value}))}
                   style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:14, background:"#FFFFFF", boxSizing:"border-box" }}>
-                  <option value="CUSTOMER">ลูกค้า (Customer)</option>
-                  <option value="STAFF">เจ้าหน้าที่ (Staff)</option>
-                  <option value="MANAGER">ผู้บริหาร (Manager)</option>
-                  <option value="TENANT_ADMIN">แอดมิน (Admin)</option>
-                  <option value="VIEWER">Viewer (read-only)</option>
+                  <option value="CUSTOMER">ลูกค้า — ยื่น Shipment + ดูข้อมูลตัวเอง</option>
+                  <option value="CUSTOMER_ADMIN">โรงงาน Admin — จัดการ Users + Billing ของบริษัท</option>
+                  <option value="STAFF">เจ้าหน้าที่ — ทำใบขน + NSW (NKTech)</option>
+                  <option value="MANAGER">ผู้บริหาร — ดู Reports + อนุมัติ Billing (NKTech)</option>
+                  <option value="TENANT_ADMIN">Admin — สิทธิ์เต็ม (NKTech)</option>
+                  <option value="VIEWER">Viewer — ดูได้อย่างเดียว</option>
                 </select>
               </div>
               {inviteErr && <div style={{ padding:"8px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, fontSize:14, color:"#DC2626" }}>{inviteErr}</div>}
@@ -2608,11 +2611,12 @@ function SettingsUsers() {
               <label style={{ fontSize:14, color:TEXT3, fontWeight:600, display:"block", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.5px" }}>Role</label>
               <select value={editRole} onChange={e => setEditRole(e.target.value)}
                 style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:15, background:"#FFFFFF" }}>
-                <option value="CUSTOMER">ลูกค้า (Customer)</option>
-                <option value="STAFF">เจ้าหน้าที่ (Staff)</option>
-                <option value="MANAGER">ผู้บริหาร (Manager)</option>
-                <option value="TENANT_ADMIN">แอดมิน (Admin)</option>
-                <option value="VIEWER">Viewer (read-only)</option>
+                <option value="CUSTOMER">ลูกค้า — ยื่น Shipment + ดูข้อมูลตัวเอง</option>
+                <option value="CUSTOMER_ADMIN">โรงงาน Admin — จัดการ Users + Billing</option>
+                <option value="STAFF">เจ้าหน้าที่ — ทำใบขน + NSW (NKTech)</option>
+                <option value="MANAGER">ผู้บริหาร — ดู Reports + อนุมัติ Billing (NKTech)</option>
+                <option value="TENANT_ADMIN">Admin — สิทธิ์เต็ม (NKTech)</option>
+                <option value="VIEWER">Viewer — ดูได้อย่างเดียว</option>
               </select>
             </div>
             <div style={{ display:"flex", gap:10, marginTop:20, justifyContent:"flex-end" }}>
