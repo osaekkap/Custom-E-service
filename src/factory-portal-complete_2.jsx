@@ -1128,76 +1128,214 @@ function NewShipment({ onBack, onCreated }) {
         </div>
       )}
 
-      {step===3 && (
-        <div style={{ display:"grid", gridTemplateColumns:"1.2fr 1fr", gap:16 }}>
-          <Card>
-            <SectionHeader title="ใบขนสินค้าขาออก A008-1" sub="Review before submission" />
-            <div style={{ padding:"16px 20px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-              {[
-                ["ผู้ส่งออก (Exporter)","บริษัท ไทยอิเล็กทรอนิกส์ จำกัด"],
-                ["เลขประจำตัวผู้เสียภาษี","0105561000123"],
-                ["ผู้รับของ (Consignee)","Samsung Electronics Korea"],
-                ["ท่าบรรทุก (POL)","Laem Chabang (THLCH)"],
-                ["ท่าปลายทาง (POD)","Busan, Korea (KRPUS)"],
-                ["ยานพาหนะ","MSC AURORA V.124"],
-                ["วันที่ออกเรือ (ETD)","2026-03-25"],
-                ["Incoterms","FOB"],
-                ["อัตราแลกเปลี่ยน","35.75 THB/USD"],
-                ["สิทธิพิเศษ (Privilege)","IEAT Zone 3"],
-              ].map(([l,v],i) => (
-                <div key={i}>
-                  <label style={{ fontSize:10, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase" }}>{l}</label>
-                  <input defaultValue={v} style={{ width:"100%", background:"#FFFFFF", border:`1px solid ${BORDER}`, borderRadius:7, padding:"7px 10px", fontSize:11, color:TEXT, boxSizing:"border-box" }}/>
+      {step===3 && (() => {
+        const items = extracted?.items || [];
+        const totalFobForeign = items.reduce((s, it) => s + (Number(it.fobForeign) || 0), 0);
+        const exRate = Number(extracted?.exchangeRate) || 1;
+        const totalFobThb = totalFobForeign * exRate;
+        const cur = extracted?.currency || "USD";
+
+        /* ─── box style helpers ─── */
+        const boxWrap = (num, label, value, extra={}) => (
+          <div style={{ border:`1px solid #999`, padding:"3px 5px", minHeight:38, boxSizing:"border-box", ...extra }}>
+            <div style={{ fontSize:8.5, color:"#555", lineHeight:1.2 }}>
+              <span style={{ fontWeight:700, marginRight:3 }}>{num}</span>{label}
+            </div>
+            <div style={{ fontSize:10.5, fontWeight:600, color:"#111", marginTop:1, whiteSpace:"pre-wrap", wordBreak:"break-word" }}>{value || <span style={{color:"#aaa"}}>—</span>}</div>
+          </div>
+        );
+        const cell = (content, style={}) => (
+          <td style={{ border:"1px solid #999", padding:"3px 5px", fontSize:9.5, verticalAlign:"top", ...style }}>{content}</td>
+        );
+
+        return (
+          <div style={{ display:"flex", gap:16, alignItems:"flex-start" }}>
+
+            {/* ── LEFT: กศก.101/1 Document Preview ── */}
+            <div style={{ flex:1, minWidth:0, background:"#fff", border:"1px solid #ccc", borderRadius:8, overflow:"hidden", boxShadow:"0 2px 8px rgba(0,0,0,0.08)" }}>
+
+              {/* Document Title Bar */}
+              <div style={{ background:"#1E3A5F", color:"#fff", padding:"8px 16px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                <div>
+                  <div style={{ fontSize:11, fontWeight:700, letterSpacing:.5 }}>ใบขนสินค้าขาออก · กศก. 101/1</div>
+                  <div style={{ fontSize:9, color:"#93C5FD", marginTop:1 }}>Thai Customs Export Declaration — PREVIEW</div>
                 </div>
-              ))}
-            </div>
-          </Card>
+                <div style={{ fontSize:9, color:"#93C5FD", textAlign:"right" }}>
+                  <div>ตามประมวลฯ ข้อ ๓ ๐๑ ๐๑ ๐๔</div>
+                  <div style={{ fontWeight:700, color:"#FCD34D", marginTop:1 }}>DRAFT — ยังไม่ได้ยื่น</div>
+                </div>
+              </div>
 
-          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-            <Card>
-              <SectionHeader title="Submission method" />
-              <div style={{ padding:"14px 16px", display:"flex", flexDirection:"column", gap:8 }}>
-                {[
-                  { id:"nsw",      icon:"⊙", title:"Submit via NSW Thailand", desc:"National Single Window — Recommended", color:BLUE },
-                  { id:"customs",  icon:"⊡", title:"Playwright automation",   desc:"Direct to กรมศุลกากร portal",          color:"#7C3AED" },
-                  { id:"csv",      icon:"⬇", title:"Export Netbay CSV",       desc:"Manual upload by factory",             color:"#16A34A" },
-                ].map(opt => (
-                  <button key={opt.id} onClick={() => setSubmitMethod(opt.id)} style={{
-                    display:"flex", alignItems:"flex-start", gap:10, padding:"10px 12px",
-                    borderRadius:8, cursor:"pointer", textAlign:"left", width:"100%",
-                    background:submitMethod===opt.id?`${opt.color}08`:W,
-                    border:`${submitMethod===opt.id?2:1}px solid ${submitMethod===opt.id?opt.color:BORDER}`,
-                  }}>
-                    <div style={{ width:28, height:28, borderRadius:7, background:`${opt.color}15`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0 }}>{opt.icon}</div>
-                    <div>
-                      <div style={{ fontSize:12, fontWeight:700, color:TEXT }}>{opt.title}</div>
-                      <div style={{ fontSize:10, color:TEXT3, marginTop:2 }}>{opt.desc}</div>
+              <div style={{ padding:"10px 12px" }}>
+
+                {/* ── SECTION A: Header boxes 1–7 ── */}
+                <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr", gap:0, marginBottom:0 }}>
+                  {boxWrap(1, "ผู้ส่งออก (Exporter) / ชื่อ ที่อยู่ โทรศัพท์", extracted?.shipper, { gridRow:"span 2" })}
+                  {boxWrap(2, "เลขประจำตัวผู้เสียภาษีอากร (TIN)", form.exporterTaxId || "")}
+                  {boxWrap(4, "เลขที่ใบขนสินค้าฯ (Declaration No.)", "— (ออกโดยระบบ)")}
+                  {boxWrap(3, "ประเภทใบขนฯ (Declaration Type)", "ไม่ใช้สิทธิประโยชน์")}
+                  {boxWrap(5, "ชื่อและเลขที่บัตรผ่านพิธีการ", form.agentName || "")}
+                </div>
+                <div style={{ display:"grid", gridTemplateColumns:"2fr 2fr 1fr", gap:0 }}>
+                  {boxWrap(7, "ตัวแทนออกของ (Customs Broker)", form.brokerTaxId || "")}
+                  {boxWrap("", "ผู้รับของ (Consignee)", extracted?.consignee)}
+                  {boxWrap(6, "สั่งการตรวจ", "— (ระบบ)")}
+                </div>
+
+                {/* ── SECTION B: Transport & financial boxes 8–18 ── */}
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:0, marginTop:0 }}>
+                  {boxWrap(8, "อากรขาออก (บาท)", "0.00")}
+                  {boxWrap(9, "เงินประกัน (บาท)", "0.00")}
+                  {boxWrap(10, "ชื่อยานพาหนะ", extracted?.vessel || form.vesselName)}
+                  {boxWrap(11, "ส่งออกโดยทาง", "เรือ (Sea)")}
+                  {boxWrap(12, "วันที่ส่งออก (ETD)", extracted?.etd || form.etd)}
+                  {boxWrap(13, "เลขที่ชำระภาษี/ประกัน", "—")}
+                </div>
+                <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 1fr", gap:0 }}>
+                  {boxWrap(14, "ท่าบรรทุก (Port of Loading)", extracted?.portOfLoading || form.portOfLoading)}
+                  {boxWrap(15, "ประเทศที่ขาย (Sold to)", form.soldToCountryCode || "")}
+                  {boxWrap(16, "ประเทศปลายทาง (Destination)", extracted?.portOfDischarge || form.portOfDischarge)}
+                  {boxWrap(17, "จำนวนหีบห่อ (Packages)", String(items.length))}
+                  {boxWrap(18, "อัตราแลกเปลี่ยน", `1 ${cur} = ${exRate} THB`)}
+                  {boxWrap("", "Incoterms", "FOB")}
+                </div>
+
+                {/* ── SECTION C: Goods Item Table ── */}
+                <div style={{ marginTop:6, fontSize:8.5, fontWeight:700, color:"#1E3A5F", padding:"3px 5px", background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:"4px 4px 0 0" }}>
+                  รายละเอียดสินค้า (Goods Items) — {items.length} รายการ
+                </div>
+                <div style={{ overflowX:"auto" }}>
+                  <table style={{ width:"100%", borderCollapse:"collapse", fontSize:9 }}>
+                    <thead>
+                      <tr style={{ background:"#F8FAFC" }}>
+                        {cell("19\nรายการที่", { fontWeight:700, width:28, whiteSpace:"pre", background:"#F8FAFC" })}
+                        {cell("22\nชนิดของ / Description", { fontWeight:700, minWidth:160, background:"#F8FAFC" })}
+                        {cell("ชื่อไทย / Thai", { fontWeight:700, minWidth:100, background:"#F8FAFC" })}
+                        {cell("25\nHS Code", { fontWeight:700, width:80, background:"#F8FAFC" })}
+                        {cell("23\nน้ำหนัก (kg)", { fontWeight:700, width:65, background:"#F8FAFC" })}
+                        {cell("24\nปริมาณ / QTY", { fontWeight:700, width:80, background:"#F8FAFC" })}
+                        {cell("26\nหน่วย", { fontWeight:700, width:40, background:"#F8FAFC" })}
+                        {cell(`27\nFOB ${cur}`, { fontWeight:700, width:85, background:"#F8FAFC" })}
+                        {cell("28\nFOB (บาท)", { fontWeight:700, width:90, background:"#F8FAFC" })}
+                        {cell("31\nอัตราอากร", { fontWeight:700, width:55, background:"#F8FAFC" })}
+                        {cell("32\nอากรขาออก", { fontWeight:700, width:65, background:"#F8FAFC" })}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items.map((it, idx) => {
+                        const fobThb = (Number(it.fobForeign)||0) * exRate;
+                        return (
+                          <tr key={idx} style={{ background: idx%2===0 ? "#fff" : "#F9FAFB" }}>
+                            {cell(it.seqNo, { textAlign:"center", fontWeight:700, color:"#1E3A5F" })}
+                            {cell(it.descriptionEn, { maxWidth:160 })}
+                            {cell(it.descriptionTh || "—", { color: it.descriptionTh ? "#111" : "#aaa" })}
+                            {cell(
+                              it.hsCode
+                                ? <span style={{ color:BLUE, fontWeight:700 }}>{it.hsCode}</span>
+                                : <span style={{ color:"#EF4444", fontStyle:"italic" }}>ไม่พบ</span>
+                            )}
+                            {cell((it.netWeightKg||"—"), { textAlign:"right" })}
+                            {cell((it.quantity||"").toLocaleString(), { textAlign:"right" })}
+                            {cell(it.quantityUnit)}
+                            {cell((Number(it.fobForeign)||0).toLocaleString("en",{minimumFractionDigits:2,maximumFractionDigits:2}), { textAlign:"right" })}
+                            {cell(fobThb.toLocaleString("en",{minimumFractionDigits:2,maximumFractionDigits:2}), { textAlign:"right" })}
+                            {cell("0%", { textAlign:"center", color:"#555" })}
+                            {cell("0.00", { textAlign:"right", color:"#555" })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                    <tfoot>
+                      <tr style={{ background:"#F0F9FF", fontWeight:700 }}>
+                        {cell(`รวม / Total (${items.length} รายการ)`, { colSpan:7, textAlign:"right", fontSize:9.5, color:"#1E3A5F" })}
+                        {cell(totalFobForeign.toLocaleString("en",{minimumFractionDigits:2}), { textAlign:"right", color:BLUE })}
+                        {cell(totalFobThb.toLocaleString("en",{minimumFractionDigits:2}), { textAlign:"right", color:BLUE })}
+                        {cell("", { colSpan:2 })}
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+
+                {/* ── SECTION D: Summary Box 35-36 & Declaration ── */}
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:0, marginTop:0 }}>
+                  {boxWrap(35, "รวม FOB (บาท) / Total FOB THB",
+                    "฿ " + totalFobThb.toLocaleString("en",{minimumFractionDigits:2}))}
+                  {boxWrap(36, "รวมค่าภาษีอากรทั้งสิ้น / Total Duties (บาท)", "฿ 0.00")}
+                  <div style={{ border:"1px solid #999", padding:"4px 6px", fontSize:8.5, color:"#555", lineHeight:1.5 }}>
+                    <div style={{ fontWeight:700, marginBottom:2 }}>37. คำรับรอง / Declaration</div>
+                    <div>ข้าพเจ้าขอรับรองว่ารายการที่แสดงข้างต้นนี้เป็นความจริงทุกประการ</div>
+                    <div style={{ marginTop:6, borderTop:"1px dashed #ccc", paddingTop:4 }}>
+                      ลายมือชื่อ _______________________ (ผู้ส่งออก/ผู้รับมอบ)
                     </div>
-                  </button>
-                ))}
-              </div>
-            </Card>
-
-            <div style={{ background:"#F0FDF4", border:"1px solid #BBF7D0", borderRadius:10, padding:"14px 16px" }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#15803D", marginBottom:6 }}>✓ Ready to submit</div>
-              <div style={{ fontSize:11, color:"#16A34A", lineHeight:1.6 }}>
-                14 items · 13 AI matched · 1 manual<br/>
-                BoT rate: 35.75 THB/USD<br/>
-                Total FOB: ฿4,592,094
+                    <div style={{ marginTop:2 }}>38. วันที่ยื่น: {new Date().toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric"})}</div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {submitErr && <div style={{ padding:"8px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, fontSize:12, color:"#DC2626" }}>{submitErr}</div>}
-            <div style={{ display:"flex", gap:10 }}>
-              <Btn variant="secondary" onClick={() => setStep(2)} style={{ flex:1, textAlign:"center" }}>← Back</Btn>
+            {/* ── RIGHT: Submission Panel ── */}
+            <div style={{ width:260, flexShrink:0, display:"flex", flexDirection:"column", gap:12 }}>
+
+              {/* Summary card */}
+              <Card style={{ background:"#F0FDF4", border:"1px solid #BBF7D0" }}>
+                <div style={{ padding:"12px 14px" }}>
+                  <div style={{ fontSize:12, fontWeight:700, color:"#15803D", marginBottom:6 }}>✓ พร้อมยื่น</div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+                    {[
+                      ["จำนวนรายการ", `${items.length} รายการ`],
+                      ["HS Code match", `${items.filter(it=>it.hsCode).length}/${items.length} รายการ`],
+                      ["สกุลเงิน", cur],
+                      ["อัตราแลกเปลี่ยน", `${exRate} THB/${cur}`],
+                      ["Total FOB " + cur, totalFobForeign.toLocaleString("en",{minimumFractionDigits:2})],
+                      ["Total FOB (บาท)", "฿ " + totalFobThb.toLocaleString("en",{minimumFractionDigits:2,maximumFractionDigits:2})],
+                    ].map(([l,v],i)=>(
+                      <div key={i} style={{ display:"flex", justifyContent:"space-between", fontSize:11 }}>
+                        <span style={{ color:"#4B5563" }}>{l}</span>
+                        <span style={{ fontWeight:700, color:"#111827" }}>{v}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Card>
+
+              {/* Submission method */}
+              <Card>
+                <SectionHeader title="วิธียื่น (Submission)" />
+                <div style={{ padding:"10px 12px", display:"flex", flexDirection:"column", gap:7 }}>
+                  {[
+                    { id:"nsw",     icon:"🌐", title:"NSW Thailand", desc:"National Single Window", color:BLUE },
+                    { id:"customs", icon:"🤖", title:"Playwright", desc:"กรมศุลกากร portal", color:"#7C3AED" },
+                    { id:"csv",     icon:"📥", title:"Export CSV", desc:"Netbay manual upload", color:"#16A34A" },
+                  ].map(opt=>(
+                    <button key={opt.id} onClick={()=>setSubmitMethod(opt.id)} style={{
+                      display:"flex", alignItems:"center", gap:9, padding:"8px 10px",
+                      borderRadius:7, cursor:"pointer", textAlign:"left", width:"100%",
+                      background:submitMethod===opt.id?`${opt.color}10`:"#fff",
+                      border:`${submitMethod===opt.id?2:1}px solid ${submitMethod===opt.id?opt.color:BORDER}`,
+                    }}>
+                      <span style={{ fontSize:16 }}>{opt.icon}</span>
+                      <div>
+                        <div style={{ fontSize:11, fontWeight:700, color:TEXT }}>{opt.title}</div>
+                        <div style={{ fontSize:9.5, color:TEXT3 }}>{opt.desc}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </Card>
+
+              {submitErr && (
+                <div style={{ padding:"8px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, fontSize:11, color:"#DC2626" }}>{submitErr}</div>
+              )}
+
+              <Btn variant="secondary" onClick={()=>setStep(2)} style={{ width:"100%", textAlign:"center" }}>← แก้ไข</Btn>
               <button onClick={handleCreateJob} disabled={submitting} style={{
-                flex:2, background:submitting?"#94A3B8":BLUE, color:"#fff", border:"none", borderRadius:8,
-                padding:"11px", fontSize:13, fontWeight:700, cursor:submitting?"not-allowed":"pointer",
-              }}>{submitting ? "กำลังสร้าง job…" : "สร้าง Job & Submit to NSW →"}</button>
+                width:"100%", background:submitting?"#94A3B8":BLUE, color:"#fff", border:"none",
+                borderRadius:8, padding:"12px", fontSize:13, fontWeight:700, cursor:submitting?"not-allowed":"pointer",
+              }}>{submitting ? "กำลังสร้าง job…" : "สร้าง Job & ยื่น NSW →"}</button>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
