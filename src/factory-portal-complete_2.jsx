@@ -2094,12 +2094,15 @@ function SettingsUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [inviteModal, setInviteModal] = useState(false);
-  const [inviteForm, setInviteForm] = useState({ email:"", fullName:"", role:"USER" });
+  const [inviteForm, setInviteForm] = useState({ email:"", fullName:"", role:"USER", password:"" });
   const [inviting, setInviting] = useState(false);
   const [inviteErr, setInviteErr] = useState("");
+  const [inviteSuccess, setInviteSuccess] = useState(null); // { email, password }
   const [editModal, setEditModal] = useState(null); // { user, role }
   const [editRole, setEditRole] = useState("USER");
   const [savingRole, setSavingRole] = useState(false);
+  const [showInvitePw, setShowInvitePw] = useState(false);
+  const [pwCopied, setPwCopied] = useState(false);
 
   const loadUsers = () => {
     setLoading(true);
@@ -2113,16 +2116,32 @@ function SettingsUsers() {
   const handleInvite = async () => {
     setInviteErr("");
     if (!inviteForm.email) return setInviteErr("กรุณากรอกอีเมล");
+    if (!inviteForm.password || inviteForm.password.length < 8)
+      return setInviteErr("รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร");
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(inviteForm.password))
+      return setInviteErr("รหัสผ่านต้องมีตัวพิมพ์ใหญ่ พิมพ์เล็ก และตัวเลข");
     setInviting(true);
     try {
-      await customerApi.inviteUser({ ...inviteForm, password: Math.random().toString(36).slice(-10) + "A1!" });
+      await customerApi.inviteUser({ ...inviteForm });
+      const savedEmail = inviteForm.email;
+      const savedPw = inviteForm.password;
       setInviteModal(false);
-      setInviteForm({ email:"", fullName:"", role:"USER" });
+      setInviteForm({ email:"", fullName:"", role:"USER", password:"" });
+      setShowInvitePw(false);
+      setInviteSuccess({ email: savedEmail, password: savedPw });
       loadUsers();
     } catch(e) {
       const m = e?.response?.data?.message;
       setInviteErr(Array.isArray(m) ? m.join(", ") : (m || "Invite failed"));
     } finally { setInviting(false); }
+  };
+
+  const copyPw = () => {
+    if (inviteSuccess?.password) {
+      navigator.clipboard?.writeText(inviteSuccess.password).catch(() => {});
+      setPwCopied(true);
+      setTimeout(() => setPwCopied(false), 2000);
+    }
   };
 
   const openEditRole = (u) => { setEditModal(u); setEditRole(u.role || "USER"); };
@@ -2140,6 +2159,38 @@ function SettingsUsers() {
 
   return (
     <>
+      {/* Invite Success Dialog */}
+      {inviteSuccess && (
+        <div style={{ position:"fixed", inset:0, background:"#00000060", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <div style={{ background:W, borderRadius:16, padding:28, width:420, maxWidth:"95vw", boxShadow:"0 20px 60px #0003" }}>
+            <div style={{ textAlign:"center", marginBottom:16 }}>
+              <div style={{ fontSize:36, marginBottom:8 }}>✅</div>
+              <h3 style={{ margin:"0 0 4px", fontSize:16, fontWeight:800, color:TEXT }}>Invite สำเร็จ!</h3>
+              <p style={{ fontSize:12, color:TEXT2, margin:0 }}>แชร์ข้อมูลด้านล่างให้ผู้ใช้เพื่อเข้าสู่ระบบครั้งแรก</p>
+            </div>
+            <div style={{ background:"#F0F9FF", border:"1px solid #BAE6FD", borderRadius:10, padding:"14px 16px", display:"flex", flexDirection:"column", gap:10, marginBottom:16 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", fontSize:12 }}>
+                <span style={{ color:TEXT3, fontWeight:600 }}>EMAIL</span>
+                <span style={{ color:TEXT, fontWeight:600 }}>{inviteSuccess.email}</span>
+              </div>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", fontSize:12 }}>
+                <span style={{ color:TEXT3, fontWeight:600 }}>รหัสผ่าน</span>
+                <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                  <span style={{ fontFamily:"monospace", fontWeight:700, color:TEXT, fontSize:14, letterSpacing:1 }}>
+                    {inviteSuccess.password}
+                  </span>
+                  <button onClick={copyPw} style={{ background: pwCopied ? "#DCFCE7":"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:6, padding:"3px 10px", fontSize:11, fontWeight:600, color: pwCopied ? "#16A34A":BLUE, cursor:"pointer" }}>
+                    {pwCopied ? "✓ Copied" : "Copy"}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <p style={{ fontSize:11, color:TEXT3, margin:"0 0 16px", textAlign:"center" }}>⚠️ บันทึกรหัสผ่านนี้ไว้ก่อนปิด — ระบบจะไม่แสดงอีก</p>
+            <Btn style={{ width:"100%" }} onClick={() => setInviteSuccess(null)}>ปิด</Btn>
+          </div>
+        </div>
+      )}
+
       {/* Invite Modal */}
       {inviteModal && (
         <div style={{ position:"fixed", inset:0, background:"#00000060", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -2154,6 +2205,22 @@ function SettingsUsers() {
                 </div>
               ))}
               <div>
+                <label style={{ fontSize:11, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>Temporary Password *</label>
+                <div style={{ position:"relative" }}>
+                  <input
+                    type={showInvitePw ? "text" : "password"}
+                    value={inviteForm.password}
+                    onChange={e => setInviteForm(f=>({...f, password:e.target.value}))}
+                    placeholder="อย่างน้อย 8 ตัว · A-Z a-z 0-9"
+                    style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 40px 9px 12px", fontSize:12, background:"#FFFFFF", boxSizing:"border-box" }}/>
+                  <button type="button" onClick={() => setShowInvitePw(v=>!v)}
+                    style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:TEXT3, fontSize:13 }}>
+                    {showInvitePw ? "🙈" : "👁"}
+                  </button>
+                </div>
+                <p style={{ fontSize:11, color:TEXT3, margin:"4px 0 0" }}>ส่งรหัสผ่านนี้ให้ผู้ใช้เพื่อ login ครั้งแรก และแนะนำให้เปลี่ยนทันที</p>
+              </div>
+              <div>
                 <label style={{ fontSize:11, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>Role</label>
                 <select value={inviteForm.role} onChange={e => setInviteForm(f=>({...f,role:e.target.value}))}
                   style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:12, background:"#FFFFFF", boxSizing:"border-box" }}>
@@ -2163,10 +2230,9 @@ function SettingsUsers() {
                 </select>
               </div>
               {inviteErr && <div style={{ padding:"8px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, fontSize:12, color:"#DC2626" }}>{inviteErr}</div>}
-              <p style={{ fontSize:11, color:TEXT3, margin:0 }}>ระบบจะสร้างรหัสผ่านชั่วคราวให้อัตโนมัติ</p>
             </div>
             <div style={{ display:"flex", gap:10, marginTop:20, justifyContent:"flex-end" }}>
-              <Btn variant="secondary" onClick={() => { setInviteModal(false); setInviteErr(""); }}>Cancel</Btn>
+              <Btn variant="secondary" onClick={() => { setInviteModal(false); setInviteErr(""); setInviteForm({ email:"", fullName:"", role:"USER", password:"" }); }}>Cancel</Btn>
               <Btn onClick={handleInvite}>{inviting ? "Inviting…" : "Send invite"}</Btn>
             </div>
           </div>
