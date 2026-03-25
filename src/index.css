@@ -123,3 +123,14 @@ textarea:focus {
 button { transition: background 0.15s, color 0.15s, border-color 0.15s; }
 nav::-webkit-scrollbar { display: none; }
 nav { scrollbar-width: none; }
+
+/* Mobile sidebar */
+@media (min-width: 1024px) {
+  .mobile-only { display: none !important; }
+  .sidebar-wrap { position: sticky !important; top: 0 !important; transform: none !important; box-shadow: 1px 0 0 #E5E7EB !important; }
+}
+@media (max-width: 1023px) {
+  .sidebar-wrap { position: fixed !important; top: 0 !important; left: 0 !important; bottom: 0 !important; z-index: 50 !important; height: 100vh !important; transition: transform 0.25s ease-in-out !important; }
+  .sidebar-wrap.closed { transform: translateX(-100%) !important; }
+  .sidebar-wrap.open { transform: translateX(0) !important; }
+}
