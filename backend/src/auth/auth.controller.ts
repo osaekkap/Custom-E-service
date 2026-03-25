@@ -42,4 +42,14 @@ export class AuthController {
   getMe(@Request() req: { user: RequestUser }) {
     return this.authService.getMe(req.user.userId, req.user.customerId);
   }
+
+  /** POST /api/auth/change-password */
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  changePassword(
+    @Request() req: { user: RequestUser },
+    @Body() dto: { currentPassword: string; newPassword: string },
+  ) {
+    return this.authService.changePassword(req.user.userId, dto.currentPassword, dto.newPassword);
+  }
 }

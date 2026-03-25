@@ -54,6 +54,32 @@ const TEXT3 = "#94A3B8";
 const BLUE  = "#0EA5E9";
 const MONO  = "'JetBrains Mono','Courier New',monospace";
 
+// ─── Utilities ────────────────────────────────────────────────────
+function downloadCSV(filename, data, columns) {
+  const headers = columns.map(c => c.label);
+  const rows = data.map(row => columns.map(c => {
+    const v = c.key !== undefined ? row[c.key] : c.get(row);
+    return `"${String(v ?? '').replace(/"/g, '""')}"`;
+  }));
+  const csv = [headers.map(h => `"${h}"`), ...rows].map(r => r.join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function printHTML(title, html) {
+  const win = window.open('', '_blank', 'width=800,height=600');
+  win.document.write(`<!DOCTYPE html><html><head><title>${title}</title>
+    <style>body{font-family:sans-serif;padding:20px}table{border-collapse:collapse;width:100%}
+    td,th{border:1px solid #ccc;padding:8px;font-size:12px}th{background:#f5f5f5;font-weight:bold}
+    h2{font-size:16px}@media print{.no-print{display:none}}</style></head>
+    <body>${html}<div class="no-print" style="margin-top:20px">
+    <button onclick="window.print()">Print</button></div></body></html>`);
+  win.document.close();
+}
+
 function Badge({ status }) {
   const s = STATUS[status] || STATUS.DRAFT;
   return (
@@ -472,8 +498,38 @@ function ShipmentDetail({ job, onBack }) {
               ))}
             </div>
             <div style={{ padding:"12px 20px", borderTop:`1px solid ${BORDER2}`, display:"flex", gap:8 }}>
-              <Btn variant="secondary" style={{ fontSize:11 }}>Print A008-1</Btn>
-              <Btn variant="secondary" style={{ fontSize:11 }}>Export Netbay CSV</Btn>
+              <Btn variant="secondary" style={{ fontSize:11 }} onClick={() => {
+                const html = `<h2>Export Declaration A008-1 — ${job.id}</h2>
+                  <table>
+                    <tr><th style="text-align:left;width:200px">Job Number</th><td>${job.id}</td></tr>
+                    <tr><th style="text-align:left">Type</th><td>${job.type}</td></tr>
+                    <tr><th style="text-align:left">Vessel</th><td>${job.vessel}</td></tr>
+                    <tr><th style="text-align:left">Container</th><td>${job.container||'—'}</td></tr>
+                    <tr><th style="text-align:left">Consignee</th><td>${job.consignee||'—'}</td></tr>
+                    <tr><th style="text-align:left">Port of Discharge</th><td>${job.pod||'—'}</td></tr>
+                    <tr><th style="text-align:left">FOB Value</th><td>${job.fob}</td></tr>
+                    <tr><th style="text-align:left">NSW Reference</th><td>${job.nsw||'—'}</td></tr>
+                    <tr><th style="text-align:left">Declaration No.</th><td>DEC-2026-0234</td></tr>
+                    <tr><th style="text-align:left">Form</th><td>A008-1 Export</td></tr>
+                    <tr><th style="text-align:left">Date</th><td>${job.date||'—'}</td></tr>
+                  </table>`;
+                printHTML(`A008-1 — ${job.id}`, html);
+              }}>🖨 Print A008-1</Btn>
+              <Btn variant="secondary" style={{ fontSize:11 }} onClick={() => {
+                const cols = [
+                  { label:"Job Number", get: r => r.id },
+                  { label:"Type", get: r => r.type },
+                  { label:"Vessel", get: r => r.vessel||'' },
+                  { label:"Container", get: r => r.container||'' },
+                  { label:"Consignee", get: r => r.consignee||'' },
+                  { label:"FOB", get: r => r.fob||'' },
+                  { label:"HS Code", get: r => r.hs||'' },
+                  { label:"Status", get: r => r.status||'' },
+                  { label:"Date", get: r => r.date||'' },
+                  { label:"NSW Ref", get: r => r.nsw||'' },
+                ];
+                downloadCSV(`NETBAY-${job.id}.csv`, [job], cols);
+              }}>⬇ Export Netbay CSV</Btn>
             </div>
           </Card>
         </div>
@@ -563,7 +619,11 @@ function ShipmentDetail({ job, onBack }) {
               <div style={{ fontSize:10, color:TEXT3, marginBottom:8 }}>{doc.size} · {doc.uploaded}</div>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                 <Tag label={doc.type} color={doc.type==="source"?BLUE:doc.type==="generated"?"#7C3AED":"#16A34A"} />
-                <Btn variant="ghost" style={{ fontSize:11, padding:"3px 8px" }}>Download</Btn>
+                <Btn variant="ghost" style={{ fontSize:11, padding:"3px 8px" }} onClick={() => {
+                  // In production this would be a signed URL from Supabase Storage
+                  // For now, show the filename in an alert since there's no real file
+                  alert(`ไฟล์ "${doc.file}" จะถูกดาวน์โหลดจาก Storage\n(ต้องเชื่อมต่อ Supabase Storage จริง)`);
+                }}>⬇ Download</Btn>
               </div>
             </Card>
           ))}
@@ -942,14 +1002,89 @@ function NSWTracking() {
 // ─── DECLARATIONS ─────────────────────────────────────────────────
 function Declarations() {
   const [view, setView] = useState("list");
-  const [jobs, setJobs] = useState(null); // null = loading
+  const [jobs, setJobs] = useState(null);
+  const [selected, setSelected] = useState(new Set());
+
   useEffect(() => {
     jobsApi.list().then(data => {
       const arr = data?.data ?? (Array.isArray(data) ? data : []);
       setJobs(arr.length > 0 ? arr.map(mapJob) : SHIPMENTS);
     }).catch(() => setJobs(SHIPMENTS));
   }, []);
-  const declList = (jobs || SHIPMENTS).filter(s=>s.status!=="DRAFT");
+
+  const declList = (jobs || SHIPMENTS).filter(s => s.status !== "DRAFT");
+
+  const DECL_COLS = [
+    { label:"Declaration No.", get: (_,i) => `DEC-2026-0${230+i}` },
+    { label:"Type",            key:"type" },
+    { label:"Job Ref",         key:"id" },
+    { label:"Vessel",          key:"vessel" },
+    { label:"FOB Value",       key:"fob" },
+    { label:"HS Code",         key:"hs" },
+    { label:"Form",            get:() => "A008-1" },
+    { label:"Status",          key:"status" },
+    { label:"Date",            key:"date" },
+    { label:"Consignee",       key:"consignee" },
+  ];
+
+  const handleExportCSV = () => {
+    const cols = DECL_COLS.map(c => ({
+      label: c.label,
+      get: (row, i) => c.key ? row[c.key] : c.get(row, i),
+    }));
+    const dataWithIndex = declList.map((row, i) => ({ ...row, _i: i }));
+    downloadCSV(`declarations-${new Date().toISOString().slice(0,10)}.csv`,
+      dataWithIndex,
+      cols.map(c => ({ label: c.label, get: (row) => c.get(row, row._i) }))
+    );
+  };
+
+  const handleExportSelected = () => {
+    const subset = [...selected].map(i => declList[i]);
+    if (subset.length === 0) return alert("Please select at least one declaration");
+    const csv = [
+      DECL_COLS.map(c => c.label),
+      ...subset.map((row, i) => DECL_COLS.map(c => c.key ? (row[c.key]||"") : c.get(row, i))),
+    ].map(r => r.map(v => `"${String(v||"").replace(/"/g,'""')}"`).join(",")).join("\n");
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `selected-declarations.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePrintSelected = () => {
+    const indices = [...selected];
+    if (indices.length === 0) return alert("Please select at least one declaration");
+    const rows = indices.map(i => declList[i]);
+    const html = `<h2>Export Declarations — Selected</h2>
+      <table><thead><tr>${DECL_COLS.map(c=>`<th>${c.label}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map((row,i) => `<tr>${DECL_COLS.map(c=>`<td>${c.key?row[c.key]||'':c.get(row,i)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+    printHTML("Print Declarations", html);
+  };
+
+  const handlePrintRow = (row, i) => {
+    const html = `<h2>Declaration: DEC-2026-0${230+i}</h2>
+      <table>${DECL_COLS.map(c => `<tr><th style="text-align:left;width:200px">${c.label}</th><td>${c.key?row[c.key]||'':c.get(row,i)}</td></tr>`).join('')}</table>`;
+    printHTML(`DEC-2026-0${230+i}`, html);
+  };
+
+  const handleRowCSV = (row, i) => {
+    const cols = DECL_COLS.map(c => ({ label: c.label, get: (r) => c.key ? r[c.key]||'' : c.get(r,i) }));
+    downloadCSV(`DEC-2026-0${230+i}.csv`, [row], cols);
+  };
+
+  const toggleSelect = (i) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(i) ? next.delete(i) : next.add(i);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    setSelected(prev => prev.size === declList.length ? new Set() : new Set(declList.map((_,i)=>i)));
+  };
 
   return (
     <div>
@@ -985,44 +1120,88 @@ function Declarations() {
         ))}
       </div>
 
-      <Card>
-        <SectionHeader title="Declaration list" sub="Export A008-1 and Import declarations" right={
-          <div style={{ display:"flex", gap:8 }}>
-            <Btn variant="secondary" style={{ fontSize:11 }}>Print selected</Btn>
-            <Btn variant="secondary" style={{ fontSize:11 }}>Export CSV</Btn>
-          </div>
-        }/>
-        <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
-          <thead>
-            <tr style={{ background:BG, borderBottom:`1px solid ${BORDER}` }}>
-              {["Declaration no.","Type","Job ref","Vessel","FOB value","HS Code (main)","Form","Status","Date",""].map(h=>(
-                <th key={h} style={{ padding:"9px 16px", textAlign:"left", fontSize:10, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px", whiteSpace:"nowrap" }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {declList.map((s,i) => (
-              <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}`, cursor:"pointer" }}
-                onMouseEnter={e=>e.currentTarget.style.background=BG}
-                onMouseLeave={e=>e.currentTarget.style.background=W}>
-                <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:11, color:"#7C3AED", fontWeight:700 }}>DEC-2026-0{230+i}</td>
-                <td style={{ padding:"11px 16px" }}><Tag label={s.type} color={s.type==="Export"?"#2563EB":"#D97706"}/></td>
-                <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:11, color:TEXT2 }}>{s.id}</td>
-                <td style={{ padding:"11px 16px", color:TEXT2, maxWidth:130, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.vessel}</td>
-                <td style={{ padding:"11px 16px", fontWeight:700, color:TEXT }}>{s.fob}</td>
-                <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:11, color:"#2563EB" }}>{s.hs}</td>
-                <td style={{ padding:"11px 16px", fontSize:11, color:TEXT2 }}>A008-1</td>
-                <td style={{ padding:"11px 16px" }}><Badge status={s.status}/></td>
-                <td style={{ padding:"11px 16px", color:TEXT3, fontSize:11 }}>{s.date}</td>
-                <td style={{ padding:"11px 16px", display:"flex", gap:6 }}>
-                  <Btn variant="ghost" style={{ fontSize:10, padding:"3px 8px" }}>Print</Btn>
-                  <Btn variant="ghost" style={{ fontSize:10, padding:"3px 8px" }}>CSV</Btn>
-                </td>
+      {view === "list" && (
+        <Card>
+          <SectionHeader title="Declaration list" sub={`${selected.size > 0 ? `${selected.size} selected · ` : ""}Export A008-1 and Import declarations`} right={
+            <div style={{ display:"flex", gap:8 }}>
+              <Btn variant="secondary" style={{ fontSize:11 }} onClick={handlePrintSelected}>
+                🖨 Print selected {selected.size > 0 ? `(${selected.size})` : ""}
+              </Btn>
+              <Btn variant="secondary" style={{ fontSize:11 }} onClick={handleExportCSV}>
+                ⬇ Export CSV
+              </Btn>
+            </div>
+          }/>
+          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+            <thead>
+              <tr style={{ background:BG, borderBottom:`1px solid ${BORDER}` }}>
+                <th style={{ padding:"9px 16px", width:36 }}>
+                  <input type="checkbox" checked={selected.size===declList.length && declList.length>0} onChange={toggleAll} style={{ cursor:"pointer" }}/>
+                </th>
+                {["Declaration no.","Type","Job ref","Vessel","FOB value","HS Code (main)","Form","Status","Date",""].map(h=>(
+                  <th key={h} style={{ padding:"9px 16px", textAlign:"left", fontSize:10, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px", whiteSpace:"nowrap" }}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </Card>
+            </thead>
+            <tbody>
+              {declList.map((s,i) => (
+                <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}`, cursor:"pointer", background: selected.has(i)?"#EFF6FF":W }}
+                  onMouseEnter={e=>{ if(!selected.has(i)) e.currentTarget.style.background=BG; }}
+                  onMouseLeave={e=>{ e.currentTarget.style.background=selected.has(i)?"#EFF6FF":W; }}>
+                  <td style={{ padding:"11px 16px" }}>
+                    <input type="checkbox" checked={selected.has(i)} onChange={() => toggleSelect(i)} style={{ cursor:"pointer" }}/>
+                  </td>
+                  <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:11, color:"#7C3AED", fontWeight:700 }}>DEC-2026-0{230+i}</td>
+                  <td style={{ padding:"11px 16px" }}><Tag label={s.type} color={s.type==="Export"?"#2563EB":"#D97706"}/></td>
+                  <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:11, color:TEXT2 }}>{s.id}</td>
+                  <td style={{ padding:"11px 16px", color:TEXT2, maxWidth:130, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.vessel}</td>
+                  <td style={{ padding:"11px 16px", fontWeight:700, color:TEXT }}>{s.fob}</td>
+                  <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:11, color:"#2563EB" }}>{s.hs}</td>
+                  <td style={{ padding:"11px 16px", fontSize:11, color:TEXT2 }}>A008-1</td>
+                  <td style={{ padding:"11px 16px" }}><Badge status={s.status}/></td>
+                  <td style={{ padding:"11px 16px", color:TEXT3, fontSize:11 }}>{s.date}</td>
+                  <td style={{ padding:"11px 16px", display:"flex", gap:6 }}>
+                    <Btn variant="ghost" style={{ fontSize:10, padding:"3px 8px" }} onClick={() => handlePrintRow(s, i)}>🖨 Print</Btn>
+                    <Btn variant="ghost" style={{ fontSize:10, padding:"3px 8px" }} onClick={() => handleRowCSV(s, i)}>⬇ CSV</Btn>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
+
+      {view === "cards" && (
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:14 }}>
+          {declList.map((s,i) => (
+            <Card key={i} style={{ padding:0, overflow:"hidden" }}>
+              <div style={{ padding:"14px 16px", borderBottom:`1px solid ${BORDER2}`, display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+                <div>
+                  <div style={{ fontFamily:MONO, fontSize:11, color:"#7C3AED", fontWeight:700, marginBottom:4 }}>DEC-2026-0{230+i}</div>
+                  <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+                    <Tag label={s.type} color={s.type==="Export"?"#2563EB":"#D97706"}/>
+                    <Badge status={s.status}/>
+                  </div>
+                </div>
+                <input type="checkbox" checked={selected.has(i)} onChange={() => toggleSelect(i)} style={{ cursor:"pointer", marginTop:4 }}/>
+              </div>
+              <div style={{ padding:"14px 16px" }}>
+                <div style={{ display:"grid", gridTemplateColumns:"auto 1fr", gap:"5px 10px", fontSize:11 }}>
+                  <span style={{ color:TEXT3 }}>Job ref</span><span style={{ fontFamily:MONO, color:TEXT2 }}>{s.id}</span>
+                  <span style={{ color:TEXT3 }}>Vessel</span><span style={{ color:TEXT2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.vessel}</span>
+                  <span style={{ color:TEXT3 }}>FOB</span><span style={{ fontWeight:700, color:TEXT }}>{s.fob}</span>
+                  <span style={{ color:TEXT3 }}>HS Code</span><span style={{ fontFamily:MONO, color:"#2563EB" }}>{s.hs}</span>
+                  <span style={{ color:TEXT3 }}>Date</span><span style={{ color:TEXT3 }}>{s.date}</span>
+                </div>
+              </div>
+              <div style={{ padding:"10px 16px", borderTop:`1px solid ${BORDER2}`, display:"flex", gap:8 }}>
+                <Btn variant="ghost" style={{ fontSize:10, padding:"3px 10px", flex:1 }} onClick={() => handlePrintRow(s, i)}>🖨 Print</Btn>
+                <Btn variant="ghost" style={{ fontSize:10, padding:"3px 10px", flex:1 }} onClick={() => handleRowCSV(s, i)}>⬇ CSV</Btn>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -1030,6 +1209,37 @@ function Declarations() {
 // ─── MASTER DATA ──────────────────────────────────────────────────
 function MasterData() {
   const [tab, setTab] = useState("hs");
+  const [hsList, setHsList] = useState(HS_MASTER);
+  const [hsModal, setHsModal] = useState(null); // null | "add" | { edit: hs }
+  const [hsForm, setHsForm] = useState({ code:"", desc:"", thDesc:"", unit:"pcs", dutyRate:"0%", origin:"TH" });
+
+  const openAdd = () => { setHsForm({ code:"", desc:"", thDesc:"", unit:"pcs", dutyRate:"0%", origin:"TH" }); setHsModal("add"); };
+  const openEdit = (hs) => { setHsForm({ ...hs }); setHsModal({ edit: hs }); };
+  const closeHsModal = () => setHsModal(null);
+
+  const saveHs = () => {
+    if (!hsForm.code || !hsForm.desc) return alert("กรุณากรอก HS Code และ Description");
+    if (hsModal === "add") {
+      setHsList(prev => [...prev, { ...hsForm }]);
+    } else {
+      setHsList(prev => prev.map(h => h.code === hsModal.edit.code ? { ...hsForm } : h));
+    }
+    closeHsModal();
+  };
+
+  const deleteHs = (code) => {
+    if (!window.confirm(`ลบ HS Code ${code} ใช่หรือไม่?`)) return;
+    setHsList(prev => prev.filter(h => h.code !== code));
+  };
+
+  const FIELD = (label, key, opts) => (
+    <div key={key}>
+      <label style={{ fontSize:11, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>{label}</label>
+      <input value={hsForm[key]} onChange={e => setHsForm(f => ({...f, [key]: e.target.value}))}
+        style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"8px 12px", fontSize:12, background:BG, boxSizing:"border-box" }}
+        {...(opts||{})} />
+    </div>
+  );
 
   return (
     <div>
@@ -1050,11 +1260,34 @@ function MasterData() {
         ))}
       </div>
 
+      {/* HS Modal */}
+      {hsModal && (
+        <div style={{ position:"fixed", inset:0, background:"#00000060", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <div style={{ background:W, borderRadius:16, padding:28, width:480, maxWidth:"95vw", boxShadow:"0 20px 60px #0003" }}>
+            <h3 style={{ margin:"0 0 20px", fontSize:16, fontWeight:800, color:TEXT }}>
+              {hsModal === "add" ? "+ Add HS Code" : `Edit HS Code: ${hsModal.edit.code}`}
+            </h3>
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              {FIELD("HS Code *", "code", hsModal !== "add" ? { readOnly:true, style:{ background:"#F1F5F9", cursor:"not-allowed" } } : {})}
+              {FIELD("Description (EN) *", "desc")}
+              {FIELD("Thai Description", "thDesc")}
+              {FIELD("Unit", "unit")}
+              {FIELD("Duty Rate", "dutyRate", { placeholder:"0%" })}
+              {FIELD("Origin", "origin", { placeholder:"TH" })}
+            </div>
+            <div style={{ display:"flex", gap:10, marginTop:20, justifyContent:"flex-end" }}>
+              <Btn variant="secondary" onClick={closeHsModal}>Cancel</Btn>
+              <Btn onClick={saveHs}>{hsModal === "add" ? "Add HS Code" : "Save changes"}</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+
       {tab==="hs" && (
         <div>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
             <input placeholder="Search HS code or description..." style={{ border:`1px solid ${BORDER}`, borderRadius:8, padding:"8px 14px", fontSize:12, width:320, background:W }}/>
-            <Btn>+ Add HS code</Btn>
+            <Btn onClick={openAdd}>+ Add HS code</Btn>
           </div>
           <Card>
             <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
@@ -1066,7 +1299,7 @@ function MasterData() {
                 </tr>
               </thead>
               <tbody>
-                {HS_MASTER.map((hs,i) => (
+                {hsList.map((hs,i) => (
                   <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}`, cursor:"pointer" }}
                     onMouseEnter={e=>e.currentTarget.style.background=BG}
                     onMouseLeave={e=>e.currentTarget.style.background=W}>
@@ -1079,8 +1312,8 @@ function MasterData() {
                     </td>
                     <td style={{ padding:"11px 16px" }}><Tag label={hs.origin} color="#16A34A"/></td>
                     <td style={{ padding:"11px 16px", display:"flex", gap:6 }}>
-                      <Btn variant="ghost" style={{ fontSize:10, padding:"3px 8px" }}>Edit</Btn>
-                      <Btn variant="danger" style={{ fontSize:10, padding:"3px 8px" }}>Delete</Btn>
+                      <Btn variant="ghost" style={{ fontSize:10, padding:"3px 8px" }} onClick={() => openEdit(hs)}>Edit</Btn>
+                      <Btn variant="danger" style={{ fontSize:10, padding:"3px 8px" }} onClick={() => deleteHs(hs.code)}>Delete</Btn>
                     </td>
                   </tr>
                 ))}
@@ -1092,7 +1325,7 @@ function MasterData() {
 
       {tab==="exporters" && (
         <Card>
-          <SectionHeader title="Exporter profiles" sub="Used in declaration header" right={<Btn>+ Add</Btn>}/>
+          <SectionHeader title="Exporter profiles" sub="Used in declaration header" right={<Btn onClick={() => alert("เพิ่ม Exporter — เชื่อมต่อ API จริงใน production")}>+ Add</Btn>}/>
           {[
             { name:"บริษัท ไทยอิเล็กทรอนิกส์ จำกัด", taxId:"0105561000123", address:"123 ถ.พระราม 2 บางมด จอมทอง กรุงเทพฯ", tel:"02-123-4567", default:true },
           ].map((e,i) => (
@@ -1107,7 +1340,7 @@ function MasterData() {
                 <div style={{ fontSize:11, color:TEXT3 }}>{e.tel}</div>
               </div>
               <div style={{ display:"flex", gap:8 }}>
-                <Btn variant="secondary" style={{ fontSize:11 }}>Edit</Btn>
+                <Btn variant="secondary" style={{ fontSize:11 }} onClick={() => alert(`แก้ไข: ${e.name}`)}>Edit</Btn>
               </div>
             </div>
           ))}
@@ -1116,7 +1349,7 @@ function MasterData() {
 
       {tab==="privilege" && (
         <Card>
-          <SectionHeader title="Privilege codes" sub="BOI, IEAT, Free Zone, etc." right={<Btn>+ Add</Btn>}/>
+          <SectionHeader title="Privilege codes" sub="BOI, IEAT, Free Zone, etc." right={<Btn onClick={() => alert("เพิ่ม Privilege code — เชื่อมต่อ API จริงใน production")}>+ Add</Btn>}/>
           <div style={{ padding:"14px 20px", display:"flex", flexDirection:"column", gap:10 }}>
             {[
               { code:"IEAT-Z3", name:"IEAT Zone 3", type:"IEAT", taxBenefit:"Full exemption", active:true },
@@ -1136,7 +1369,7 @@ function MasterData() {
                 </div>
                 <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                   <Tag label={p.active?"Active":"Inactive"} color={p.active?"#16A34A":"#DC2626"}/>
-                  <Btn variant="ghost" style={{ fontSize:11 }}>Edit</Btn>
+                  <Btn variant="ghost" style={{ fontSize:11 }} onClick={() => alert(`แก้ไข: ${p.code}`)}>Edit</Btn>
                 </div>
               </div>
             ))}
@@ -1146,7 +1379,7 @@ function MasterData() {
 
       {tab==="customers" && (
         <Card>
-          <SectionHeader title="Consignees / customers" sub="Used in shipment Consignee field" right={<Btn>+ Add</Btn>}/>
+          <SectionHeader title="Consignees / customers" sub="Used in shipment Consignee field" right={<Btn onClick={() => alert("เพิ่ม Consignee — เชื่อมต่อ API จริงใน production")}>+ Add</Btn>}/>
           <div style={{ padding:"14px 20px", display:"flex", flexDirection:"column", gap:8 }}>
             {[
               { name:"Samsung Electronics Co., Ltd.", country:"Korea", code:"KR", jobs:18 },
@@ -1160,7 +1393,7 @@ function MasterData() {
                 </div>
                 <div style={{ display:"flex", gap:8 }}>
                   <Tag label={c.code} color={BLUE}/>
-                  <Btn variant="ghost" style={{ fontSize:11 }}>Edit</Btn>
+                  <Btn variant="ghost" style={{ fontSize:11 }} onClick={() => alert(`แก้ไข: ${c.name}`)}>Edit</Btn>
                 </div>
               </div>
             ))}
@@ -1207,7 +1440,20 @@ function Billing() {
                 <div style={{ fontSize:16, fontWeight:800, fontFamily:MONO, color:inv.status==="paid"?"#16A34A":"#DC2626", marginBottom:6 }}>{inv.amount}</div>
                 <Tag label={inv.status} color={inv.status==="paid"?"#16A34A":"#DC2626"}/>
                 <div style={{ marginTop:8 }}>
-                  <Btn variant="ghost" style={{ fontSize:10 }}>Download PDF</Btn>
+                  <Btn variant="ghost" style={{ fontSize:10 }} onClick={() => {
+                    const html = `<h2>Invoice ${inv.id}</h2>
+                      <table>
+                        <tr><th style="text-align:left;width:160px">Invoice No.</th><td>${inv.id}</td></tr>
+                        <tr><th style="text-align:left">Period</th><td>${inv.period}</td></tr>
+                        <tr><th style="text-align:left">Jobs</th><td>${inv.jobs} jobs</td></tr>
+                        <tr><th style="text-align:left">Amount</th><td><strong>${inv.amount}</strong></td></tr>
+                        <tr><th style="text-align:left">Status</th><td>${inv.status.toUpperCase()}</td></tr>
+                        <tr><th style="text-align:left">Issued</th><td>${inv.issued}</td></tr>
+                        <tr><th style="text-align:left">Due</th><td>${inv.due}</td></tr>
+                      </table>
+                      <p style="margin-top:20px;font-size:11px;color:#666">LogiConnect Co., Ltd. · Service invoice</p>`;
+                    printHTML(`Invoice ${inv.id}`, html);
+                  }}>⬇ Download PDF</Btn>
                 </div>
               </div>
             </div>
@@ -1298,7 +1544,22 @@ function Reports() {
 
       <Card>
         <SectionHeader title="Export by HS chapter" sub="March 2026 — top product categories" right={
-          <Btn variant="secondary" style={{ fontSize:11 }}>Download report</Btn>
+          <Btn variant="secondary" style={{ fontSize:11 }} onClick={() => {
+            const data = [
+              { chapter:"8542", desc:"Electronic integrated circuits", jobs:"24", fob:"$2.8M", pct:"67%", trend:"↑" },
+              { chapter:"8534", desc:"Printed circuits", jobs:"10", fob:"$0.8M", pct:"19%", trend:"→" },
+              { chapter:"8524", desc:"Flat panel displays", jobs:"6", fob:"$0.4M", pct:"10%", trend:"↑" },
+              { chapter:"3926", desc:"Plastic articles", jobs:"2", fob:"$0.2M", pct:"4%", trend:"↓" },
+            ];
+            downloadCSV(`export-report-${new Date().toISOString().slice(0,10)}.csv`, data, [
+              { label:"HS Chapter", key:"chapter" },
+              { label:"Description", key:"desc" },
+              { label:"Jobs", key:"jobs" },
+              { label:"FOB Value", key:"fob" },
+              { label:"% of total", key:"pct" },
+              { label:"Trend", key:"trend" },
+            ]);
+          }}>⬇ Download report</Btn>
         }/>
         <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
           <thead>
@@ -1639,58 +1900,155 @@ function SettingsCompany() {
 function SettingsUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  useEffect(() => {
+  const [inviteModal, setInviteModal] = useState(false);
+  const [inviteForm, setInviteForm] = useState({ email:"", fullName:"", role:"USER" });
+  const [inviting, setInviting] = useState(false);
+  const [inviteErr, setInviteErr] = useState("");
+  const [editModal, setEditModal] = useState(null); // { user, role }
+  const [editRole, setEditRole] = useState("USER");
+  const [savingRole, setSavingRole] = useState(false);
+
+  const loadUsers = () => {
+    setLoading(true);
     customerApi.listUsers().then(data => {
       setUsers(Array.isArray(data) ? data : (data?.data ?? []));
     }).catch(() => {}).finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { loadUsers(); }, []);
+
+  const handleInvite = async () => {
+    setInviteErr("");
+    if (!inviteForm.email) return setInviteErr("กรุณากรอกอีเมล");
+    setInviting(true);
+    try {
+      await customerApi.inviteUser({ ...inviteForm, password: Math.random().toString(36).slice(-10) + "A1!" });
+      setInviteModal(false);
+      setInviteForm({ email:"", fullName:"", role:"USER" });
+      loadUsers();
+    } catch(e) {
+      const m = e?.response?.data?.message;
+      setInviteErr(Array.isArray(m) ? m.join(", ") : (m || "Invite failed"));
+    } finally { setInviting(false); }
+  };
+
+  const openEditRole = (u) => { setEditModal(u); setEditRole(u.role || "USER"); };
+
+  const handleUpdateRole = async () => {
+    setSavingRole(true);
+    try {
+      await customerApi.updateUserRole(editModal.profileId || editModal.id, editRole);
+      setEditModal(null);
+      loadUsers();
+    } catch(e) {
+      alert(e?.response?.data?.message || "Update failed");
+    } finally { setSavingRole(false); }
+  };
 
   return (
-    <Card>
-      <SectionHeader title="Organisation users" sub="Manage access for your team" right={<Btn>+ Invite user</Btn>}/>
-      {loading && <div style={{ padding:"20px", textAlign:"center", fontSize:12, color:TEXT3 }}>Loading users…</div>}
-      {!loading && users.length === 0 && <div style={{ padding:"20px", textAlign:"center", fontSize:12, color:TEXT3 }}>ยังไม่มีผู้ใช้ในระบบ</div>}
-      {users.length > 0 && (
-        <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
-          <thead>
-            <tr style={{ background:BG, borderBottom:`1px solid ${BORDER}` }}>
-              {["Name","Email","Role","Status",""].map(h=>(
-                <th key={h} style={{ padding:"9px 18px", textAlign:"left", fontSize:10, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px" }}>{h}</th>
+    <>
+      {/* Invite Modal */}
+      {inviteModal && (
+        <div style={{ position:"fixed", inset:0, background:"#00000060", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <div style={{ background:W, borderRadius:16, padding:28, width:420, maxWidth:"95vw", boxShadow:"0 20px 60px #0003" }}>
+            <h3 style={{ margin:"0 0 20px", fontSize:16, fontWeight:800, color:TEXT }}>+ Invite User</h3>
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              {[["Email *","email","email"],["Full Name","fullName","text"]].map(([l,k,t]) => (
+                <div key={k}>
+                  <label style={{ fontSize:11, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>{l}</label>
+                  <input type={t} value={inviteForm[k]} onChange={e => setInviteForm(f=>({...f,[k]:e.target.value}))}
+                    style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:12, background:BG, boxSizing:"border-box" }}/>
+                </div>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u,i) => {
-              const name = u.profile?.fullName || u.fullName || "—";
-              const email = u.profile?.email || u.email || "—";
-              const role = u.role || "USER";
-              return (
-                <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}` }}>
-                  <td style={{ padding:"13px 18px" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                      <div style={{ width:32, height:32, borderRadius:"50%", background:"#0EA5E915", border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:BLUE }}>
-                        {name.charAt(0)}
-                      </div>
-                      <span style={{ fontSize:13, fontWeight:600, color:TEXT }}>{name}</span>
-                    </div>
-                  </td>
-                  <td style={{ padding:"13px 18px", color:TEXT2 }}>{email}</td>
-                  <td style={{ padding:"13px 18px" }}>
-                    <Tag label={role} color={role==="TENANT_ADMIN"?BLUE:role==="USER"?"#7C3AED":TEXT3}/>
-                  </td>
-                  <td style={{ padding:"13px 18px" }}>
-                    <Tag label="Active" color="#16A34A"/>
-                  </td>
-                  <td style={{ padding:"13px 18px", display:"flex", gap:6 }}>
-                    <Btn variant="ghost" style={{ fontSize:10 }}>Edit role</Btn>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+              <div>
+                <label style={{ fontSize:11, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>Role</label>
+                <select value={inviteForm.role} onChange={e => setInviteForm(f=>({...f,role:e.target.value}))}
+                  style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:12, background:BG, boxSizing:"border-box" }}>
+                  <option value="USER">User</option>
+                  <option value="TENANT_ADMIN">Tenant Admin</option>
+                  <option value="VIEWER">Viewer</option>
+                </select>
+              </div>
+              {inviteErr && <div style={{ padding:"8px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, fontSize:12, color:"#DC2626" }}>{inviteErr}</div>}
+              <p style={{ fontSize:11, color:TEXT3, margin:0 }}>ระบบจะสร้างรหัสผ่านชั่วคราวให้อัตโนมัติ</p>
+            </div>
+            <div style={{ display:"flex", gap:10, marginTop:20, justifyContent:"flex-end" }}>
+              <Btn variant="secondary" onClick={() => { setInviteModal(false); setInviteErr(""); }}>Cancel</Btn>
+              <Btn onClick={handleInvite}>{inviting ? "Inviting…" : "Send invite"}</Btn>
+            </div>
+          </div>
+        </div>
       )}
-    </Card>
+
+      {/* Edit Role Modal */}
+      {editModal && (
+        <div style={{ position:"fixed", inset:0, background:"#00000060", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <div style={{ background:W, borderRadius:16, padding:28, width:360, maxWidth:"95vw", boxShadow:"0 20px 60px #0003" }}>
+            <h3 style={{ margin:"0 0 16px", fontSize:16, fontWeight:800, color:TEXT }}>Edit Role</h3>
+            <p style={{ fontSize:13, color:TEXT2, margin:"0 0 16px" }}>{editModal.profile?.email || editModal.email || "—"}</p>
+            <div>
+              <label style={{ fontSize:11, color:TEXT3, fontWeight:600, display:"block", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.5px" }}>Role</label>
+              <select value={editRole} onChange={e => setEditRole(e.target.value)}
+                style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:13, background:BG }}>
+                <option value="USER">User</option>
+                <option value="TENANT_ADMIN">Tenant Admin</option>
+                <option value="VIEWER">Viewer</option>
+              </select>
+            </div>
+            <div style={{ display:"flex", gap:10, marginTop:20, justifyContent:"flex-end" }}>
+              <Btn variant="secondary" onClick={() => setEditModal(null)}>Cancel</Btn>
+              <Btn onClick={handleUpdateRole}>{savingRole ? "Saving…" : "Save"}</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Card>
+        <SectionHeader title="Organisation users" sub="Manage access for your team" right={<Btn onClick={() => setInviteModal(true)}>+ Invite user</Btn>}/>
+        {loading && <div style={{ padding:"20px", textAlign:"center", fontSize:12, color:TEXT3 }}>Loading users…</div>}
+        {!loading && users.length === 0 && <div style={{ padding:"20px", textAlign:"center", fontSize:12, color:TEXT3 }}>ยังไม่มีผู้ใช้ในระบบ</div>}
+        {users.length > 0 && (
+          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+            <thead>
+              <tr style={{ background:BG, borderBottom:`1px solid ${BORDER}` }}>
+                {["Name","Email","Role","Status",""].map(h=>(
+                  <th key={h} style={{ padding:"9px 18px", textAlign:"left", fontSize:10, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u,i) => {
+                const name = u.profile?.fullName || u.fullName || "—";
+                const email = u.profile?.email || u.email || "—";
+                const role = u.role || "USER";
+                return (
+                  <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}` }}>
+                    <td style={{ padding:"13px 18px" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                        <div style={{ width:32, height:32, borderRadius:"50%", background:"#0EA5E915", border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:BLUE }}>
+                          {name.charAt(0)}
+                        </div>
+                        <span style={{ fontSize:13, fontWeight:600, color:TEXT }}>{name}</span>
+                      </div>
+                    </td>
+                    <td style={{ padding:"13px 18px", color:TEXT2 }}>{email}</td>
+                    <td style={{ padding:"13px 18px" }}>
+                      <Tag label={role} color={role==="TENANT_ADMIN"?BLUE:role==="USER"?"#7C3AED":TEXT3}/>
+                    </td>
+                    <td style={{ padding:"13px 18px" }}>
+                      <Tag label="Active" color="#16A34A"/>
+                    </td>
+                    <td style={{ padding:"13px 18px", display:"flex", gap:6 }}>
+                      <Btn variant="ghost" style={{ fontSize:10 }} onClick={() => openEditRole(u)}>Edit role</Btn>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </Card>
+    </>
   );
 }
 

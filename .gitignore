@@ -28,3 +28,4 @@ yarn-error.log*
 
 # Vite cache
 .vite/
+.claude/settings.local.json

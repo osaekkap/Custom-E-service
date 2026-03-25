@@ -279,4 +279,34 @@ export class AuthService {
       customer: customerUser?.customer ?? null,
     };
   }
+
+  /** POST /auth/change-password */
+  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<{ message: string }> {
+    // Get user's email
+    const profile = await this.prisma.profile.findUnique({ where: { id: userId } });
+    if (!profile) throw new NotFoundException('Profile not found');
+
+    // Verify current password
+    const { error: loginError } = await this.supabase.auth.signInWithPassword({
+      email: profile.email,
+      password: currentPassword,
+    });
+    if (loginError) throw new UnauthorizedException('Current password is incorrect');
+
+    // Update via Supabase admin
+    const { error: updateError } = await this.supabase.auth.admin.updateUserById(userId, {
+      password: newPassword,
+    });
+    if (updateError) throw new BadRequestException(updateError.message);
+
+    this.auditService.log({
+      actorId: userId,
+      actorEmail: profile.email,
+      action: 'CHANGE_PASSWORD',
+      entityType: 'AUTH',
+      status: 'SUCCESS',
+    });
+
+    return { message: 'Password changed successfully' };
+  }
 }
