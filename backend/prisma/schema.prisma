@@ -173,7 +173,13 @@ model Customer {
   nswEndpointUrl  String?  @db.VarChar(500)  // NSW MSH endpoint URL
   nswSecurityProfile Int   @default(1)       // ebXML security profile (0=none, 1=sign)
 
-  status        CustomerStatus @default(ACTIVE)
+  // ── Legal & Compliance ─────────────────────────────────────────
+  tcVersion     String?   @db.VarChar(20)  // T&C version accepted, e.g. "2026-v1"
+  tcAcceptedAt  DateTime?                  // Timestamp of T&C acceptance
+  pdpaAcceptedAt DateTime?                 // PDPA consent timestamp
+  registrationIp String?  @db.VarChar(45) // IP at registration (IPv6 max 45 chars)
+
+  status        CustomerStatus @default(TRIAL)
   isActive      Boolean      @default(true)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
@@ -214,7 +220,10 @@ model Profile {
   id        String   @id                             // = Supabase auth.users.id
   email     String   @unique
   fullName  String?
+  jobTitle  String?  @db.VarChar(100)
+  phone     String?  @db.VarChar(20)
   avatarUrl String?
+  pdpaConsentAt DateTime?                            // PDPA individual consent
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

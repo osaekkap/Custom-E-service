@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "./stores/AuthContext.jsx";
 import LoginScreen from "./LoginScreen.jsx";
+import RegisterScreen from "./RegisterScreen.jsx";
 import { jobsApi } from "./api/jobsApi.js";
 
 // ─── Constants ────────────────────────────────────────────────────
@@ -1435,9 +1436,13 @@ export default function App() {
   const auth = useContext(AuthContext);
   const [screen, setScreen] = useState("dashboard");
   const [detailJob, setDetailJob] = useState(null);
+  const [showRegister, setShowRegister] = useState(false);
 
-  // Show login screen if not authenticated
-  if (!auth?.token) return <LoginScreen />;
+  // Show register / login screen if not authenticated
+  if (!auth?.token) {
+    if (showRegister) return <RegisterScreen onBack={() => setShowRegister(false)} />;
+    return <LoginScreen onRegister={() => setShowRegister(true)} />;
+  }
 
   const handleNav = (id, data) => {
     if (id === "shipment_detail" && data) {

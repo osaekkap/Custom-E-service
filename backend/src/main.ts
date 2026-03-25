@@ -5,7 +5,19 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors({ origin: process.env.FRONTEND_URL ?? 'http://localhost:5173' });
+  // Support comma-separated origins e.g. "https://app.example.com,http://localhost:5173"
+  const rawOrigins = process.env.FRONTEND_URL ?? 'http://localhost:5173';
+  const allowedOrigins = rawOrigins.split(',').map((o) => o.trim());
+  app.enableCors({
+    origin: (origin, cb) => {
+      // Allow non-browser clients (Postman, server-to-server) and listed origins
+      if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+      cb(new Error(`CORS: origin ${origin} not allowed`));
+    },
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({

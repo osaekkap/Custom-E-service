@@ -9,7 +9,7 @@ const BORDER = '#E2E8F0';
 const BG    = '#F8FAFC';
 const MONO  = "'JetBrains Mono','Courier New',monospace";
 
-export default function LoginScreen() {
+export default function LoginScreen({ onRegister }) {
   const { login, loading, error } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -111,7 +111,13 @@ export default function LoginScreen() {
           </form>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: 20, fontSize: 11, color: TEXT3 }}>
+        <div style={{ textAlign: 'center', marginTop: 16, fontSize: 12, color: TEXT3 }}>
+          ยังไม่มีบัญชี?{' '}
+          <button onClick={onRegister} style={{ background: 'none', border: 'none', color: BLUE, fontWeight: 600, fontSize: 12, cursor: 'pointer', padding: 0 }}>
+            สมัครใช้งาน (B2B)
+          </button>
+        </div>
+        <div style={{ textAlign: 'center', marginTop: 10, fontSize: 11, color: TEXT3 }}>
           Powered by NSW Thailand · ebXML v2.0
         </div>
       </div>

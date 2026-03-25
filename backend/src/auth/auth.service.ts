@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   ConflictException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -10,6 +11,7 @@ import { createClient } from '@supabase/supabase-js';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { RegisterB2bDto } from './dto/register-b2b.dto';
 import { Role } from '@prisma/client';
 
 @Injectable()
@@ -129,6 +131,107 @@ export class AuthService {
       role: customerUser.role,
       customerId: dto.customerId,
     };
+  }
+
+  /** POST /auth/register/b2b — self-service company registration */
+  async registerB2b(dto: RegisterB2bDto, clientIp?: string) {
+    if (!dto.tcAccepted || !dto.pdpaAccepted) {
+      throw new BadRequestException('Must accept Terms & Conditions and PDPA');
+    }
+
+    // 1. Check Tax ID not already registered
+    const existingCustomer = await this.prisma.customer.findUnique({
+      where: { taxId: dto.taxId },
+    });
+    if (existingCustomer) {
+      throw new ConflictException('Tax ID already registered');
+    }
+
+    // 2. Create Supabase Auth user
+    const { data, error } = await this.supabase.auth.admin.createUser({
+      email: dto.email,
+      password: dto.password,
+      email_confirm: true,
+      user_metadata: { full_name: dto.fullName },
+    });
+    if (error) {
+      if (error.message.includes('already')) {
+        throw new ConflictException('Email already registered');
+      }
+      throw new BadRequestException(error.message);
+    }
+
+    const supabaseUser = data.user;
+    const now = new Date();
+
+    // 3. Generate unique customer code (up to 8 chars from English name or Tax ID)
+    const rawCode = (dto.companyNameEn ?? dto.taxId)
+      .replace(/[^a-zA-Z0-9]/g, '')
+      .toUpperCase()
+      .substring(0, 8);
+    let code = rawCode || dto.taxId.substring(0, 8);
+    const codeExists = await this.prisma.customer.findUnique({ where: { code } });
+    if (codeExists) code = code.substring(0, 6) + Math.floor(Math.random() * 99).toString().padStart(2, '0');
+
+    try {
+      // 4. Create Customer + Profile + CustomerUser in transaction
+      const [customer] = await this.prisma.$transaction([
+        this.prisma.customer.create({
+          data: {
+            code,
+            companyNameTh: dto.companyNameTh,
+            companyNameEn: dto.companyNameEn,
+            taxId: dto.taxId,
+            address: dto.address,
+            postcode: dto.postcode,
+            phone: dto.companyPhone,
+            email: dto.email,
+            status: 'TRIAL',
+            tcVersion: dto.tcVersion,
+            tcAcceptedAt: now,
+            pdpaAcceptedAt: now,
+            registrationIp: clientIp ?? null,
+          },
+        }),
+        this.prisma.profile.upsert({
+          where: { id: supabaseUser.id },
+          create: {
+            id: supabaseUser.id,
+            email: dto.email,
+            fullName: dto.fullName,
+            jobTitle: dto.jobTitle,
+            phone: dto.adminPhone,
+            pdpaConsentAt: now,
+          },
+          update: {
+            fullName: dto.fullName,
+            jobTitle: dto.jobTitle,
+            phone: dto.adminPhone,
+            pdpaConsentAt: now,
+          },
+        }),
+      ]);
+
+      await this.prisma.customerUser.create({
+        data: {
+          customerId: customer.id,
+          profileId: supabaseUser.id,
+          role: Role.TENANT_ADMIN,
+        },
+      });
+
+      return {
+        message: 'Registration successful',
+        companyCode: customer.code,
+        customerId: customer.id,
+        email: dto.email,
+        status: 'TRIAL',
+      };
+    } catch (err) {
+      // Rollback: delete Supabase user if DB transaction failed
+      await this.supabase.auth.admin.deleteUser(supabaseUser.id).catch(() => null);
+      throw err;
+    }
   }
 
   /** GET /auth/me — current user from JWT */

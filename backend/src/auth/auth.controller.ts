@@ -1,7 +1,8 @@
-import { Controller, Post, Get, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Request, Req, Ip } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { RegisterB2bDto } from './dto/register-b2b.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { RequestUser } from './jwt.strategy';
 
@@ -20,6 +21,15 @@ export class AuthController {
   @Post('register')
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
+  }
+
+  /** POST /api/auth/register/b2b — สมัครใช้งานระบบสำหรับบริษัท (B2B) */
+  @Post('register/b2b')
+  registerB2b(
+    @Body() dto: RegisterB2bDto,
+    @Ip() ip: string,
+  ) {
+    return this.authService.registerB2b(dto, ip);
   }
 
   /** GET /api/auth/me — ดูข้อมูล user ปัจจุบัน */
