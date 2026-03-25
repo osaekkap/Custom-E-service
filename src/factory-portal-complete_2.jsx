@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "./stores/AuthContext.jsx";
+import LoginScreen from "./LoginScreen.jsx";
+import { jobsApi } from "./api/jobsApi.js";
 
 // ─── Constants ────────────────────────────────────────────────────
 const STATUS = {
@@ -108,6 +111,8 @@ const NAV = [
 ];
 
 function Sidebar({ active, onNav }) {
+  const auth = useContext(AuthContext);
+  const userEmail = auth?.user?.email || "";
   return (
     <div style={{ width:220, background:"#0B1929", minHeight:"100vh", display:"flex", flexDirection:"column", flexShrink:0, position:"sticky", top:0, height:"100vh" }}>
       <div style={{ padding:"20px 18px 16px", borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
@@ -152,9 +157,12 @@ function Sidebar({ active, onNav }) {
       </nav>
 
       <div style={{ padding:"14px 18px", borderTop:"1px solid rgba(255,255,255,0.07)" }}>
-        <div style={{ fontSize:10, color:"#334155", marginBottom:3 }}>Service by</div>
-        <div style={{ fontSize:11, color:"#64748B" }}>LogiConnect Co., Ltd.</div>
-        <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:6 }}>
+        <div style={{ fontSize:10, color:"#64748B", marginBottom:6, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{userEmail}</div>
+        <button onClick={auth?.logout} style={{
+          width:"100%", padding:"6px 10px", borderRadius:6, border:"1px solid rgba(239,68,68,0.3)",
+          background:"rgba(239,68,68,0.08)", color:"#EF4444", fontSize:11, fontWeight:600, cursor:"pointer",
+        }}>Sign out</button>
+        <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:8 }}>
           <div style={{ width:5, height:5, borderRadius:"50%", background:"#22C55E" }}/>
           <span style={{ fontSize:10, color:"#334155" }}>NSW · Customs · BoT</span>
         </div>
@@ -250,17 +258,46 @@ function Dashboard({ onNav }) {
 }
 
 // ─── SHIPMENT LIST ────────────────────────────────────────────────
+function mapJob(job) {
+  return {
+    id: job.jobNo,
+    _id: job.id,
+    type: job.type === "EXPORT" ? "Export" : "Import",
+    vessel: job.vesselName || "—",
+    container: job.containerNo || "—",
+    hs: "—",
+    fob: job.totalFobUsd ? `USD ${Number(job.totalFobUsd).toLocaleString()}` : "—",
+    status: job.status,
+    date: job.createdAt?.substring(0, 10) || "—",
+    items: job._count?.declarations ?? 0,
+    nsw: job.nswRefNo || null,
+    consignee: job.consigneeNameEn || "—",
+    pod: job.portOfDischarge || job.portOfLoading || "—",
+    _raw: job,
+  };
+}
+
 function ShipmentList({ onNew, onDetail }) {
   const [filter, setFilter] = useState("ALL");
+  const [jobs, setJobs] = useState(SHIPMENTS);
+  const [apiLoading, setApiLoading] = useState(true);
+
+  useEffect(() => {
+    jobsApi.list().then(data => {
+      if (data?.data?.length > 0) setJobs(data.data.map(mapJob));
+      else if (Array.isArray(data) && data.length > 0) setJobs(data.map(mapJob));
+    }).catch(() => {/* fallback to mock data */}).finally(() => setApiLoading(false));
+  }, []);
+
   const tabs = ["ALL","Export","Import","CLEARED","NSW_PROCESSING","DRAFT"];
-  const shown = filter==="ALL" ? SHIPMENTS : SHIPMENTS.filter(s=>s.status===filter||s.type===filter);
+  const shown = filter==="ALL" ? jobs : jobs.filter(s=>s.status===filter||s.type===filter);
 
   return (
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
         <div>
           <h1 style={{ margin:0, fontSize:20, fontWeight:800, color:TEXT }}>Shipments</h1>
-          <p style={{ margin:"3px 0 0", fontSize:12, color:TEXT3 }}>{shown.length} records</p>
+          <p style={{ margin:"3px 0 0", fontSize:12, color:TEXT3 }}>{apiLoading ? "Loading…" : `${shown.length} records`}</p>
         </div>
         <Btn onClick={onNew}>+ New shipment</Btn>
       </div>
@@ -1395,8 +1432,12 @@ function Settings() {
 
 // ─── APP ──────────────────────────────────────────────────────────
 export default function App() {
+  const auth = useContext(AuthContext);
   const [screen, setScreen] = useState("dashboard");
   const [detailJob, setDetailJob] = useState(null);
+
+  // Show login screen if not authenticated
+  if (!auth?.token) return <LoginScreen />;
 
   const handleNav = (id, data) => {
     if (id === "shipment_detail" && data) {
