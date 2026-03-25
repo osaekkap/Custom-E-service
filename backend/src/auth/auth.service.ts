@@ -159,7 +159,11 @@ export class AuthService {
   }
 
   /** POST /auth/register/b2b — self-service company registration */
-  async registerB2b(dto: RegisterB2bDto, clientIp?: string) {
+  async registerB2b(
+    dto: RegisterB2bDto,
+    clientIp?: string,
+    files?: { companyCert?: Express.Multer.File[]; pp20?: Express.Multer.File[] },
+  ) {
     if (!dto.tcAccepted || !dto.pdpaAccepted) {
       throw new BadRequestException('Must accept Terms & Conditions and PDPA');
     }
@@ -189,17 +193,46 @@ export class AuthService {
     const supabaseUser = data.user;
     const now = new Date();
 
-    // 3. Generate unique customer code (up to 8 chars from English name or Tax ID)
+    // 3. Handle File Uploads (Supabase Storage)
+    let companyCertUrl: string | null = null;
+    let pp20Url: string | null = null;
+
+    try {
+      if (files?.companyCert?.[0]) {
+        companyCertUrl = await this.uploadRegistrationFile(
+          dto.taxId,
+          'company_cert',
+          files.companyCert[0],
+        );
+      }
+      if (files?.pp20?.[0]) {
+        pp20Url = await this.uploadRegistrationFile(
+          dto.taxId,
+          'pp20',
+          files.pp20[0],
+        );
+      }
+    } catch (uploadErr) {
+      await this.supabase.auth.admin.deleteUser(supabaseUser.id).catch(() => null);
+      throw new BadRequestException(`File upload failed: ${uploadErr.message}`);
+    }
+
+    // 4. Generate unique customer code
     const rawCode = (dto.companyNameEn ?? dto.taxId)
       .replace(/[^a-zA-Z0-9]/g, '')
       .toUpperCase()
       .substring(0, 8);
     let code = rawCode || dto.taxId.substring(0, 8);
     const codeExists = await this.prisma.customer.findUnique({ where: { code } });
-    if (codeExists) code = code.substring(0, 6) + Math.floor(Math.random() * 99).toString().padStart(2, '0');
+    if (codeExists)
+      code =
+        code.substring(0, 6) +
+        Math.floor(Math.random() * 99)
+          .toString()
+          .padStart(2, '0');
 
     try {
-      // 4. Create Customer + Profile + CustomerUser in transaction
+      // 5. Create Customer + Profile + CustomerUser in transaction
       const [customer] = await this.prisma.$transaction([
         this.prisma.customer.create({
           data: {
@@ -211,6 +244,8 @@ export class AuthService {
             postcode: dto.postcode,
             phone: dto.companyPhone,
             email: dto.email,
+            companyCertUrl,
+            pp20Url,
             status: 'TRIAL',
             tcVersion: dto.tcVersion,
             tcAcceptedAt: now,
@@ -253,10 +288,38 @@ export class AuthService {
         status: 'TRIAL',
       };
     } catch (err) {
-      // Rollback: delete Supabase user if DB transaction failed
       await this.supabase.auth.admin.deleteUser(supabaseUser.id).catch(() => null);
       throw err;
     }
+  }
+
+  /** Helper to upload registration documents to Supabase Storage */
+  private async uploadRegistrationFile(
+    taxId: string,
+    type: string,
+    file: Express.Multer.File,
+  ): Promise<string> {
+    const BUCKET = 'customer-registration';
+    const ext = file.originalname.split('.').pop();
+    const storagePath = `pending/${taxId}/${type}_${Date.now()}.${ext}`;
+
+    const { error } = await this.supabase.storage
+      .from(BUCKET)
+      .upload(storagePath, file.buffer, {
+        contentType: file.mimetype,
+        upsert: true,
+      });
+
+    if (error) throw new Error(error.message);
+
+    // Create a 10-year signed URL for the admin to view the document
+    const { data: signedData, error: signErr } = await this.supabase.storage
+      .from(BUCKET)
+      .createSignedUrl(storagePath, 60 * 60 * 24 * 365 * 10);
+
+    if (signErr || !signedData) throw new Error('Failed to sign URL');
+
+    return signedData.signedUrl;
   }
 
   /** GET /auth/me — current user from JWT */

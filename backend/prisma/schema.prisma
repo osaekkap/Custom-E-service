@@ -179,6 +179,10 @@ model Customer {
   pdpaAcceptedAt DateTime?                 // PDPA consent timestamp
   registrationIp String?  @db.VarChar(45) // IP at registration (IPv6 max 45 chars)
 
+  // ── Documents ──────────────────────────────────────────────────
+  companyCertUrl String?  @db.Text        // Link to PDF Certificate
+  pp20Url        String?  @db.Text        // Link to PP20 document
+
   status        CustomerStatus @default(TRIAL)
   isActive      Boolean      @default(true)
   createdAt     DateTime     @default(now())

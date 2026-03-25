@@ -35,6 +35,15 @@ export class RegisterB2bDto {
   @MaxLength(20)
   companyPhone?: string;
 
+  // ── Company Documents (URLs) ──────────────────────────────────────
+  @IsOptional()
+  @IsString()
+  companyCertUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  pp20Url?: string;
+
   // ── Administrator Account ─────────────────────────────────────────
   @IsString()
   @IsNotEmpty()

@@ -1,10 +1,11 @@
-import { Controller, Post, Get, Body, UseGuards, Request, Req, Ip, Headers } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Request, Req, Ip, Headers, UseInterceptors, UploadedFiles } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { RegisterB2bDto } from './dto/register-b2b.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { RequestUser } from './jwt.strategy';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 @Controller('auth')
 export class AuthController {
@@ -29,11 +30,16 @@ export class AuthController {
 
   /** POST /api/auth/register/b2b — สมัครใช้งานระบบสำหรับบริษัท (B2B) */
   @Post('register/b2b')
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'companyCert', maxCount: 1 },
+    { name: 'pp20', maxCount: 1 },
+  ]))
   registerB2b(
     @Body() dto: RegisterB2bDto,
     @Ip() ip: string,
+    @UploadedFiles() files: { companyCert?: Express.Multer.File[], pp20?: Express.Multer.File[] },
   ) {
-    return this.authService.registerB2b(dto, ip);
+    return this.authService.registerB2b(dto, ip, files);
   }
 
   /** GET /api/auth/me — ดูข้อมูล user ปัจจุบัน */
