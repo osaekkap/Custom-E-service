@@ -37,7 +37,10 @@ export class JobsService {
 
   /** POST /jobs */
   async create(dto: CreateJobDto, user: RequestUser) {
-    const customerId = user.customerId;
+    // SUPER_ADMIN may supply customerId in body; regular users use their own
+    const customerId = (user.role === Role.SUPER_ADMIN && dto.customerId)
+      ? dto.customerId
+      : user.customerId;
     if (!customerId) throw new ForbiddenException('No customer context');
 
     // Generate jobNo: JOB-YYYY-NNNN

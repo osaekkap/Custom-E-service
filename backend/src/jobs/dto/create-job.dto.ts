@@ -8,6 +8,11 @@ export class CreateJobDto {
   @IsEnum(JobType)
   type: JobType;
 
+  /** SUPER_ADMIN can pass customerId to create on behalf of a customer */
+  @IsOptional()
+  @IsUUID()
+  customerId?: string;
+
   @IsOptional()
   @IsEnum(TransportMode)
   transportMode?: TransportMode;
