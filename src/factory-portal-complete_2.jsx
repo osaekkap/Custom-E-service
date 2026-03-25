@@ -1134,39 +1134,43 @@ function NewShipment({ onBack, onCreated }) {
         const exRate = Number(extracted?.exchangeRate) || 1;
         const totalFobThb = totalFobForeign * exRate;
         const cur = extracted?.currency || "USD";
+        const hsMatchCount = items.filter(it=>it.hsCode).length;
 
         /* ─── box style helpers ─── */
         const boxWrap = (num, label, value, extra={}) => (
-          <div style={{ border:`1px solid #999`, padding:"3px 5px", minHeight:38, boxSizing:"border-box", ...extra }}>
-            <div style={{ fontSize:8.5, color:"#555", lineHeight:1.2 }}>
-              <span style={{ fontWeight:700, marginRight:3 }}>{num}</span>{label}
+          <div style={{ border:"1px solid #CBD5E1", padding:"8px 12px", minHeight:54, boxSizing:"border-box", background:"#fff", ...extra }}>
+            <div style={{ fontSize:11, color:"#64748B", lineHeight:1.3, marginBottom:3 }}>
+              {num && <span style={{ fontWeight:800, color:"#334155", marginRight:4, fontSize:11.5 }}>{num}.</span>}{label}
             </div>
-            <div style={{ fontSize:10.5, fontWeight:600, color:"#111", marginTop:1, whiteSpace:"pre-wrap", wordBreak:"break-word" }}>{value || <span style={{color:"#aaa"}}>—</span>}</div>
+            <div style={{ fontSize:14, fontWeight:600, color:"#0F172A", whiteSpace:"pre-wrap", wordBreak:"break-word" }}>{value || <span style={{color:"#CBD5E1"}}>—</span>}</div>
           </div>
         );
-        const cell = (content, style={}) => (
-          <td style={{ border:"1px solid #999", padding:"3px 5px", fontSize:9.5, verticalAlign:"top", ...style }}>{content}</td>
+        const thCell = (content, style={}) => (
+          <th style={{ border:"1px solid #CBD5E1", padding:"8px 10px", fontSize:12, fontWeight:700, color:"#334155", background:"#F1F5F9", verticalAlign:"bottom", whiteSpace:"pre-wrap", lineHeight:1.3, ...style }}>{content}</th>
+        );
+        const tdCell = (content, style={}) => (
+          <td style={{ border:"1px solid #E2E8F0", padding:"7px 10px", fontSize:13, verticalAlign:"top", color:"#1E293B", ...style }}>{content}</td>
         );
 
         return (
-          <div style={{ display:"flex", gap:16, alignItems:"flex-start" }}>
+          <div style={{ display:"flex", gap:20, alignItems:"flex-start" }}>
 
             {/* ── LEFT: กศก.101/1 Document Preview ── */}
-            <div style={{ flex:1, minWidth:0, background:"#fff", border:"1px solid #ccc", borderRadius:8, overflow:"hidden", boxShadow:"0 2px 8px rgba(0,0,0,0.08)" }}>
+            <div style={{ flex:1, minWidth:0, background:"#fff", border:"1px solid #CBD5E1", borderRadius:12, overflow:"hidden", boxShadow:"0 4px 16px rgba(0,0,0,0.07)" }}>
 
               {/* Document Title Bar */}
-              <div style={{ background:"#1E3A5F", color:"#fff", padding:"8px 16px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+              <div style={{ background:"linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%)", color:"#fff", padding:"14px 24px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
                 <div>
-                  <div style={{ fontSize:11, fontWeight:700, letterSpacing:.5 }}>ใบขนสินค้าขาออก · กศก. 101/1</div>
-                  <div style={{ fontSize:9, color:"#93C5FD", marginTop:1 }}>Thai Customs Export Declaration — PREVIEW</div>
+                  <div style={{ fontSize:17, fontWeight:800, letterSpacing:.3 }}>ใบขนสินค้าขาออก · กศก. 101/1</div>
+                  <div style={{ fontSize:12, color:"#93C5FD", marginTop:3 }}>Thai Customs Export Declaration — PREVIEW</div>
                 </div>
-                <div style={{ fontSize:9, color:"#93C5FD", textAlign:"right" }}>
-                  <div>ตามประมวลฯ ข้อ ๓ ๐๑ ๐๑ ๐๔</div>
-                  <div style={{ fontWeight:700, color:"#FCD34D", marginTop:1 }}>DRAFT — ยังไม่ได้ยื่น</div>
+                <div style={{ textAlign:"right" }}>
+                  <div style={{ fontSize:11, color:"#BFDBFE" }}>ตามประมวลฯ ข้อ ๓ ๐๑ ๐๑ ๐๔</div>
+                  <div style={{ display:"inline-block", marginTop:5, background:"rgba(250,204,21,0.2)", border:"1px solid #FCD34D", borderRadius:6, padding:"3px 12px", fontSize:12, fontWeight:800, color:"#FCD34D", letterSpacing:.5 }}>DRAFT — ยังไม่ได้ยื่น</div>
                 </div>
               </div>
 
-              <div style={{ padding:"10px 12px" }}>
+              <div style={{ padding:"16px 20px" }}>
 
                 {/* ── SECTION A: Header boxes 1–7 ── */}
                 <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr", gap:0, marginBottom:0 }}>
@@ -1201,56 +1205,63 @@ function NewShipment({ onBack, onCreated }) {
                 </div>
 
                 {/* ── SECTION C: Goods Item Table ── */}
-                <div style={{ marginTop:6, fontSize:8.5, fontWeight:700, color:"#1E3A5F", padding:"3px 5px", background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:"4px 4px 0 0" }}>
-                  รายละเอียดสินค้า (Goods Items) — {items.length} รายการ
+                <div style={{ marginTop:12, fontSize:13, fontWeight:700, color:"#1E3A5F", padding:"8px 14px", background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:"8px 8px 0 0", display:"flex", alignItems:"center", gap:8 }}>
+                  <span>รายละเอียดสินค้า (Goods Items)</span>
+                  <span style={{ background:"#2563EB", color:"#fff", borderRadius:12, padding:"2px 10px", fontSize:12, fontWeight:700 }}>{items.length} รายการ</span>
                 </div>
-                <div style={{ overflowX:"auto" }}>
-                  <table style={{ width:"100%", borderCollapse:"collapse", fontSize:9 }}>
+                <div style={{ overflowX:"auto", borderRadius:"0 0 8px 8px", border:"1px solid #CBD5E1", borderTop:"none" }}>
+                  <table style={{ width:"100%", borderCollapse:"collapse" }}>
                     <thead>
-                      <tr style={{ background:"#F8FAFC" }}>
-                        {cell("19\nรายการที่", { fontWeight:700, width:28, whiteSpace:"pre", background:"#F8FAFC" })}
-                        {cell("22\nชนิดของ / Description", { fontWeight:700, minWidth:160, background:"#F8FAFC" })}
-                        {cell("ชื่อไทย / Thai", { fontWeight:700, minWidth:100, background:"#F8FAFC" })}
-                        {cell("25\nHS Code", { fontWeight:700, width:80, background:"#F8FAFC" })}
-                        {cell("23\nน้ำหนัก (kg)", { fontWeight:700, width:65, background:"#F8FAFC" })}
-                        {cell("24\nปริมาณ / QTY", { fontWeight:700, width:80, background:"#F8FAFC" })}
-                        {cell("26\nหน่วย", { fontWeight:700, width:40, background:"#F8FAFC" })}
-                        {cell(`27\nFOB ${cur}`, { fontWeight:700, width:85, background:"#F8FAFC" })}
-                        {cell("28\nFOB (บาท)", { fontWeight:700, width:90, background:"#F8FAFC" })}
-                        {cell("31\nอัตราอากร", { fontWeight:700, width:55, background:"#F8FAFC" })}
-                        {cell("32\nอากรขาออก", { fontWeight:700, width:65, background:"#F8FAFC" })}
+                      <tr>
+                        {thCell("#", { width:36, textAlign:"center" })}
+                        {thCell("Description\nชนิดของ", { minWidth:150 })}
+                        {thCell("ชื่อไทย", { minWidth:100 })}
+                        {thCell("HS Code\nพิกัดศุลกากร", { width:95 })}
+                        {thCell("น้ำหนัก\n(kg)", { width:70, textAlign:"right" })}
+                        {thCell("ปริมาณ\nQTY", { width:80, textAlign:"right" })}
+                        {thCell("หน่วย", { width:50, textAlign:"center" })}
+                        {thCell(`FOB\n${cur}`, { width:100, textAlign:"right" })}
+                        {thCell("FOB\n(บาท)", { width:110, textAlign:"right" })}
+                        {thCell("อัตรา\nอากร", { width:55, textAlign:"center" })}
+                        {thCell("อากร\nขาออก", { width:75, textAlign:"right" })}
                       </tr>
                     </thead>
                     <tbody>
                       {items.map((it, idx) => {
                         const fobThb = (Number(it.fobForeign)||0) * exRate;
                         return (
-                          <tr key={idx} style={{ background: idx%2===0 ? "#fff" : "#F9FAFB" }}>
-                            {cell(it.seqNo, { textAlign:"center", fontWeight:700, color:"#1E3A5F" })}
-                            {cell(it.descriptionEn, { maxWidth:160 })}
-                            {cell(it.descriptionTh || "—", { color: it.descriptionTh ? "#111" : "#aaa" })}
-                            {cell(
+                          <tr key={idx} onMouseEnter={e=>e.currentTarget.style.background="#F0F9FF"} onMouseLeave={e=>e.currentTarget.style.background=idx%2===0?"#fff":"#F8FAFC"} style={{ background: idx%2===0 ? "#fff" : "#F8FAFC", transition:"background .15s" }}>
+                            {tdCell(it.seqNo, { textAlign:"center", fontWeight:800, color:"#1E3A5F", fontSize:14 })}
+                            {tdCell(it.descriptionEn, { fontWeight:500 })}
+                            {tdCell(it.descriptionTh || "—", { color: it.descriptionTh ? "#1E293B" : "#CBD5E1" })}
+                            {tdCell(
                               it.hsCode
-                                ? <span style={{ color:BLUE, fontWeight:700 }}>{it.hsCode}</span>
-                                : <span style={{ color:"#EF4444", fontStyle:"italic" }}>ไม่พบ</span>
+                                ? <span style={{ color:"#2563EB", fontWeight:700, fontSize:13 }}>{it.hsCode}</span>
+                                : <span style={{ color:"#EF4444", fontStyle:"italic", fontSize:12 }}>ไม่พบ</span>
                             )}
-                            {cell((it.netWeightKg||"—"), { textAlign:"right" })}
-                            {cell((it.quantity||"").toLocaleString(), { textAlign:"right" })}
-                            {cell(it.quantityUnit)}
-                            {cell((Number(it.fobForeign)||0).toLocaleString("en",{minimumFractionDigits:2,maximumFractionDigits:2}), { textAlign:"right" })}
-                            {cell(fobThb.toLocaleString("en",{minimumFractionDigits:2,maximumFractionDigits:2}), { textAlign:"right" })}
-                            {cell("0%", { textAlign:"center", color:"#555" })}
-                            {cell("0.00", { textAlign:"right", color:"#555" })}
+                            {tdCell(it.netWeightKg || "—", { textAlign:"right", color: it.netWeightKg ? "#1E293B" : "#CBD5E1" })}
+                            {tdCell((it.quantity||"").toLocaleString(), { textAlign:"right", fontWeight:600 })}
+                            {tdCell(it.quantityUnit, { textAlign:"center", fontSize:12, color:"#64748B" })}
+                            {tdCell((Number(it.fobForeign)||0).toLocaleString("en",{minimumFractionDigits:2,maximumFractionDigits:2}), { textAlign:"right", fontWeight:600 })}
+                            {tdCell(fobThb.toLocaleString("en",{minimumFractionDigits:2,maximumFractionDigits:2}), { textAlign:"right", fontWeight:600 })}
+                            {tdCell("0%", { textAlign:"center", color:"#94A3B8" })}
+                            {tdCell("0.00", { textAlign:"right", color:"#94A3B8" })}
                           </tr>
                         );
                       })}
                     </tbody>
                     <tfoot>
-                      <tr style={{ background:"#F0F9FF", fontWeight:700 }}>
-                        {cell(`รวม / Total (${items.length} รายการ)`, { colSpan:7, textAlign:"right", fontSize:9.5, color:"#1E3A5F" })}
-                        {cell(totalFobForeign.toLocaleString("en",{minimumFractionDigits:2}), { textAlign:"right", color:BLUE })}
-                        {cell(totalFobThb.toLocaleString("en",{minimumFractionDigits:2}), { textAlign:"right", color:BLUE })}
-                        {cell("", { colSpan:2 })}
+                      <tr style={{ background:"#EFF6FF" }}>
+                        <td colSpan={7} style={{ border:"1px solid #CBD5E1", padding:"10px 14px", textAlign:"right", fontSize:14, fontWeight:800, color:"#1E3A5F" }}>
+                          รวม / Total ({items.length} รายการ)
+                        </td>
+                        <td style={{ border:"1px solid #CBD5E1", padding:"10px 14px", textAlign:"right", fontSize:14, fontWeight:800, color:"#2563EB" }}>
+                          {totalFobForeign.toLocaleString("en",{minimumFractionDigits:2})}
+                        </td>
+                        <td style={{ border:"1px solid #CBD5E1", padding:"10px 14px", textAlign:"right", fontSize:14, fontWeight:800, color:"#2563EB" }}>
+                          {totalFobThb.toLocaleString("en",{minimumFractionDigits:2})}
+                        </td>
+                        <td colSpan={2} style={{ border:"1px solid #CBD5E1", padding:"10px 14px" }}></td>
                       </tr>
                     </tfoot>
                   </table>
@@ -1259,64 +1270,67 @@ function NewShipment({ onBack, onCreated }) {
                 {/* ── SECTION D: Summary Box 35-36 & Declaration ── */}
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:0, marginTop:0 }}>
                   {boxWrap(35, "รวม FOB (บาท) / Total FOB THB",
-                    "฿ " + totalFobThb.toLocaleString("en",{minimumFractionDigits:2}))}
-                  {boxWrap(36, "รวมค่าภาษีอากรทั้งสิ้น / Total Duties (บาท)", "฿ 0.00")}
-                  <div style={{ border:"1px solid #999", padding:"4px 6px", fontSize:8.5, color:"#555", lineHeight:1.5 }}>
-                    <div style={{ fontWeight:700, marginBottom:2 }}>37. คำรับรอง / Declaration</div>
+                    <span style={{ fontSize:16, color:"#2563EB" }}>{"฿ " + totalFobThb.toLocaleString("en",{minimumFractionDigits:2})}</span>)}
+                  {boxWrap(36, "รวมค่าภาษีอากรทั้งสิ้น / Total Duties (บาท)",
+                    <span style={{ fontSize:16 }}>฿ 0.00</span>)}
+                  <div style={{ border:"1px solid #CBD5E1", padding:"10px 14px", fontSize:12, color:"#475569", lineHeight:1.6, background:"#fff" }}>
+                    <div style={{ fontWeight:800, marginBottom:4, color:"#334155", fontSize:13 }}>37. คำรับรอง / Declaration</div>
                     <div>ข้าพเจ้าขอรับรองว่ารายการที่แสดงข้างต้นนี้เป็นความจริงทุกประการ</div>
-                    <div style={{ marginTop:6, borderTop:"1px dashed #ccc", paddingTop:4 }}>
+                    <div style={{ marginTop:10, borderTop:"1px dashed #CBD5E1", paddingTop:8 }}>
                       ลายมือชื่อ _______________________ (ผู้ส่งออก/ผู้รับมอบ)
                     </div>
-                    <div style={{ marginTop:2 }}>38. วันที่ยื่น: {new Date().toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric"})}</div>
+                    <div style={{ marginTop:4, fontSize:12, color:"#64748B" }}>38. วันที่ยื่น: {new Date().toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric"})}</div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* ── RIGHT: Submission Panel ── */}
-            <div style={{ width:260, flexShrink:0, display:"flex", flexDirection:"column", gap:12 }}>
+            <div style={{ width:300, flexShrink:0, display:"flex", flexDirection:"column", gap:14 }}>
 
               {/* Summary card */}
-              <Card style={{ background:"#F0FDF4", border:"1px solid #BBF7D0" }}>
-                <div style={{ padding:"12px 14px" }}>
-                  <div style={{ fontSize:12, fontWeight:700, color:"#15803D", marginBottom:6 }}>✓ พร้อมยื่น</div>
-                  <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
-                    {[
-                      ["จำนวนรายการ", `${items.length} รายการ`],
-                      ["HS Code match", `${items.filter(it=>it.hsCode).length}/${items.length} รายการ`],
-                      ["สกุลเงิน", cur],
-                      ["อัตราแลกเปลี่ยน", `${exRate} THB/${cur}`],
-                      ["Total FOB " + cur, totalFobForeign.toLocaleString("en",{minimumFractionDigits:2})],
-                      ["Total FOB (บาท)", "฿ " + totalFobThb.toLocaleString("en",{minimumFractionDigits:2,maximumFractionDigits:2})],
-                    ].map(([l,v],i)=>(
-                      <div key={i} style={{ display:"flex", justifyContent:"space-between", fontSize:11 }}>
-                        <span style={{ color:"#4B5563" }}>{l}</span>
-                        <span style={{ fontWeight:700, color:"#111827" }}>{v}</span>
-                      </div>
-                    ))}
-                  </div>
+              <div style={{ background:"linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)", border:"1px solid #86EFAC", borderRadius:12, padding:"18px 20px" }}>
+                <div style={{ fontSize:15, fontWeight:800, color:"#15803D", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}>
+                  <span style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", width:24, height:24, borderRadius:99, background:"#22C55E", color:"#fff", fontSize:14 }}>✓</span>
+                  พร้อมยื่น
                 </div>
-              </Card>
+                <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                  {[
+                    ["จำนวนรายการ", `${items.length} รายการ`],
+                    ["HS Code match", `${hsMatchCount}/${items.length} รายการ`],
+                    ["สกุลเงิน", cur],
+                    ["อัตราแลกเปลี่ยน", `${exRate} THB/${cur}`],
+                    ["Total FOB " + cur, totalFobForeign.toLocaleString("en",{minimumFractionDigits:2})],
+                    ["Total FOB (บาท)", "฿ " + totalFobThb.toLocaleString("en",{minimumFractionDigits:2,maximumFractionDigits:2})],
+                  ].map(([l,v],i)=>(
+                    <div key={i} style={{ display:"flex", justifyContent:"space-between", fontSize:13, lineHeight:1.4 }}>
+                      <span style={{ color:"#4B5563" }}>{l}</span>
+                      <span style={{ fontWeight:700, color:"#111827" }}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
               {/* Submission method */}
               <Card>
-                <SectionHeader title="วิธียื่น (Submission)" />
-                <div style={{ padding:"10px 12px", display:"flex", flexDirection:"column", gap:7 }}>
+                <div style={{ padding:"14px 16px 6px", fontSize:14, fontWeight:800, color:TEXT }}>วิธียื่น (Submission)</div>
+                <div style={{ padding:"6px 14px 14px", display:"flex", flexDirection:"column", gap:8 }}>
                   {[
                     { id:"nsw",     icon:"🌐", title:"NSW Thailand", desc:"National Single Window", color:BLUE },
-                    { id:"customs", icon:"🤖", title:"Playwright", desc:"กรมศุลกากร portal", color:"#7C3AED" },
+                    { id:"customs", icon:"🤖", title:"Playwright Automation", desc:"กรมศุลกากร portal", color:"#7C3AED" },
                     { id:"csv",     icon:"📥", title:"Export CSV", desc:"Netbay manual upload", color:"#16A34A" },
                   ].map(opt=>(
                     <button key={opt.id} onClick={()=>setSubmitMethod(opt.id)} style={{
-                      display:"flex", alignItems:"center", gap:9, padding:"8px 10px",
-                      borderRadius:7, cursor:"pointer", textAlign:"left", width:"100%",
-                      background:submitMethod===opt.id?`${opt.color}10`:"#fff",
+                      display:"flex", alignItems:"center", gap:12, padding:"12px 14px",
+                      borderRadius:10, cursor:"pointer", textAlign:"left", width:"100%",
+                      background:submitMethod===opt.id?`${opt.color}0D`:"#fff",
                       border:`${submitMethod===opt.id?2:1}px solid ${submitMethod===opt.id?opt.color:BORDER}`,
+                      transition:"all .15s",
                     }}>
-                      <span style={{ fontSize:16 }}>{opt.icon}</span>
+                      <span style={{ fontSize:22 }}>{opt.icon}</span>
                       <div>
-                        <div style={{ fontSize:11, fontWeight:700, color:TEXT }}>{opt.title}</div>
-                        <div style={{ fontSize:9.5, color:TEXT3 }}>{opt.desc}</div>
+                        <div style={{ fontSize:14, fontWeight:700, color:TEXT }}>{opt.title}</div>
+                        <div style={{ fontSize:12, color:TEXT3, marginTop:1 }}>{opt.desc}</div>
                       </div>
                     </button>
                   ))}
@@ -1324,13 +1338,14 @@ function NewShipment({ onBack, onCreated }) {
               </Card>
 
               {submitErr && (
-                <div style={{ padding:"8px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, fontSize:11, color:"#DC2626" }}>{submitErr}</div>
+                <div style={{ padding:"12px 16px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, fontSize:13, color:"#DC2626" }}>{submitErr}</div>
               )}
 
-              <Btn variant="secondary" onClick={()=>setStep(2)} style={{ width:"100%", textAlign:"center" }}>← แก้ไข</Btn>
+              <Btn variant="secondary" onClick={()=>setStep(2)} style={{ width:"100%", textAlign:"center", padding:"12px", fontSize:14 }}>← แก้ไข</Btn>
               <button onClick={handleCreateJob} disabled={submitting} style={{
-                width:"100%", background:submitting?"#94A3B8":BLUE, color:"#fff", border:"none",
-                borderRadius:8, padding:"12px", fontSize:13, fontWeight:700, cursor:submitting?"not-allowed":"pointer",
+                width:"100%", background:submitting?"#94A3B8":"linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)", color:"#fff", border:"none",
+                borderRadius:10, padding:"14px", fontSize:15, fontWeight:800, cursor:submitting?"not-allowed":"pointer",
+                boxShadow: submitting ? "none" : "0 4px 12px rgba(37,99,235,0.3)", transition:"all .15s",
               }}>{submitting ? "กำลังสร้าง job…" : "สร้าง Job & ยื่น NSW →"}</button>
             </div>
           </div>
