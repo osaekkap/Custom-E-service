@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useAuth } from './stores/AuthContext';
 
-const BLUE  = '#0EA5E9';
-const TEXT  = '#0F172A';
-const TEXT2 = '#475569';
-const TEXT3 = '#94A3B8';
-const BORDER = '#E2E8F0';
-const BG    = '#F8FAFC';
+const BLUE  = '#2563EB';
+const TEXT  = '#111827';
+const TEXT2 = '#6B7280';
+const TEXT3 = '#9CA3AF';
+const BORDER = '#E5E7EB';
+const BG    = '#F3F4F6';
 const MONO  = "'JetBrains Mono','Courier New',monospace";
 
 export default function LoginScreen({ onRegister }) {
@@ -23,13 +23,12 @@ export default function LoginScreen({ onRegister }) {
     <div style={{
       minHeight: '100vh', background: BG, display: 'flex',
       alignItems: 'center', justifyContent: 'center',
-      fontFamily: "'DM Sans','Segoe UI',system-ui,sans-serif",
     }}>
       <div style={{ width: 380 }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{
-            width: 48, height: 48, borderRadius: 12, background: '#0B1929',
+            width: 48, height: 48, borderRadius: 12, background: '#2563EB',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 22, margin: '0 auto 14px',
           }}>⚓</div>
@@ -64,7 +63,7 @@ export default function LoginScreen({ onRegister }) {
                 style={{
                   width: '100%', padding: '10px 12px', borderRadius: 8,
                   border: `1px solid ${BORDER}`, fontSize: 13, color: TEXT,
-                  background: BG, boxSizing: 'border-box', outline: 'none',
+                  background: '#FFFFFF', boxSizing: 'border-box', outline: 'none',
                 }}
               />
             </div>
@@ -82,7 +81,7 @@ export default function LoginScreen({ onRegister }) {
                 style={{
                   width: '100%', padding: '10px 12px', borderRadius: 8,
                   border: `1px solid ${BORDER}`, fontSize: 13, color: TEXT,
-                  background: BG, boxSizing: 'border-box', outline: 'none',
+                  background: '#FFFFFF', boxSizing: 'border-box', outline: 'none',
                 }}
               />
             </div>

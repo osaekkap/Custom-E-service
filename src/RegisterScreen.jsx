@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import client from './api/client';
 
-const BLUE   = '#0EA5E9';
-const TEXT   = '#0F172A';
-const TEXT2  = '#475569';
-const TEXT3  = '#94A3B8';
-const BORDER = '#E2E8F0';
-const BG     = '#F8FAFC';
+const BLUE   = '#2563EB';
+const TEXT   = '#111827';
+const TEXT2  = '#6B7280';
+const TEXT3  = '#9CA3AF';
+const BORDER = '#E5E7EB';
+const BG     = '#F3F4F6';
 const GREEN  = '#16A34A';
 const RED    = '#DC2626';
 const MONO   = "'JetBrains Mono','Courier New',monospace";
@@ -24,7 +24,7 @@ function Input({ label, required, ...props }) {
       <input {...props} style={{
         width: '100%', padding: '9px 12px', borderRadius: 8,
         border: `1px solid ${BORDER}`, fontSize: 13, color: TEXT,
-        background: BG, boxSizing: 'border-box', outline: 'none',
+        background: '#FFFFFF', boxSizing: 'border-box', outline: 'none',
         ...props.style,
       }} />
     </div>
@@ -62,7 +62,7 @@ function PasswordInput({ label, required, value, onChange, placeholder }) {
           style={{
             width: '100%', padding: '9px 40px 9px 12px', borderRadius: 8,
             border: `1px solid ${BORDER}`, fontSize: 13, color: TEXT,
-            background: BG, boxSizing: 'border-box', outline: 'none',
+            background: '#FFFFFF', boxSizing: 'border-box', outline: 'none',
           }}
         />
         <button

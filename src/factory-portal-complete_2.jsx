@@ -44,15 +44,16 @@ const INVOICES_FACTORY = [
 ];
 
 // ─── Shared helpers ───────────────────────────────────────────────
-const W = "#FFFFFF";
-const BG = "#F8FAFC";
-const BORDER = "#E2E8F0";
-const BORDER2 = "#F1F5F9";
-const TEXT  = "#0F172A";
-const TEXT2 = "#475569";
-const TEXT3 = "#94A3B8";
-const BLUE  = "#0EA5E9";
-const MONO  = "'JetBrains Mono','Courier New',monospace";
+const W       = "#FFFFFF";
+const BG      = "#F3F4F6";
+const BORDER  = "#E5E7EB";
+const BORDER2 = "#F9FAFB";
+const TEXT    = "#111827";
+const TEXT2   = "#6B7280";
+const TEXT3   = "#9CA3AF";
+const BLUE    = "#2563EB";
+const MONO    = "'JetBrains Mono','Courier New',monospace";
+const ROW_HOVER = "#F9FAFB";
 
 // ─── Utilities ────────────────────────────────────────────────────
 function downloadCSV(filename, data, columns) {
@@ -84,7 +85,7 @@ function Badge({ status }) {
   const s = STATUS[status] || STATUS.DRAFT;
   return (
     <span style={{
-      display:"inline-block", padding:"2px 9px", borderRadius:20,
+      display:"inline-block", padding:"2px 9px", borderRadius:6,
       fontSize:10, fontWeight:700, letterSpacing:"0.4px",
       color:s.color, background:s.bg, border:`1px solid ${s.border}`,
     }}>{s.label}</span>
@@ -92,7 +93,7 @@ function Badge({ status }) {
 }
 
 function Card({ children, style={} }) {
-  return <div style={{ background:W, border:`1px solid ${BORDER}`, borderRadius:12, ...style }}>{children}</div>;
+  return <div style={{ background:W, border:`1px solid ${BORDER}`, borderRadius:8, boxShadow:"0 1px 3px rgba(0,0,0,0.05)", ...style }}>{children}</div>;
 }
 
 function SectionHeader({ title, sub, right }) {
@@ -108,7 +109,7 @@ function SectionHeader({ title, sub, right }) {
 }
 
 function Btn({ children, variant="primary", onClick, style={} }) {
-  const base = { border:"none", borderRadius:8, padding:"8px 16px", fontSize:12, fontWeight:600, cursor:"pointer", ...style };
+  const base = { border:"none", borderRadius:8, padding:"8px 16px", fontSize:12, fontWeight:600, cursor:"pointer", transition:"all 0.15s", ...style };
   const styles = {
     primary:   { background:BLUE,   color:"#fff" },
     secondary: { background:"none", color:TEXT2,  border:`1px solid ${BORDER}` },
@@ -128,78 +129,136 @@ function Tag({ label, color="#0EA5E9" }) {
 }
 
 // ─── Sidebar ──────────────────────────────────────────────────────
-const NAV = [
-  { id:"dashboard",    label:"Dashboard",      icon:"▦" },
-  { id:"shipments",    label:"Shipments",       icon:"≡", badge:2 },
-  { id:"new",          label:"New Shipment",    icon:"+" },
-  { id:"nsw",          label:"NSW Tracking",    icon:"⊙" },
-  { id:"declarations", label:"Declarations",    icon:"◫" },
-  { id:"master",       label:"Master Data",     icon:"⊞" },
-  { id:"billing",      label:"Billing",         icon:"◧" },
-  { id:"reports",      label:"Reports",         icon:"⌗" },
-  { id:"settings",     label:"Settings",        icon:"⚙" },
-];
-
 function Sidebar({ active, onNav }) {
   const auth = useContext(AuthContext);
-  const userEmail = auth?.user?.email || "";
-  const customer = auth?.user?.customer;
-  const companyName = customer?.companyNameTh || customer?.companyNameEn || "—";
-  const tenantId = customer ? `${customer.code}` : "—";
+  const NAV = [
+    { id:"dashboard",    label:"Dashboard",      icon:"▦" },
+    { id:"shipments",    label:"Shipments",       icon:"≡", badge: 3 },
+    { id:"new",          label:"New Shipment",    icon:"+" },
+    { id:"nsw",          label:"NSW Tracking",    icon:"⊙" },
+    { id:"declarations", label:"Declarations",    icon:"◫" },
+    { id:"master",       label:"Master Data",     icon:"⊞" },
+    { id:"billing",      label:"Billing",         icon:"◧" },
+    { id:"reports",      label:"Reports",         icon:"⌗" },
+    { id:"settings",     label:"Settings",        icon:"⚙" },
+  ];
+
+  const company = auth?.user?.customer;
+  const email   = auth?.user?.email || "";
+  const initials = email.charAt(0).toUpperCase();
 
   return (
-    <div style={{ width:220, background:"#0B1929", minHeight:"100vh", display:"flex", flexDirection:"column", flexShrink:0, position:"sticky", top:0, height:"100vh" }}>
-      <div style={{ padding:"20px 18px 16px", borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <div style={{ width:32, height:32, borderRadius:8, background:"#0EA5E9", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, color:"#fff", flexShrink:0 }}>⚓</div>
-          <div>
-            <div style={{ color:"#F1F5F9", fontSize:11, fontWeight:700, letterSpacing:"1px", fontFamily:MONO }}>CUSTOMS-EDOC</div>
-            <div style={{ color:"#475569", fontSize:10 }}>Factory Portal</div>
+    <div style={{
+      width:256, background:W, minHeight:"100vh",
+      borderRight:`1px solid ${BORDER}`,
+      boxShadow:"1px 0 0 #E5E7EB",
+      display:"flex", flexDirection:"column", flexShrink:0,
+      position:"sticky", top:0,
+    }}>
+      {/* Logo */}
+      <div style={{
+        height:64, padding:"0 20px",
+        borderBottom:`1px solid ${BORDER}`,
+        display:"flex", alignItems:"center", gap:10,
+      }}>
+        <div style={{
+          width:36, height:36, borderRadius:8,
+          background:BLUE, display:"flex", alignItems:"center",
+          justifyContent:"center", fontSize:18, color:"#fff", flexShrink:0,
+        }}>⚓</div>
+        <div>
+          <div style={{ fontSize:11, fontWeight:800, letterSpacing:"0.05em", color:BLUE, fontFamily:MONO }}>CUSTOMS-EDOC</div>
+          <div style={{ fontSize:10, color:TEXT3 }}>Factory Portal</div>
+        </div>
+      </div>
+
+      {/* Company info */}
+      {company && (
+        <div style={{
+          padding:"12px 20px",
+          borderBottom:`1px solid ${BORDER}`,
+          background:"#F9FAFB",
+        }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <div style={{
+              width:32, height:32, borderRadius:"50%",
+              background:BLUE, display:"flex", alignItems:"center",
+              justifyContent:"center", fontSize:13, fontWeight:700, color:"#fff", flexShrink:0,
+            }}>{initials}</div>
+            <div style={{ minWidth:0 }}>
+              <div style={{ fontSize:12, fontWeight:700, color:TEXT, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                {company.companyNameTh || company.companyNameEn || "—"}
+              </div>
+              <div style={{ fontSize:10, color:TEXT3, fontFamily:MONO }}>{company.code || "—"}</div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <div style={{ padding:"10px 14px", borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
-        <div style={{ background:"rgba(14,165,233,0.08)", borderRadius:8, padding:"8px 12px", border:"1px solid rgba(14,165,233,0.2)", cursor:"pointer" }} onClick={() => onNav("settings")}>
-          <div style={{ fontSize:9, color:"#0EA5E9", fontWeight:700, letterSpacing:"0.8px", textTransform:"uppercase", marginBottom:3 }}>Active factory</div>
-          <div style={{ fontSize:12, color:"#E2E8F0", fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{companyName}</div>
-          <div style={{ fontSize:10, color:"#475569", marginTop:2 }}>{tenantId}</div>
-        </div>
-      </div>
-
-      <nav style={{ flex:1, padding:"10px 8px", overflowY:"auto" }}>
+      {/* Nav */}
+      <nav style={{ flex:1, padding:"16px 12px", overflowY:"auto" }}>
+        <p style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:TEXT3, padding:"0 8px", marginBottom:8, marginTop:0 }}>Main Menu</p>
         {NAV.map(item => {
-          const on = active === item.id || (active === "shipment_detail" && item.id === "shipments");
+          const isActive = active === item.id || (active === "shipment_detail" && item.id === "shipments");
           return (
             <button key={item.id} onClick={() => onNav(item.id)} style={{
-              display:"flex", alignItems:"center", gap:9,
-              width:"100%", padding:"8px 11px", borderRadius:7, marginBottom:2,
-              background: on ? "rgba(14,165,233,0.12)" : "transparent",
-              border: `1px solid ${on ? "rgba(14,165,233,0.25)" : "transparent"}`,
-              color: on ? "#38BDF8" : "#64748B",
-              cursor:"pointer", textAlign:"left", fontSize:12,
-              fontWeight: on ? 600 : 400,
-            }}>
-              <span style={{ fontSize:13, width:16, textAlign:"center" }}>{item.icon}</span>
+              width:"100%", display:"flex", alignItems:"center",
+              gap:10, padding:"8px 12px",
+              marginBottom:2,
+              borderRadius:"0 6px 6px 0",
+              background: isActive ? "#EFF6FF" : "transparent",
+              color: isActive ? BLUE : TEXT2,
+              fontWeight: isActive ? 600 : 400,
+              fontSize:13,
+              cursor:"pointer",
+              borderTop:"none",
+              borderRight:"none",
+              borderBottom:"none",
+              borderLeft: isActive ? `3px solid ${BLUE}` : "3px solid transparent",
+              textAlign:"left",
+              transition:"all 0.15s",
+            }}
+            onMouseEnter={e => { if (!isActive) e.currentTarget.style.background="#F9FAFB"; }}
+            onMouseLeave={e => { if (!isActive) e.currentTarget.style.background="transparent"; }}
+            >
+              <span style={{ fontSize:15, width:20, textAlign:"center", flexShrink:0 }}>{item.icon}</span>
               <span style={{ flex:1 }}>{item.label}</span>
               {item.badge && (
-                <span style={{ background:"#EF4444", color:"#fff", borderRadius:10, padding:"1px 5px", fontSize:9, fontWeight:700 }}>{item.badge}</span>
+                <span style={{
+                  background:"#EF4444", color:"#fff",
+                  borderRadius:10, padding:"1px 6px",
+                  fontSize:9, fontWeight:700, lineHeight:"14px",
+                }}>{item.badge}</span>
               )}
             </button>
           );
         })}
       </nav>
 
-      <div style={{ padding:"14px 18px", borderTop:"1px solid rgba(255,255,255,0.07)" }}>
-        <div style={{ fontSize:10, color:"#64748B", marginBottom:6, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{userEmail}</div>
-        <button onClick={auth?.logout} style={{
-          width:"100%", padding:"6px 10px", borderRadius:6, border:"1px solid rgba(239,68,68,0.3)",
-          background:"rgba(239,68,68,0.08)", color:"#EF4444", fontSize:11, fontWeight:600, cursor:"pointer",
-        }}>Sign out</button>
-        <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:8 }}>
-          <div style={{ width:5, height:5, borderRadius:"50%", background:"#22C55E" }}/>
-          <span style={{ fontSize:10, color:"#334155" }}>NSW · Customs · BoT</span>
+      {/* Footer */}
+      <div style={{
+        padding:"16px 20px",
+        borderTop:`1px solid ${BORDER}`,
+        background:"#F9FAFB",
+      }}>
+        <div style={{ fontSize:11, color:TEXT3, marginBottom:10, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{email}</div>
+        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:10 }}>
+          <div style={{ width:6, height:6, borderRadius:"50%", background:"#22C55E", flexShrink:0 }}/>
+          <span style={{ fontSize:10, color:TEXT3 }}>NSW · Customs · BoT</span>
         </div>
+        <button
+          onClick={auth?.logout}
+          onMouseEnter={e => { e.currentTarget.style.color="#DC2626"; e.currentTarget.style.background="#FEF2F2"; }}
+          onMouseLeave={e => { e.currentTarget.style.color=TEXT2; e.currentTarget.style.background="transparent"; }}
+          style={{
+            width:"100%", display:"flex", alignItems:"center", gap:8,
+            padding:"7px 10px", borderRadius:6,
+            border:"none", background:"transparent",
+            color:TEXT2, fontSize:12, fontWeight:600, cursor:"pointer",
+            textAlign:"left", transition:"all 0.15s",
+          }}>
+          ⎋ Sign out
+        </button>
       </div>
     </div>
   );
@@ -260,7 +319,7 @@ function Dashboard({ onNav }) {
               padding:"11px 20px", borderBottom:i<recentUi.length-1?`1px solid ${BORDER2}`:"none",
               cursor:"pointer",
             }}
-            onMouseEnter={e=>e.currentTarget.style.background=BG}
+            onMouseEnter={e=>e.currentTarget.style.background=ROW_HOVER}
             onMouseLeave={e=>e.currentTarget.style.background=W}>
               <div>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:2 }}>
@@ -380,7 +439,7 @@ function ShipmentList({ onNew, onDetail }) {
           <tbody>
             {shown.map((s,i) => (
               <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}`, cursor:"pointer" }}
-                onMouseEnter={e=>e.currentTarget.style.background=BG}
+                onMouseEnter={e=>e.currentTarget.style.background=ROW_HOVER}
                 onMouseLeave={e=>e.currentTarget.style.background=W}
                 onClick={() => onDetail(s)}>
                 <td style={{ padding:"12px 16px", fontFamily:MONO, fontSize:11, fontWeight:700, color:TEXT }}>{s.id}</td>
@@ -779,7 +838,7 @@ function NewShipment({ onBack, onCreated }) {
               ].map((f,i) => (
                 <div key={i}>
                   <label style={{ fontSize:10, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase" }}>{f.label}</label>
-                  <input defaultValue={f.val} style={{ width:"100%", background:BG, border:`1px solid ${BORDER}`, borderRadius:7, padding:"7px 10px", fontSize:11, color:TEXT, boxSizing:"border-box" }}/>
+                  <input defaultValue={f.val} style={{ width:"100%", background:"#FFFFFF", border:`1px solid ${BORDER}`, borderRadius:7, padding:"7px 10px", fontSize:11, color:TEXT, boxSizing:"border-box" }}/>
                 </div>
               ))}
             </div>
@@ -857,7 +916,7 @@ function NewShipment({ onBack, onCreated }) {
               ].map(([l,v],i) => (
                 <div key={i}>
                   <label style={{ fontSize:10, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase" }}>{l}</label>
-                  <input defaultValue={v} style={{ width:"100%", background:BG, border:`1px solid ${BORDER}`, borderRadius:7, padding:"7px 10px", fontSize:11, color:TEXT, boxSizing:"border-box" }}/>
+                  <input defaultValue={v} style={{ width:"100%", background:"#FFFFFF", border:`1px solid ${BORDER}`, borderRadius:7, padding:"7px 10px", fontSize:11, color:TEXT, boxSizing:"border-box" }}/>
                 </div>
               ))}
             </div>
@@ -1146,7 +1205,7 @@ function Declarations() {
             <tbody>
               {declList.map((s,i) => (
                 <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}`, cursor:"pointer", background: selected.has(i)?"#EFF6FF":W }}
-                  onMouseEnter={e=>{ if(!selected.has(i)) e.currentTarget.style.background=BG; }}
+                  onMouseEnter={e=>{ if(!selected.has(i)) e.currentTarget.style.background=ROW_HOVER; }}
                   onMouseLeave={e=>{ e.currentTarget.style.background=selected.has(i)?"#EFF6FF":W; }}>
                   <td style={{ padding:"11px 16px" }}>
                     <input type="checkbox" checked={selected.has(i)} onChange={() => toggleSelect(i)} style={{ cursor:"pointer" }}/>
@@ -1236,7 +1295,7 @@ function MasterData() {
     <div key={key}>
       <label style={{ fontSize:11, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>{label}</label>
       <input value={hsForm[key]} onChange={e => setHsForm(f => ({...f, [key]: e.target.value}))}
-        style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"8px 12px", fontSize:12, background:BG, boxSizing:"border-box" }}
+        style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"8px 12px", fontSize:12, background:"#FFFFFF", boxSizing:"border-box" }}
         {...(opts||{})} />
     </div>
   );
@@ -1301,7 +1360,7 @@ function MasterData() {
               <tbody>
                 {hsList.map((hs,i) => (
                   <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}`, cursor:"pointer" }}
-                    onMouseEnter={e=>e.currentTarget.style.background=BG}
+                    onMouseEnter={e=>e.currentTarget.style.background=ROW_HOVER}
                     onMouseLeave={e=>e.currentTarget.style.background=W}>
                     <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:12, color:"#2563EB", fontWeight:700 }}>{hs.code}</td>
                     <td style={{ padding:"11px 16px", color:TEXT, maxWidth:200, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{hs.desc}</td>
@@ -1697,7 +1756,7 @@ function SettingsSecurity() {
                 <label style={{ fontSize:11, color:TEXT3, fontWeight:600, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.5px" }}>{l}</label>
                 <input type="password" placeholder="••••••••" value={pwForm[k]}
                   onChange={e => setPwForm(f => ({ ...f, [k]: e.target.value }))}
-                  style={{ width:"100%", background:BG, border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:12, color:TEXT, boxSizing:"border-box" }}/>
+                  style={{ width:"100%", background:"#FFFFFF", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:12, color:TEXT, boxSizing:"border-box" }}/>
               </div>
             ))}
             {pwErr && <div style={{ padding:"8px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, fontSize:12, color:"#DC2626" }}>{pwErr}</div>}
@@ -1760,7 +1819,7 @@ function SettingsSecurity() {
                   const failed = log.status === "FAILED" || (log.detail && log.detail.error);
                   return (
                     <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}`, background: failed?"#FFFBEB":W }}
-                      onMouseEnter={e=>e.currentTarget.style.background=BG}
+                      onMouseEnter={e=>e.currentTarget.style.background=ROW_HOVER}
                       onMouseLeave={e=>e.currentTarget.style.background=failed?"#FFFBEB":W}>
                       <td style={{ padding:"10px 16px", fontFamily:MONO, fontSize:10, color:TEXT3, whiteSpace:"nowrap" }}>{dt}</td>
                       <td style={{ padding:"10px 16px" }}>
@@ -1861,7 +1920,7 @@ function SettingsCompany() {
                 value={form[k]}
                 readOnly={readonly}
                 onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
-                style={{ width:"100%", background: readonly?"#F1F5F9":BG, border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:12, color: readonly?TEXT3:TEXT, boxSizing:"border-box", cursor: readonly?"not-allowed":"text" }}
+                style={{ width:"100%", background: readonly?"#F3F4F6":"#FFFFFF", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:12, color: readonly?TEXT3:TEXT, boxSizing:"border-box", cursor: readonly?"not-allowed":"text" }}
               />
             </div>
           ))}
@@ -1957,13 +2016,13 @@ function SettingsUsers() {
                 <div key={k}>
                   <label style={{ fontSize:11, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>{l}</label>
                   <input type={t} value={inviteForm[k]} onChange={e => setInviteForm(f=>({...f,[k]:e.target.value}))}
-                    style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:12, background:BG, boxSizing:"border-box" }}/>
+                    style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:12, background:"#FFFFFF", boxSizing:"border-box" }}/>
                 </div>
               ))}
               <div>
                 <label style={{ fontSize:11, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>Role</label>
                 <select value={inviteForm.role} onChange={e => setInviteForm(f=>({...f,role:e.target.value}))}
-                  style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:12, background:BG, boxSizing:"border-box" }}>
+                  style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:12, background:"#FFFFFF", boxSizing:"border-box" }}>
                   <option value="USER">User</option>
                   <option value="TENANT_ADMIN">Tenant Admin</option>
                   <option value="VIEWER">Viewer</option>
@@ -1989,7 +2048,7 @@ function SettingsUsers() {
             <div>
               <label style={{ fontSize:11, color:TEXT3, fontWeight:600, display:"block", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.5px" }}>Role</label>
               <select value={editRole} onChange={e => setEditRole(e.target.value)}
-                style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:13, background:BG }}>
+                style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:13, background:"#FFFFFF" }}>
                 <option value="USER">User</option>
                 <option value="TENANT_ADMIN">Tenant Admin</option>
                 <option value="VIEWER">Viewer</option>
@@ -2155,9 +2214,9 @@ export default function App() {
   };
 
   return (
-    <div style={{ display:"flex", minHeight:"100vh", background:BG, fontFamily:"'DM Sans','Segoe UI',system-ui,sans-serif" }}>
+    <div style={{ display:"flex", minHeight:"100vh", background:BG }}>
       <Sidebar active={screen} onNav={handleNav}/>
-      <main style={{ flex:1, padding:"26px 30px", overflowY:"auto", minHeight:"100vh" }}>
+      <main style={{ flex:1, padding:"24px 32px", overflowY:"auto", minHeight:"100vh" }}>
         {content()}
       </main>
     </div>

@@ -105,3 +105,21 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* ── Portal UI globals ── */
+* { box-sizing: border-box; }
+body {
+  font-family: 'Sarabun', 'DM Sans', 'Segoe UI', system-ui, sans-serif;
+  background-color: #F3F4F6;
+  margin: 0;
+}
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #2563EB !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+}
+button { transition: background 0.15s, color 0.15s, border-color 0.15s; }
+nav::-webkit-scrollbar { display: none; }
+nav { scrollbar-width: none; }
