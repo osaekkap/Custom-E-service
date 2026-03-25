@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import * as XLSX from 'xlsx';
 
 export interface ExtractedItem {
@@ -30,43 +30,34 @@ export interface ExtractedDeclaration {
 
 @Injectable()
 export class AiExtractionService {
-  private client: Anthropic;
+  private genAI: GoogleGenerativeAI;
 
   constructor() {
-    this.client = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    });
+    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '');
   }
 
-  /** Convert a multer file to a Claude content block */
-  private fileToContentBlock(
-    file: Express.Multer.File,
-  ): Anthropic.MessageParam['content'] {
+  /** Convert a multer file to a Gemini inlineData part */
+  private fileToGeminiPart(file: Express.Multer.File): any {
     const mime = file.mimetype;
 
-    // PDF → document block (Claude reads natively)
+    // PDF → inline base64 (Gemini reads natively)
     if (mime === 'application/pdf') {
-      return [
-        {
-          type: 'document',
-          source: {
-            type: 'base64',
-            media_type: 'application/pdf',
-            data: file.buffer.toString('base64'),
-          },
-          title: file.originalname,
-        } as any,
-      ];
+      return {
+        inlineData: {
+          mimeType: 'application/pdf',
+          data: file.buffer.toString('base64'),
+        },
+      };
     }
 
-    // Excel / CSV → parse to CSV text
+    // Excel / CSV → parse to text
     const workbook = XLSX.read(file.buffer, { type: 'buffer' });
     let text = `[File: ${file.originalname}]\n`;
     for (const name of workbook.SheetNames) {
       const csv = XLSX.utils.sheet_to_csv(workbook.Sheets[name]);
       text += `\n--- Sheet: ${name} ---\n${csv}\n`;
     }
-    return [{ type: 'text', text }];
+    return { text };
   }
 
   async extractFromDocuments(files: {
@@ -78,27 +69,31 @@ export class AiExtractionService {
       throw new BadRequestException('Commercial Invoice file is required');
     }
 
-    // Build content blocks
-    const userContent: any[] = [
-      {
-        type: 'text',
-        text: 'Extract Thailand Customs export declaration data from these documents:',
-      },
-      { type: 'text', text: '\n=== COMMERCIAL INVOICE ===' },
-      ...this.fileToContentBlock(files.invoice),
-    ];
+    const model = this.genAI.getGenerativeModel({
+      model: 'gemini-2.5-flash',
+      systemInstruction: `You are an expert Thai Customs declaration specialist (กรมศุลกากร).
+Extract structured data from commercial invoices and packing lists for Thailand export customs declarations (กศก.101/1 / A008-1).
+Your output MUST be valid JSON only. Never include markdown code fences or prose.
+If a field is not found, use null. Always extract ALL line items listed.`,
+    });
+
+    // Build prompt parts
+    const parts: any[] = [];
+
+    parts.push({ text: 'Extract Thailand Customs export declaration data from these documents:\n\n=== COMMERCIAL INVOICE ===' });
+    parts.push(this.fileToGeminiPart(files.invoice));
 
     if (files.packingList) {
-      userContent.push({ type: 'text', text: '\n=== PACKING LIST ===' });
-      userContent.push(...this.fileToContentBlock(files.packingList));
-    }
-    if (files.booking) {
-      userContent.push({ type: 'text', text: '\n=== BOOKING CONFIRMATION ===' });
-      userContent.push(...this.fileToContentBlock(files.booking));
+      parts.push({ text: '\n=== PACKING LIST ===' });
+      parts.push(this.fileToGeminiPart(files.packingList));
     }
 
-    userContent.push({
-      type: 'text',
+    if (files.booking) {
+      parts.push({ text: '\n=== BOOKING CONFIRMATION ===' });
+      parts.push(this.fileToGeminiPart(files.booking));
+    }
+
+    parts.push({
       text: `Return ONLY a valid JSON object — no markdown fences, no explanation, just raw JSON:
 {
   "shipper": "exporter company name",
@@ -132,23 +127,9 @@ Rules:
 - confidence: "high" if most fields found, "medium" if partial, "low" if many missing`,
     });
 
-    const response = await this.client.messages.create({
-      model: 'claude-opus-4-6',
-      max_tokens: 4096,
-      system: `You are an expert Thai Customs declaration specialist (กรมศุลกากร).
-Extract structured data from commercial invoices and packing lists for Thailand export customs declarations (กศก.101/1 / A008-1).
-Your output MUST be valid JSON only. Never include markdown code fences or prose.
-If a field is not found, use null. Always extract ALL line items listed.`,
-      messages: [{ role: 'user', content: userContent }],
-    });
-
-    const textBlock = response.content.find((b) => b.type === 'text');
-    if (!textBlock || textBlock.type !== 'text') {
-      throw new BadRequestException('AI returned no text response');
-    }
-
-    // Strip any accidental markdown fences
-    const raw = textBlock.text
+    const result = await model.generateContent(parts);
+    const raw = result.response
+      .text()
       .replace(/^```json\s*/i, '')
       .replace(/^```\s*/i, '')
       .replace(/\s*```$/i, '')
@@ -156,9 +137,7 @@ If a field is not found, use null. Always extract ALL line items listed.`,
 
     try {
       const parsed = JSON.parse(raw) as ExtractedDeclaration;
-      // Ensure items array
       if (!Array.isArray(parsed.items)) parsed.items = [];
-      // Normalize seqNo
       parsed.items = parsed.items.map((item, idx) => ({
         ...item,
         seqNo: item.seqNo ?? idx + 1,
