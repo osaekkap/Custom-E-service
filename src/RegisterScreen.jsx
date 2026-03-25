@@ -31,6 +31,58 @@ function Input({ label, required, ...props }) {
   );
 }
 
+// Eye icons (SVG inline)
+const EyeOpen = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+);
+const EyeOff = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+    <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+    <line x1="1" y1="1" x2="23" y2="23"/>
+  </svg>
+);
+
+function PasswordInput({ label, required, value, onChange, placeholder }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div>
+      <label style={{ fontSize: 11, fontWeight: 600, color: TEXT2, display: 'block', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        {label} {required && <span style={{ color: RED }}>*</span>}
+      </label>
+      <div style={{ position: 'relative' }}>
+        <input
+          type={show ? 'text' : 'password'}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          style={{
+            width: '100%', padding: '9px 40px 9px 12px', borderRadius: 8,
+            border: `1px solid ${BORDER}`, fontSize: 13, color: TEXT,
+            background: BG, boxSizing: 'border-box', outline: 'none',
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => setShow(s => !s)}
+          style={{
+            position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: show ? BLUE : TEXT3, padding: 2, display: 'flex', alignItems: 'center',
+          }}
+          tabIndex={-1}
+          title={show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
+        >
+          {show ? <EyeOpen /> : <EyeOff />}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Step 1: Company Info ─────────────────────────────────────────
 function StepCompany({ data, onChange, onNext }) {
   const [err, setErr] = useState('');
@@ -71,7 +123,7 @@ function StepAdmin({ data, onChange, onNext, onBack }) {
     if (!data.fullName.trim()) return setErr('กรุณากรอกชื่อ-นามสกุล');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) return setErr('รูปแบบอีเมลไม่ถูกต้อง');
     if (data.password.length < 8) return setErr('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
-    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(data.password)) return setErr('รหัสผ่านต้องมีตัวพิมพ์ใหญ่ พิมพ์เล็ก และตัวเลข');
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(data.password)) return setErr('รหัสผ่านต้องมีตัวพิมพ์ใหญ่ พิมพ์เล็ก และตัวเลข (อักขระพิเศษก็ใช้ได้)');
     if (data.password !== data.confirmPassword) return setErr('รหัสผ่านไม่ตรงกัน');
     setErr('');
     onNext();
@@ -89,9 +141,9 @@ function StepAdmin({ data, onChange, onNext, onBack }) {
         value={data.email} onChange={e => onChange('email', e.target.value)} />
       <Input label="เบอร์โทรติดต่อ" placeholder="081-000-0000"
         value={data.adminPhone} onChange={e => onChange('adminPhone', e.target.value)} />
-      <Input label="รหัสผ่าน" required type="password" placeholder="อย่างน้อย 8 ตัว (A-Z, a-z, 0-9)"
+      <PasswordInput label="รหัสผ่าน" required placeholder="อย่างน้อย 8 ตัว · A-Z a-z 0-9 !@#$..."
         value={data.password} onChange={e => onChange('password', e.target.value)} />
-      <Input label="ยืนยันรหัสผ่าน" required type="password" placeholder="••••••••"
+      <PasswordInput label="ยืนยันรหัสผ่าน" required placeholder="••••••••"
         value={data.confirmPassword} onChange={e => onChange('confirmPassword', e.target.value)} />
       {err && <div style={{ fontSize: 12, color: RED, padding: '8px 12px', background: '#FEF2F2', borderRadius: 8, border: '1px solid #FECACA' }}>{err}</div>}
       <div style={{ display: 'flex', gap: 10 }}>
