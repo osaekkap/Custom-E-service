@@ -9,6 +9,7 @@ import client from "./api/client.js";
 import { AreaChart, Area, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import CustomerDashboard from "./CustomerDashboard.jsx";
 import FinanceDashboard from "./FinanceDashboard.jsx";
+import SuperAdminConsole from "./super-admin-console.jsx";
 
 // ─── Constants ────────────────────────────────────────────────────
 const STATUS = {
@@ -134,21 +135,30 @@ function Tag({ label, color="#0EA5E9" }) {
 // ─── Sidebar ──────────────────────────────────────────────────────
 function Sidebar({ active, onNav }) {
   const auth = useContext(AuthContext);
-  const NAV = [
-    { id:"dashboard",    label:"Dashboard",      icon:"▦" },
+  const email   = auth?.user?.email || "";
+  const company = auth?.user?.customer;
+  const initials = email.charAt(0).toUpperCase();
+
+  const isSuperAdmin = email === 'admin@customs-edoc.local' || auth?.user?.role === 'SUPER_ADMIN';
+  const isFinanceAdmin = auth?.user?.role === 'TENANT_ADMIN' || auth?.user?.role === 'ADMIN';
+
+  const ALL_NAV = [
+    ...(isSuperAdmin ? [{ id:"superadmin", label:"Administration", icon:"👑" }] : []),
+    { id:"dashboard",    label:"Dashboard",       icon:"▦" },
     { id:"shipments",    label:"Shipments",       icon:"≡", badge: 3 },
     { id:"new",          label:"New Shipment",    icon:"+" },
     { id:"nsw",          label:"NSW Tracking",    icon:"⊙" },
-    { id:"declarations", label:"Declarations",    icon:"◫" },
+    { id:"declarations", label:"Declarations",    icon:"◫", hideUser: true },
     { id:"master",       label:"Master Data",     icon:"⊞" },
-    { id:"billing",      label:"Billing",         icon:"◧" },
+    { id:"billing",      label:"Billing",         icon:"◧", hideUser: true },
     { id:"reports",      label:"Reports",         icon:"⌗" },
-    { id:"settings",     label:"Settings",        icon:"⚙" },
+    { id:"settings",     label:"Settings",        icon:"⚙", hideUser: true },
   ];
 
-  const company = auth?.user?.customer;
-  const email   = auth?.user?.email || "";
-  const initials = email.charAt(0).toUpperCase();
+  const NAV = ALL_NAV.filter(item => {
+    if (!isSuperAdmin && !isFinanceAdmin && item.hideUser) return false;
+    return true;
+  });
 
   return (
     <div style={{
@@ -269,15 +279,23 @@ function Sidebar({ active, onNav }) {
 
 // ─── DASHBOARD ────────────────────────────────────────────────────
 function Dashboard({ onNav }) {
+  const auth = useContext(AuthContext);
+  const email = auth?.user?.email || "";
+  const isSuperAdmin = email === 'admin@customs-edoc.local' || auth?.user?.role === 'SUPER_ADMIN';
+  const isFinanceAdmin = auth?.user?.role === 'TENANT_ADMIN' || auth?.user?.role === 'ADMIN';
+
   const [role, setRole] = useState("customer");
+
   return (
     <div style={{ paddingBottom: 40 }}>
       {/* Role Switcher */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 24, padding: '16px', background: '#fff', borderRadius: 12, border: '1px solid var(--border-main)' }}>
-        <button onClick={() => setRole('customer')} style={{ background: role === 'customer' ? 'var(--primary)' : 'transparent', color: role === 'customer' ? '#fff' : 'var(--text-muted)', padding: '10px 20px', borderRadius: 8, border: `1px solid ${role === 'customer' ? 'var(--primary)' : 'var(--border-main)'}`, cursor: 'pointer', fontWeight: 600 }}>👨‍💼 Customer View</button>
-        <button onClick={() => setRole('finance')} style={{ background: role === 'finance' ? 'var(--primary)' : 'transparent', color: role === 'finance' ? '#fff' : 'var(--text-muted)', padding: '10px 20px', borderRadius: 8, border: `1px solid ${role === 'finance' ? 'var(--primary)' : 'var(--border-main)'}`, cursor: 'pointer', fontWeight: 600 }}>📊 Finance View</button>
-        <button onClick={() => setRole('default')} style={{ background: role === 'default' ? 'var(--primary)' : 'transparent', color: role === 'default' ? '#fff' : 'var(--text-muted)', padding: '10px 20px', borderRadius: 8, border: `1px solid ${role === 'default' ? 'var(--primary)' : 'var(--border-main)'}`, cursor: 'pointer', fontWeight: 600 }}>🏛️ Original B2B View</button>
-      </div>
+      {(isSuperAdmin || isFinanceAdmin) && (
+        <div style={{ display: 'flex', gap: 12, marginBottom: 24, padding: '16px', background: '#fff', borderRadius: 12, border: '1px solid var(--border-main)' }}>
+          <button onClick={() => setRole('customer')} style={{ background: role === 'customer' ? 'var(--primary)' : 'transparent', color: role === 'customer' ? '#fff' : 'var(--text-muted)', padding: '10px 20px', borderRadius: 8, border: `1px solid ${role === 'customer' ? 'var(--primary)' : 'var(--border-main)'}`, cursor: 'pointer', fontWeight: 600 }}>👨‍💼 Customer View</button>
+          <button onClick={() => setRole('finance')} style={{ background: role === 'finance' ? 'var(--primary)' : 'transparent', color: role === 'finance' ? '#fff' : 'var(--text-muted)', padding: '10px 20px', borderRadius: 8, border: `1px solid ${role === 'finance' ? 'var(--primary)' : 'var(--border-main)'}`, cursor: 'pointer', fontWeight: 600 }}>📊 Finance View</button>
+          <button onClick={() => setRole('default')} style={{ background: role === 'default' ? 'var(--primary)' : 'transparent', color: role === 'default' ? '#fff' : 'var(--text-muted)', padding: '10px 20px', borderRadius: 8, border: `1px solid ${role === 'default' ? 'var(--primary)' : 'var(--border-main)'}`, cursor: 'pointer', fontWeight: 600 }}>🏛️ Original B2B View</button>
+        </div>
+      )}
 
       {role === 'customer' && <CustomerDashboard />}
       {role === 'finance' && <FinanceDashboard />}
@@ -2683,6 +2701,10 @@ export default function App() {
   if (!auth?.token) {
     if (showRegister) return <RegisterScreen onBack={() => setShowRegister(false)} />;
     return <LoginScreen onRegister={() => setShowRegister(true)} />;
+  }
+
+  if (screen === "superadmin") {
+    return <SuperAdminConsole />;
   }
 
   const handleNav = (id, data) => {
