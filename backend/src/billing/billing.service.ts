@@ -40,7 +40,13 @@ export class BillingService {
   /** GET /billing/items?customerId=&invoiced= — รายการ billing items */
   async listItems(user: RequestUser, invoiced?: string) {
     const isInvoiced = invoiced === 'true' ? true : invoiced === 'false' ? false : undefined;
-    const customerFilter = user.role === Role.SUPER_ADMIN ? {} : { customerId: user.customerId };
+    // SUPER_ADMIN + internal staff (no customerId) → see all billing items
+    // CUSTOMER + tenant-scoped users → see only their own
+    const isInternalUser =
+      user.role === Role.SUPER_ADMIN ||
+      (user.customerId == null &&
+        ([Role.TENANT_ADMIN, Role.MANAGER, Role.STAFF] as string[]).includes(user.role));
+    const customerFilter = isInternalUser ? {} : { customerId: user.customerId };
 
     return this.prisma.billingItem.findMany({
       where: {
@@ -102,10 +108,13 @@ export class BillingService {
 
   /** GET /billing/invoices — รายการ invoices */
   async listInvoices(user: RequestUser, customerId?: string) {
-    const customerFilter =
-      user.role === Role.SUPER_ADMIN
-        ? customerId ? { customerId } : {}
-        : { customerId: user.customerId };
+    const isInternalUser =
+      user.role === Role.SUPER_ADMIN ||
+      (user.customerId == null &&
+        ([Role.TENANT_ADMIN, Role.MANAGER, Role.STAFF] as string[]).includes(user.role));
+    const customerFilter = isInternalUser
+      ? customerId ? { customerId } : {}
+      : { customerId: user.customerId };
 
     return this.prisma.billingInvoice.findMany({
       where: customerFilter,

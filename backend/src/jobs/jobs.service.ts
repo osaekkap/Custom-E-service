@@ -89,12 +89,16 @@ export class JobsService {
     const { status, type, search, page = 1, limit = 20 } = query;
     const skip = (page - 1) * limit;
 
-    // SUPER_ADMIN can filter by customerId or see all
-    // Factory users see only their own customer's jobs
-    const customerFilter =
-      user.role === Role.SUPER_ADMIN
-        ? query.customerId ? { customerId: query.customerId } : {}
-        : { customerId: user.customerId };
+    // SUPER_ADMIN or internal staff (no customerId) → see all jobs, optionally filter by customerId
+    // CUSTOMER / tenant-scoped users → see only their customer's jobs
+    const isInternalStaff =
+      user.role === Role.SUPER_ADMIN ||
+      (user.customerId == null &&
+        ([Role.TENANT_ADMIN, Role.MANAGER, Role.STAFF] as string[]).includes(user.role));
+
+    const customerFilter = isInternalStaff
+      ? query.customerId ? { customerId: query.customerId } : {}
+      : { customerId: user.customerId };
 
     const where: Prisma.LogisticsJobWhereInput = {
       ...customerFilter,
@@ -273,6 +277,11 @@ export class JobsService {
 
   private assertAccess(jobCustomerId: string, user: RequestUser) {
     if (user.role === Role.SUPER_ADMIN) return;
+    // Internal staff (TENANT_ADMIN, MANAGER, STAFF) without customerId can access all jobs
+    if (
+      user.customerId == null &&
+      ([Role.TENANT_ADMIN, Role.MANAGER, Role.STAFF] as string[]).includes(user.role)
+    ) return;
     if (user.customerId !== jobCustomerId) throw new ForbiddenException('Access denied');
   }
 }

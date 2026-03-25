@@ -15,10 +15,13 @@ datasource db {
 // ─── ENUMS ────────────────────────────────────────────────────────
 
 enum Role {
-  SUPER_ADMIN  // Service provider (you)
-  TENANT_ADMIN // Factory admin
-  USER         // Factory staff
-  VIEWER       // Read-only
+  SUPER_ADMIN  // Service provider (NKTech internal)
+  TENANT_ADMIN // แอดมิน — full access within tenant
+  MANAGER      // ผู้บริหาร — view all + approve billing, read-only forms
+  STAFF        // เจ้าหน้าที่ — handle declarations + NSW, no billing
+  CUSTOMER     // ลูกค้า — own shipments/billing only, can create shipments
+  USER         // Legacy alias (maps to STAFF behaviour)
+  VIEWER       // Read-only — all screens, no edits
 }
 
 enum CustomerStatus {

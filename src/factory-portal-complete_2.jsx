@@ -10,6 +10,7 @@ import { AreaChart, Area, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tool
 import CustomerDashboard from "./CustomerDashboard.jsx";
 import FinanceDashboard from "./FinanceDashboard.jsx";
 import SuperAdminConsole from "./super-admin-console.jsx";
+import { usePermissions } from "./hooks/usePermissions.js";
 
 // ─── Constants ────────────────────────────────────────────────────
 const STATUS = {
@@ -132,33 +133,50 @@ function Tag({ label, color="#0EA5E9" }) {
   );
 }
 
+// ─── Role badge helper ─────────────────────────────────────────────
+function RoleBadge({ role }) {
+  const map = {
+    SUPER_ADMIN:  { label:"Super Admin", color:"#7C3AED" },
+    TENANT_ADMIN: { label:"Admin",       color:"#2563EB" },
+    MANAGER:      { label:"ผู้บริหาร",   color:"#0284C7" },
+    STAFF:        { label:"เจ้าหน้าที่", color:"#059669" },
+    USER:         { label:"เจ้าหน้าที่", color:"#059669" },
+    CUSTOMER:     { label:"ลูกค้า",      color:"#D97706" },
+    VIEWER:       { label:"Viewer",      color:"#94A3B8" },
+  };
+  const m = map[role] || { label: role, color:"#94A3B8" };
+  return (
+    <span style={{
+      fontSize:10, fontWeight:700, padding:"2px 6px", borderRadius:4,
+      background:`${m.color}18`, color:m.color, border:`1px solid ${m.color}30`,
+      letterSpacing:"0.03em",
+    }}>{m.label}</span>
+  );
+}
+
 // ─── Sidebar ──────────────────────────────────────────────────────
 function Sidebar({ active, onNav }) {
   const auth = useContext(AuthContext);
+  const perms = usePermissions();
   const email   = auth?.user?.email || "";
   const company = auth?.user?.customer;
+  const role    = auth?.user?.role || "VIEWER";
   const initials = email.charAt(0).toUpperCase();
 
-  const isSuperAdmin = email === 'admin@customs-edoc.local' || auth?.user?.role === 'SUPER_ADMIN';
-  const isFinanceAdmin = auth?.user?.role === 'TENANT_ADMIN' || auth?.user?.role === 'ADMIN';
-
   const ALL_NAV = [
-    ...(isSuperAdmin ? [{ id:"superadmin", label:"Administration", icon:"👑" }] : []),
-    { id:"dashboard",    label:"Dashboard",       icon:"▦" },
-    { id:"shipments",    label:"Shipments",       icon:"≡", badge: 3 },
-    { id:"new",          label:"New Shipment",    icon:"+" },
-    { id:"nsw",          label:"NSW Tracking",    icon:"⊙" },
-    { id:"declarations", label:"Declarations",    icon:"◫", hideUser: true },
-    { id:"master",       label:"Master Data",     icon:"⊞" },
-    { id:"billing",      label:"Billing",         icon:"◧", hideUser: true },
-    { id:"reports",      label:"Reports",         icon:"⌗" },
-    { id:"settings",     label:"Settings",        icon:"⚙", hideUser: true },
+    ...(perms.canViewSuperAdmin ? [{ id:"superadmin", label:"Administration", icon:"👑" }] : []),
+    { id:"dashboard",    label:"Dashboard",                       icon:"▦",  show: true },
+    { id:"shipments",    label: perms.isCustomer ? "My Shipments" : "Shipments", icon:"≡", badge: 3, show: true },
+    { id:"new",          label:"New Shipment",                    icon:"+",  show: perms.canCreateShipment },
+    { id:"nsw",          label:"NSW Tracking",                    icon:"⊙",  show: true },
+    { id:"declarations", label:"Declarations",                    icon:"◫",  show: perms.canViewDeclarations },
+    { id:"master",       label:"Master Data",                     icon:"⊞",  show: perms.canViewMasterData },
+    { id:"billing",      label: perms.isCustomer ? "My Billing" : "Billing", icon:"◧", show: perms.canViewBilling },
+    { id:"reports",      label:"Reports",                         icon:"⌗",  show: true },
+    { id:"settings",     label:"Settings",                        icon:"⚙",  show: perms.canViewSettings },
   ];
 
-  const NAV = ALL_NAV.filter(item => {
-    if (!isSuperAdmin && !isFinanceAdmin && item.hideUser) return false;
-    return true;
-  });
+  const NAV = ALL_NAV.filter(item => item.show !== false);
 
   return (
     <div style={{
@@ -250,14 +268,26 @@ function Sidebar({ active, onNav }) {
 
       {/* Footer */}
       <div style={{
-        padding:"16px 20px",
+        padding:"14px 20px",
         borderTop:`1px solid ${BORDER}`,
         background:"#F9FAFB",
       }}>
-        <div style={{ fontSize:14, color:TEXT3, marginBottom:10, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{email}</div>
+        {/* User info row */}
+        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+          <div style={{
+            width:32, height:32, borderRadius:"50%",
+            background:BLUE, color:"#fff",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:13, fontWeight:700, flexShrink:0,
+          }}>{initials}</div>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontSize:12, fontWeight:600, color:TEXT, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{email}</div>
+            <div style={{ marginTop:2 }}><RoleBadge role={role}/></div>
+          </div>
+        </div>
         <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:10 }}>
           <div style={{ width:6, height:6, borderRadius:"50%", background:"#22C55E", flexShrink:0 }}/>
-          <span style={{ fontSize:13, color:TEXT3 }}>NSW · Customs · BoT</span>
+          <span style={{ fontSize:12, color:TEXT3 }}>NSW · Customs · BoT</span>
         </div>
         <button
           onClick={auth?.logout}
@@ -279,29 +309,40 @@ function Sidebar({ active, onNav }) {
 
 // ─── DASHBOARD ────────────────────────────────────────────────────
 function Dashboard({ onNav }) {
-  const auth = useContext(AuthContext);
-  const email = auth?.user?.email || "";
-  const isSuperAdmin = email === 'admin@customs-edoc.local' || auth?.user?.role === 'SUPER_ADMIN';
-  const isFinanceAdmin = auth?.user?.role === 'TENANT_ADMIN' || auth?.user?.role === 'ADMIN';
+  const perms = usePermissions();
 
-  const [role, setRole] = useState("customer");
-
-  return (
-    <div style={{ paddingBottom: 40 }}>
-      {/* Role Switcher */}
-      {(isSuperAdmin || isFinanceAdmin) && (
-        <div style={{ display: 'flex', gap: 12, marginBottom: 24, padding: '16px', background: '#fff', borderRadius: 12, border: '1px solid var(--border-main)' }}>
-          <button onClick={() => setRole('customer')} style={{ background: role === 'customer' ? 'var(--primary)' : 'transparent', color: role === 'customer' ? '#fff' : 'var(--text-muted)', padding: '10px 20px', borderRadius: 8, border: `1px solid ${role === 'customer' ? 'var(--primary)' : 'var(--border-main)'}`, cursor: 'pointer', fontWeight: 600 }}>👨‍💼 Customer View</button>
-          <button onClick={() => setRole('finance')} style={{ background: role === 'finance' ? 'var(--primary)' : 'transparent', color: role === 'finance' ? '#fff' : 'var(--text-muted)', padding: '10px 20px', borderRadius: 8, border: `1px solid ${role === 'finance' ? 'var(--primary)' : 'var(--border-main)'}`, cursor: 'pointer', fontWeight: 600 }}>📊 Finance View</button>
-          <button onClick={() => setRole('default')} style={{ background: role === 'default' ? 'var(--primary)' : 'transparent', color: role === 'default' ? '#fff' : 'var(--text-muted)', padding: '10px 20px', borderRadius: 8, border: `1px solid ${role === 'default' ? 'var(--primary)' : 'var(--border-main)'}`, cursor: 'pointer', fontWeight: 600 }}>🏛️ Original B2B View</button>
+  // Route to the right dashboard view based on real role
+  if (perms.isCustomer) return <CustomerDashboard />;
+  if (perms.isManager)  return <FinanceDashboard />;
+  if (perms.isSuperAdmin || perms.isAdmin) {
+    // Admin/SuperAdmin can switch between views for demo purposes
+    const [view, setView] = useState("default");
+    return (
+      <div style={{ paddingBottom: 40 }}>
+        <div style={{ display:"flex", gap:8, marginBottom:24, padding:"12px 16px", background:W, borderRadius:10, border:`1px solid ${BORDER}` }}>
+          <span style={{ fontSize:13, color:TEXT2, alignSelf:"center", marginRight:4 }}>Dashboard view:</span>
+          {[
+            { id:"default",  label:"🏛️ Operations" },
+            { id:"customer", label:"👨‍💼 Customer" },
+            { id:"finance",  label:"📊 Finance" },
+          ].map(v => (
+            <button key={v.id} onClick={() => setView(v.id)} style={{
+              padding:"6px 14px", borderRadius:6, fontSize:13, fontWeight:600, cursor:"pointer",
+              background: view===v.id ? BLUE : "transparent",
+              color: view===v.id ? "#fff" : TEXT2,
+              border: `1px solid ${view===v.id ? BLUE : BORDER}`,
+              transition:"all 0.15s",
+            }}>{v.label}</button>
+          ))}
         </div>
-      )}
-
-      {role === 'customer' && <CustomerDashboard />}
-      {role === 'finance' && <FinanceDashboard />}
-      {role === 'default' && <DefaultDashboard onNav={onNav} />}
-    </div>
-  )
+        {view === "customer" && <CustomerDashboard />}
+        {view === "finance"  && <FinanceDashboard />}
+        {view === "default"  && <DefaultDashboard onNav={onNav} />}
+      </div>
+    );
+  }
+  // STAFF → full operations dashboard
+  return <DefaultDashboard onNav={onNav} />;
 }
 
 function DefaultDashboard({ onNav }) {
@@ -2540,9 +2581,11 @@ function SettingsUsers() {
                 <label style={{ fontSize:14, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>Role</label>
                 <select value={inviteForm.role} onChange={e => setInviteForm(f=>({...f,role:e.target.value}))}
                   style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:14, background:"#FFFFFF", boxSizing:"border-box" }}>
-                  <option value="USER">User</option>
-                  <option value="TENANT_ADMIN">Tenant Admin</option>
-                  <option value="VIEWER">Viewer</option>
+                  <option value="CUSTOMER">ลูกค้า (Customer)</option>
+                  <option value="STAFF">เจ้าหน้าที่ (Staff)</option>
+                  <option value="MANAGER">ผู้บริหาร (Manager)</option>
+                  <option value="TENANT_ADMIN">แอดมิน (Admin)</option>
+                  <option value="VIEWER">Viewer (read-only)</option>
                 </select>
               </div>
               {inviteErr && <div style={{ padding:"8px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, fontSize:14, color:"#DC2626" }}>{inviteErr}</div>}
@@ -2565,9 +2608,11 @@ function SettingsUsers() {
               <label style={{ fontSize:14, color:TEXT3, fontWeight:600, display:"block", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.5px" }}>Role</label>
               <select value={editRole} onChange={e => setEditRole(e.target.value)}
                 style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:15, background:"#FFFFFF" }}>
-                <option value="USER">User</option>
-                <option value="TENANT_ADMIN">Tenant Admin</option>
-                <option value="VIEWER">Viewer</option>
+                <option value="CUSTOMER">ลูกค้า (Customer)</option>
+                <option value="STAFF">เจ้าหน้าที่ (Staff)</option>
+                <option value="MANAGER">ผู้บริหาร (Manager)</option>
+                <option value="TENANT_ADMIN">แอดมิน (Admin)</option>
+                <option value="VIEWER">Viewer (read-only)</option>
               </select>
             </div>
             <div style={{ display:"flex", gap:10, marginTop:20, justifyContent:"flex-end" }}>
@@ -2608,7 +2653,7 @@ function SettingsUsers() {
                     </td>
                     <td style={{ padding:"13px 18px", color:TEXT2 }}>{email}</td>
                     <td style={{ padding:"13px 18px" }}>
-                      <Tag label={role} color={role==="TENANT_ADMIN"?BLUE:role==="USER"?"#7C3AED":TEXT3}/>
+                      <RoleBadge role={role}/>
                     </td>
                     <td style={{ padding:"13px 18px" }}>
                       <Tag label="Active" color="#16A34A"/>
@@ -2661,18 +2706,34 @@ function SettingsNotifications() {
   );
 }
 
-function Settings() {
+function Settings({ canManageUsers = true, canEditCompany = true, readOnly = false }) {
   const [tab, setTab] = useState("company");
+
+  // Build visible tabs based on permissions
+  const allTabs = [
+    { id:"company",       label:"Company",       show: true },
+    { id:"users",         label:"Users",         show: canManageUsers },
+    { id:"notifications", label:"Notifications", show: true },
+    { id:"security",      label:"Security",      show: canManageUsers },
+  ].filter(t => t.show);
 
   return (
     <div>
       <div style={{ marginBottom:18 }}>
-        <h1 style={{ margin:0, fontSize:22, fontWeight:800, color:TEXT }}>Settings</h1>
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          <h1 style={{ margin:0, fontSize:22, fontWeight:800, color:TEXT }}>Settings</h1>
+          {readOnly && (
+            <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:4,
+              background:"#FFF7ED", color:"#D97706", border:"1px solid #FDE68A" }}>
+              👁 View Only
+            </span>
+          )}
+        </div>
         <p style={{ margin:"3px 0 0", fontSize:14, color:TEXT3 }}>Account · notifications · users · security</p>
       </div>
 
       <div style={{ display:"flex", gap:0, borderBottom:`1px solid ${BORDER}`, marginBottom:18 }}>
-        {[["company","Company"],["users","Users"],["notifications","Notifications"],["security","Security"]].map(([id,label]) => (
+        {allTabs.map(({ id, label }) => (
           <button key={id} onClick={() => setTab(id)} style={{
             padding:"10px 18px", background:"none", border:"none",
             borderBottom:`2px solid ${tab===id?BLUE:"transparent"}`,
@@ -2681,11 +2742,10 @@ function Settings() {
         ))}
       </div>
 
-      {tab==="company"       && <SettingsCompany />}
-      {tab==="users"         && <SettingsUsers />}
+      {tab==="company"       && <SettingsCompany readOnly={readOnly || !canEditCompany} />}
+      {tab==="users"         && canManageUsers && <SettingsUsers />}
       {tab==="notifications" && <SettingsNotifications />}
-
-      {tab==="security" && <SettingsSecurity />}
+      {tab==="security"      && canManageUsers && <SettingsSecurity />}
     </div>
   );
 }
@@ -2693,6 +2753,7 @@ function Settings() {
 // ─── APP ──────────────────────────────────────────────────────────
 export default function App() {
   const auth = useContext(AuthContext);
+  const perms = usePermissions();
   const [screen, setScreen] = useState("dashboard");
   const [detailJob, setDetailJob] = useState(null);
   const [showRegister, setShowRegister] = useState(false);
@@ -2703,7 +2764,7 @@ export default function App() {
     return <LoginScreen onRegister={() => setShowRegister(true)} />;
   }
 
-  if (screen === "superadmin") {
+  if (screen === "superadmin" && perms.canViewSuperAdmin) {
     return <SuperAdminConsole onExit={() => setScreen("dashboard")} />;
   }
 
@@ -2717,18 +2778,33 @@ export default function App() {
     }
   };
 
+  // ─── Screen access guard ──────────────────────────────────────────
+  const AccessDenied = () => (
+    <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:400, gap:16 }}>
+      <div style={{ fontSize:48 }}>🔒</div>
+      <div style={{ fontSize:20, fontWeight:700, color:TEXT }}>ไม่มีสิทธิ์เข้าถึงหน้านี้</div>
+      <div style={{ fontSize:14, color:TEXT2 }}>บัญชีของคุณ (<RoleBadge role={auth?.user?.role}/>) ไม่มีสิทธิ์ดูส่วนนี้</div>
+      <button onClick={() => setScreen("dashboard")} style={{
+        marginTop:8, padding:"8px 20px", background:BLUE, color:"#fff",
+        border:"none", borderRadius:8, fontSize:14, fontWeight:600, cursor:"pointer",
+      }}>← กลับ Dashboard</button>
+    </div>
+  );
+
   const content = () => {
     switch(screen) {
-      case "dashboard":     return <Dashboard onNav={handleNav}/>;
-      case "shipments":     return <ShipmentList onNew={() => handleNav("new")} onDetail={job => handleNav("shipment_detail",job)}/>;
+      case "dashboard":       return <Dashboard onNav={handleNav}/>;
+      case "shipments":       return <ShipmentList onNew={() => handleNav("new")} onDetail={job => handleNav("shipment_detail",job)}/>;
       case "shipment_detail": return <ShipmentDetail job={detailJob} onBack={() => setScreen("shipments")}/>;
-      case "new":           return <NewShipment onBack={() => setScreen("shipments")} onCreated={() => { setScreen("shipments"); }}/>;
-      case "nsw":           return <NSWTracking/>;
-      case "declarations":  return <Declarations/>;
-      case "master":        return <MasterData/>;
-      case "billing":       return <Billing/>;
-      case "reports":       return <Reports/>;
-      case "settings":      return <Settings/>;
+      case "new":             return perms.canCreateShipment
+                                ? <NewShipment onBack={() => setScreen("shipments")} onCreated={() => setScreen("shipments")}/>
+                                : <AccessDenied/>;
+      case "nsw":             return <NSWTracking/>;
+      case "declarations":    return perms.canViewDeclarations ? <Declarations readOnly={perms.isReadOnly("declarations")}/> : <AccessDenied/>;
+      case "master":          return perms.canViewMasterData   ? <MasterData   readOnly={perms.isReadOnly("master")}/>       : <AccessDenied/>;
+      case "billing":         return perms.canViewBilling      ? <Billing/>                                                  : <AccessDenied/>;
+      case "reports":         return <Reports/>;
+      case "settings":        return perms.canViewSettings     ? <Settings canManageUsers={perms.canManageUsers} canEditCompany={perms.canEditCompanySettings} readOnly={perms.isReadOnly("settings")}/> : <AccessDenied/>;
       default: return null;
     }
   };
