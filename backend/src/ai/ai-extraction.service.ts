@@ -1,6 +1,8 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import * as XLSX from 'xlsx';
+import * as chardet from 'chardet';
+import * as iconv from 'iconv-lite';
 
 export interface ExtractedItem {
   seqNo: number;
@@ -36,9 +38,42 @@ export class AiExtractionService {
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '');
   }
 
+  /** Check if a string contains Thai Unicode characters (U+0E00–U+0E7F) */
+  private containsThai(str: string): boolean {
+    return /[\u0E00-\u0E7F]/.test(str);
+  }
+
+  /**
+   * Decode a CSV buffer to UTF-8.
+   * Strategy: try UTF-8 first; if result has no Thai, try Windows-874 (CP874).
+   * chardet often misidentifies Thai CP874 as ISO-8859-1, so we cross-check.
+   */
+  private decodeBuffer(buffer: Buffer): Buffer {
+    // If already valid UTF-8 with Thai characters → use as-is
+    const utf8str = buffer.toString('utf-8');
+    if (this.containsThai(utf8str)) return buffer;
+
+    // Try Windows-874 (Thai) — chardet may have said ISO-8859-1 but it's actually CP874
+    const cp874str = iconv.decode(buffer, 'windows874');
+    if (this.containsThai(cp874str)) {
+      return Buffer.from(cp874str, 'utf-8');
+    }
+
+    // Fallback: use chardet detection
+    const detected = chardet.detect(buffer);
+    const enc = (detected ?? 'utf-8').toLowerCase();
+    if (!enc.includes('utf-8') && !enc.includes('utf8') && iconv.encodingExists(enc)) {
+      const converted = iconv.decode(buffer, enc);
+      return Buffer.from(converted, 'utf-8');
+    }
+
+    return buffer;
+  }
+
   /** Convert a multer file to a Gemini inlineData part */
   private fileToGeminiPart(file: Express.Multer.File): any {
     const mime = file.mimetype;
+    const name = file.originalname.toLowerCase();
 
     // PDF → inline base64 (Gemini reads natively)
     if (mime === 'application/pdf') {
@@ -50,12 +85,24 @@ export class AiExtractionService {
       };
     }
 
-    // Excel / CSV → parse to text
+    // CSV — may be Windows-874 (Thai): decode to UTF-8 first
+    if (mime === 'text/csv' || name.endsWith('.csv')) {
+      const utf8Buffer = this.decodeBuffer(file.buffer);
+      const workbook = XLSX.read(utf8Buffer, { type: 'buffer', codepage: 65001 });
+      let text = `[File: ${file.originalname}]\n`;
+      for (const sheetName of workbook.SheetNames) {
+        const csv = XLSX.utils.sheet_to_csv(workbook.Sheets[sheetName]);
+        text += `\n--- Sheet: ${sheetName} ---\n${csv}\n`;
+      }
+      return { text };
+    }
+
+    // Excel (.xlsx / .xls) → XLSX handles encoding internally
     const workbook = XLSX.read(file.buffer, { type: 'buffer' });
     let text = `[File: ${file.originalname}]\n`;
-    for (const name of workbook.SheetNames) {
-      const csv = XLSX.utils.sheet_to_csv(workbook.Sheets[name]);
-      text += `\n--- Sheet: ${name} ---\n${csv}\n`;
+    for (const sheetName of workbook.SheetNames) {
+      const csv = XLSX.utils.sheet_to_csv(workbook.Sheets[sheetName]);
+      text += `\n--- Sheet: ${sheetName} ---\n${csv}\n`;
     }
     return { text };
   }
