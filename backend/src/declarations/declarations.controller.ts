@@ -7,11 +7,15 @@ import { CreateDeclarationDto } from './dto/create-declaration.dto';
 import { CreateDeclarationItemDto, UpdateDeclarationItemDto } from './dto/create-item.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RequestUser } from '../auth/jwt.strategy';
+import { NswService } from '../nsw/nsw.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller()
 export class DeclarationsController {
-  constructor(private readonly declarationsService: DeclarationsService) {}
+  constructor(
+    private readonly declarationsService: DeclarationsService,
+    private readonly nswService: NswService,
+  ) {}
 
   /** GET /jobs/:jobId/declarations */
   @Get('jobs/:jobId/declarations')
@@ -49,6 +53,26 @@ export class DeclarationsController {
     @Request() req: { user: RequestUser },
   ) {
     return this.declarationsService.update(id, dto, req.user);
+  }
+
+  // ─── NSW Submission ────────────────────────────────────────────────
+
+  /** POST /declarations/:id/submit */
+  @Post('declarations/:id/submit')
+  submit(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req: { user: RequestUser },
+  ) {
+    return this.nswService.submit(id, req.user);
+  }
+
+  /** GET /declarations/:id/nsw-status */
+  @Get('declarations/:id/nsw-status')
+  getNswStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req: { user: RequestUser },
+  ) {
+    return this.nswService.getNswStatus(id, req.user);
   }
 
   // ─── Items ─────────────────────────────────────────────────────────

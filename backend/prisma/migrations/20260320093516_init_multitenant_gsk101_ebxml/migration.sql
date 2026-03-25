@@ -1,5 +1,3 @@
-Loaded Prisma config from prisma.config.ts.
-
 -- CreateSchema
 CREATE SCHEMA IF NOT EXISTS "public";
 
@@ -271,6 +269,32 @@ CREATE TABLE "ExportDeclaration" (
     "signatoryName" VARCHAR(255),
     "signedAt" TIMESTAMP(3),
     "submittedAt" TIMESTAMP(3),
+    "exporterTaxId" VARCHAR(17),
+    "exporterBranch" VARCHAR(6),
+    "exporterNameTh" VARCHAR(120),
+    "exporterNameEn" VARCHAR(70),
+    "exporterAddress" VARCHAR(70),
+    "agentBranch" VARCHAR(6),
+    "managerIdCard" VARCHAR(17),
+    "managerName" VARCHAR(35),
+    "cargoTypeCode" VARCHAR(1),
+    "vesselName" VARCHAR(35),
+    "departureDate" TIMESTAMP(3),
+    "masterBl" VARCHAR(35),
+    "houseBl" VARCHAR(35),
+    "shippingMarks" VARCHAR(512),
+    "packageUnitCode" VARCHAR(2),
+    "totalNetWeight" DECIMAL(11,3),
+    "netWeightUnit" VARCHAR(3),
+    "totalGrossWeight" DECIMAL(11,3),
+    "grossWeightUnit" VARCHAR(3),
+    "totalFobForeign" DECIMAL(16,2),
+    "paymentMethod" VARCHAR(1),
+    "guaranteeMethod" VARCHAR(1),
+    "nswReferenceNumber" VARCHAR(13),
+    "declarationDocType" VARCHAR(1),
+    "nswRegistrationId" VARCHAR(35),
+    "exportTaxIncentivesId" VARCHAR(17),
     "submissionMethod" "SubmissionMethod",
     "submissionStatus" "SubmissionStatus" NOT NULL DEFAULT 'PENDING',
     "submissionRef" VARCHAR(100),
