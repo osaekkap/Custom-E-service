@@ -1,14 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from './stores/AuthContext';
 
-const BLUE  = '#2563EB';
-const TEXT  = '#111827';
-const TEXT2 = '#6B7280';
-const TEXT3 = '#9CA3AF';
-const BORDER = '#E5E7EB';
-const BG    = '#F3F4F6';
-const MONO  = "'JetBrains Mono','Courier New',monospace";
-
 export default function LoginScreen({ onRegister }) {
   const { login, loading, error } = useAuth();
   const [email, setEmail] = useState('');
@@ -21,37 +13,38 @@ export default function LoginScreen({ onRegister }) {
 
   return (
     <div style={{
-      minHeight: '100vh', background: BG, display: 'flex',
-      alignItems: 'center', justifyContent: 'center',
+      minHeight: '100vh', 
+      background: 'var(--bg-main)', 
+      display: 'flex',
+      alignItems: 'center', 
+      justifyContent: 'center',
+      padding: '24px'
     }}>
-      <div style={{ width: 380 }}>
+      <div style={{ width: '100%', maxWidth: '420px' }}>
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{
-            width: 48, height: 48, borderRadius: 12, background: '#2563EB',
+            width: '56px', height: '56px', borderRadius: '16px', background: 'var(--primary)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 22, margin: '0 auto 14px',
+            fontSize:'28px', margin: '0 auto 16px', color: '#fff'
           }}>⚓</div>
-          <div style={{ fontFamily: MONO, fontSize: 13, fontWeight: 700, letterSpacing: '1.5px', color: TEXT }}>
+          <div className="mono" style={{ fontSize:'18px', fontWeight: 700, letterSpacing: '1.5px', color: 'var(--text-main)' }}>
             CUSTOMS-EDOC
           </div>
-          <div style={{ fontSize: 12, color: TEXT3, marginTop: 4 }}>
+          <div className="text-muted" style={{ fontSize:'16px', marginTop: '6px' }}>
             ระบบใบขนสินค้าขาออกอิเล็กทรอนิกส์
           </div>
         </div>
 
         {/* Card */}
-        <div style={{
-          background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 16,
-          padding: '32px 28px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
-        }}>
-          <h2 style={{ margin: '0 0 24px', fontSize: 18, fontWeight: 800, color: TEXT }}>
+        <div className="card" style={{ padding: '36px 32px' }}>
+          <h2 style={{ margin: '0 0 28px', fontSize:'24px', fontWeight: 800, color: 'var(--text-main)', textAlign: 'center' }}>
             Sign in
           </h2>
 
           <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 11, fontWeight: 600, color: TEXT2, display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div style={{ marginBottom: '20px' }}>
+              <label className="text-muted" style={{ fontSize:'15px', fontWeight: 600, display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Email
               </label>
               <input
@@ -61,15 +54,16 @@ export default function LoginScreen({ onRegister }) {
                 placeholder="admin@customs-edoc.local"
                 required
                 style={{
-                  width: '100%', padding: '10px 12px', borderRadius: 8,
-                  border: `1px solid ${BORDER}`, fontSize: 13, color: TEXT,
-                  background: '#FFFFFF', boxSizing: 'border-box', outline: 'none',
+                  width: '100%', padding: '12px 16px', borderRadius: '10px',
+                  border: '1px solid var(--border-main)', fontSize:'17px', color: 'var(--text-main)',
+                  background: 'var(--bg-card)', boxSizing: 'border-box',
+                  transition: 'all 0.2s ease'
                 }}
               />
             </div>
 
-            <div style={{ marginBottom: 24 }}>
-              <label style={{ fontSize: 11, fontWeight: 600, color: TEXT2, display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div style={{ marginBottom: '28px' }}>
+              <label className="text-muted" style={{ fontSize:'15px', fontWeight: 600, display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Password
               </label>
               <input
@@ -79,18 +73,19 @@ export default function LoginScreen({ onRegister }) {
                 placeholder="••••••••"
                 required
                 style={{
-                  width: '100%', padding: '10px 12px', borderRadius: 8,
-                  border: `1px solid ${BORDER}`, fontSize: 13, color: TEXT,
-                  background: '#FFFFFF', boxSizing: 'border-box', outline: 'none',
+                  width: '100%', padding: '12px 16px', borderRadius: '10px',
+                  border: '1px solid var(--border-main)', fontSize:'17px', color: 'var(--text-main)',
+                  background: 'var(--bg-card)', boxSizing: 'border-box',
+                  transition: 'all 0.2s ease'
                 }}
               />
             </div>
 
             {error && (
               <div style={{
-                marginBottom: 16, padding: '10px 14px', borderRadius: 8,
-                background: '#FEF2F2', border: '1px solid #FECACA',
-                fontSize: 12, color: '#DC2626',
+                marginBottom: '20px', padding: '12px 16px', borderRadius: '10px',
+                background: 'var(--danger-light)', border: '1px solid #FECACA',
+                fontSize:'16px', color: 'var(--danger)',
               }}>
                 {error}
               </div>
@@ -100,23 +95,27 @@ export default function LoginScreen({ onRegister }) {
               type="submit"
               disabled={loading}
               style={{
-                width: '100%', padding: '11px', borderRadius: 8, border: 'none',
-                background: loading ? TEXT3 : BLUE, color: '#fff',
-                fontSize: 13, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
+                width: '100%', padding: '14px', borderRadius: '10px', border: 'none',
+                background: loading ? 'var(--text-light)' : 'var(--primary)', color: '#fff',
+                fontSize:'18px', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
+                transition: 'background 0.2s ease, transform 0.1s ease',
               }}
+              onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
+              onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
             >
               {loading ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: 16, fontSize: 12, color: TEXT3 }}>
+        <div style={{ textAlign: 'center', marginTop: '24px', fontSize:'16px', color: 'var(--text-muted)' }}>
           ยังไม่มีบัญชี?{' '}
-          <button onClick={onRegister} style={{ background: 'none', border: 'none', color: BLUE, fontWeight: 600, fontSize: 12, cursor: 'pointer', padding: 0 }}>
+          <button onClick={onRegister} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 600, fontSize:'16px', cursor: 'pointer', padding: 0 }}>
             สมัครใช้งาน (B2B)
           </button>
         </div>
-        <div style={{ textAlign: 'center', marginTop: 10, fontSize: 11, color: TEXT3 }}>
+        <div className="text-light" style={{ textAlign: 'center', marginTop: '16px', fontSize:'15px' }}>
           Powered by NSW Thailand · ebXML v2.0
         </div>
       </div>

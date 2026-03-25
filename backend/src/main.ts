@@ -1,3 +1,22 @@
+import * as fs from 'fs';
+import * as path from 'path';
+// Force-load .env before NestJS starts — overrides empty shell env vars
+(function loadEnvOverride() {
+  const envPath = path.join(process.cwd(), '.env');
+  if (!fs.existsSync(envPath)) return;
+  const content = fs.readFileSync(envPath, 'utf8');
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eqIdx = trimmed.indexOf('=');
+    if (eqIdx < 1) continue;
+    const key = trimmed.substring(0, eqIdx).trim();
+    let val = trimmed.substring(eqIdx + 1).trim().replace(/^["']|["']$/g, '');
+    // Always override — even empty shell vars
+    process.env[key] = val;
+  }
+})();
+
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';

@@ -135,7 +135,7 @@ function Pill({ label, color, bg, border }) {
   return (
     <span style={{
       display: "inline-block", padding: "3px 11px", borderRadius: 20,
-      fontSize: 11, fontWeight: 700, letterSpacing: "0.4px",
+      fontSize:14, fontWeight: 700, letterSpacing: "0.4px",
       color, background: bg, border: `1px solid ${border || color + "55"}`,
       textTransform: "uppercase",
     }}>{label}</span>
@@ -180,8 +180,8 @@ function CardHeader({ title, sub, action }) {
       display: "flex", alignItems: "center", justifyContent: "space-between",
     }}>
       <div>
-        <div style={{ fontSize: 15, fontWeight: 700, color: C.text, letterSpacing: "-0.2px" }}>{title}</div>
-        {sub && <div style={{ fontSize: 12, color: C.textDim, marginTop: 3 }}>{sub}</div>}
+        <div style={{ fontSize:17, fontWeight: 700, color: C.text, letterSpacing: "-0.2px" }}>{title}</div>
+        {sub && <div style={{ fontSize:14, color: C.textDim, marginTop: 3 }}>{sub}</div>}
       </div>
       {action}
     </div>
@@ -191,9 +191,9 @@ function CardHeader({ title, sub, action }) {
 function Stat({ label, value, sub, color = C.teal }) {
   return (
     <div style={{ padding: "20px 24px" }}>
-      <div style={{ fontSize: 11, color: C.textDim, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 10 }}>{label}</div>
-      <div style={{ fontSize: 32, fontWeight: 800, color, fontFamily: C.mono, marginBottom: 5, letterSpacing: "-0.5px" }}>{value}</div>
-      {sub && <div style={{ fontSize: 12, color: C.textDim }}>{sub}</div>}
+      <div style={{ fontSize:14, color: C.textDim, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 10 }}>{label}</div>
+      <div style={{ fontSize:32, fontWeight: 800, color, fontFamily: C.mono, marginBottom: 5, letterSpacing: "-0.5px" }}>{value}</div>
+      {sub && <div style={{ fontSize:14, color: C.textDim }}>{sub}</div>}
     </div>
   );
 }
@@ -222,12 +222,12 @@ function Sidebar({ active, onNav, onClose }) {
             width: 36, height: 36, borderRadius: 10,
             background: `linear-gradient(135deg, ${C.teal}, ${C.tealDim})`,
             display: "flex", alignItems: "center",
-            justifyContent: "center", fontSize: 18, color: C.bg0,
+            justifyContent: "center", fontSize:20, color: C.bg0,
             boxShadow: `0 0 16px ${C.teal}44`,
           }}>⚓</div>
           <div>
-            <div style={{ fontFamily: C.mono, fontSize: 12, fontWeight: 700, color: C.teal, letterSpacing: "1px" }}>CUSTOMS-EDOC</div>
-            <div style={{ fontSize: 11, color: C.textDim, marginTop: 2 }}>Super Admin Console</div>
+            <div style={{ fontFamily: C.mono, fontSize:14, fontWeight: 700, color: C.teal, letterSpacing: "1px" }}>CUSTOMS-EDOC</div>
+            <div style={{ fontSize:14, color: C.textDim, marginTop: 2 }}>Super Admin Console</div>
           </div>
         </div>
       </div>
@@ -235,9 +235,9 @@ function Sidebar({ active, onNav, onClose }) {
       {/* Operator badge */}
       <div style={{ padding: "14px 18px", borderBottom: `1px solid ${C.border}` }}>
         <div style={{ background: C.bg3, borderRadius: 10, padding: "10px 14px", border: `1px solid ${C.borderHi}` }}>
-          <div style={{ fontSize: 9, color: C.teal, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", marginBottom: 4 }}>Operator</div>
-          <div style={{ fontSize: 13, color: C.text, fontWeight: 600 }}>LogiConnect Co., Ltd.</div>
-          <div style={{ fontSize: 11, color: C.textDim, marginTop: 3 }}>admin@logiconnect.co.th</div>
+          <div style={{ fontSize:12, color: C.teal, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", marginBottom: 4 }}>Operator</div>
+          <div style={{ fontSize:15, color: C.text, fontWeight: 600 }}>LogiConnect Co., Ltd.</div>
+          <div style={{ fontSize:14, color: C.textDim, marginTop: 3 }}>admin@logiconnect.co.th</div>
         </div>
       </div>
 
@@ -253,15 +253,15 @@ function Sidebar({ active, onNav, onClose }) {
               border: `1px solid ${isActive ? C.teal + "55" : "transparent"}`,
               color: isActive ? C.teal : C.textMid,
               cursor: "pointer", textAlign: "left",
-              fontSize: 14, fontWeight: isActive ? 600 : 400,
+              fontSize:16, fontWeight: isActive ? 600 : 400,
               transition: "all 0.15s",
             }}>
-              <span style={{ fontSize: 15, width: 20, textAlign: "center", fontFamily: C.mono }}>{item.icon}</span>
+              <span style={{ fontSize:17, width: 20, textAlign: "center", fontFamily: C.mono }}>{item.icon}</span>
               {item.label}
               {item.id === "billing" && (
                 <span style={{
                   marginLeft: "auto", background: C.red, color: "#fff",
-                  borderRadius: 10, padding: "2px 7px", fontSize: 10, fontWeight: 700,
+                  borderRadius: 10, padding: "2px 7px", fontSize:13, fontWeight: 700,
                 }}>2</span>
               )}
             </button>
@@ -278,10 +278,10 @@ function Sidebar({ active, onNav, onClose }) {
         ].map((s, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: s.ok ? C.green : C.red, flexShrink: 0 }} />
-            <span style={{ fontSize: 11, color: C.textDim }}>{s.label}</span>
+            <span style={{ fontSize:14, color: C.textDim }}>{s.label}</span>
           </div>
         ))}
-        <div style={{ fontSize: 9, color: C.textDim, marginTop: 6, fontFamily: C.mono }}>v2.0.0 · ISO 27001</div>
+        <div style={{ fontSize:12, color: C.textDim, marginTop: 6, fontFamily: C.mono }}>v2.0.0 · ISO 27001</div>
       </div>
     </div>
   );
@@ -298,8 +298,8 @@ function OverviewPage({ onNav }) {
     <div>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: C.text, letterSpacing: "-0.3px" }}>System Overview</h1>
-        <p style={{ margin: "4px 0 0", fontSize: 12, color: C.textDim, fontFamily: C.mono }}>March 2026 · All tenants</p>
+        <h1 style={{ margin: 0, fontSize:22, fontWeight: 800, color: C.text, letterSpacing: "-0.3px" }}>System Overview</h1>
+        <p style={{ margin: "4px 0 0", fontSize:14, color: C.textDim, fontFamily: C.mono }}>March 2026 · All tenants</p>
       </div>
 
       {/* KPI row */}
@@ -320,7 +320,7 @@ function OverviewPage({ onNav }) {
         {/* Tenant summary table */}
         <Card>
           <CardHeader title="Tenant summary" sub="All registered factories" action={
-            <button onClick={() => onNav("tenants")} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 6, padding: "4px 10px", fontSize: 11, color: C.textMid, cursor: "pointer" }}>View all →</button>
+            <button onClick={() => onNav("tenants")} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 6, padding: "4px 10px", fontSize:14, color: C.textMid, cursor: "pointer" }}>View all →</button>
           } />
           <div>
             {TENANTS.map((t, i) => (
@@ -333,13 +333,13 @@ function OverviewPage({ onNav }) {
                   width: 28, height: 28, borderRadius: 6,
                   background: C.bg3, border: `1px solid ${C.borderHi}`,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 9, fontFamily: C.mono, fontWeight: 700, color: C.teal,
+                  fontSize:12, fontFamily: C.mono, fontWeight: 700, color: C.teal,
                 }}>{t.code}</div>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: C.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.name}</div>
-                  <div style={{ fontSize: 10, color: C.textDim, marginTop: 1 }}>{t.stats.jobsMonth} jobs · {t.billingType === "per_job" ? "Per job" : `${t.termDays}-day term`}</div>
+                  <div style={{ fontSize:14, fontWeight: 600, color: C.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.name}</div>
+                  <div style={{ fontSize:13, color: C.textDim, marginTop: 1 }}>{t.stats.jobsMonth} jobs · {t.billingType === "per_job" ? "Per job" : `${t.termDays}-day term`}</div>
                 </div>
-                <div style={{ fontSize: 12, fontFamily: C.mono, color: C.green, textAlign: "right" }}>฿{(t.stats.revenue * 35).toLocaleString()}</div>
+                <div style={{ fontSize:14, fontFamily: C.mono, color: C.green, textAlign: "right" }}>฿{(t.stats.revenue * 35).toLocaleString()}</div>
                 <div style={{ textAlign: "right" }}><StatusPill status={t.status} /></div>
                 <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
                   <div style={{ width: 7, height: 7, borderRadius: "50%", background: t.apiStatus.nsw === "connected" ? C.teal : C.red }} title="NSW" />
@@ -362,12 +362,12 @@ function OverviewPage({ onNav }) {
                   display: "flex", justifyContent: "space-between", alignItems: "center",
                 }}>
                   <div>
-                    <div style={{ fontSize: 11, fontFamily: C.mono, color: C.textMid }}>{inv.id}</div>
-                    <div style={{ fontSize: 12, color: C.text, fontWeight: 500, marginTop: 2 }}>{inv.tenantName}</div>
-                    <div style={{ fontSize: 10, color: C.textDim, marginTop: 1 }}>Due: {inv.due}</div>
+                    <div style={{ fontSize:14, fontFamily: C.mono, color: C.textMid }}>{inv.id}</div>
+                    <div style={{ fontSize:14, color: C.text, fontWeight: 500, marginTop: 2 }}>{inv.tenantName}</div>
+                    <div style={{ fontSize:13, color: C.textDim, marginTop: 1 }}>Due: {inv.due}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, fontFamily: C.mono, color: inv.status === "overdue" ? C.red : C.amber }}>฿{(inv.amount * 35).toLocaleString()}</div>
+                    <div style={{ fontSize:15, fontWeight: 700, fontFamily: C.mono, color: inv.status === "overdue" ? C.red : C.amber }}>฿{(inv.amount * 35).toLocaleString()}</div>
                     <div style={{ marginTop: 4 }}><StatusPill status={inv.status} /></div>
                   </div>
                 </div>
@@ -386,15 +386,15 @@ function OverviewPage({ onNav }) {
                 }}>
                   <div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontFamily: C.mono, fontSize: 11, color: C.textMid }}>{j.id}</span>
+                      <span style={{ fontFamily: C.mono, fontSize:14, color: C.textMid }}>{j.id}</span>
                       <span style={{
-                        fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 4,
+                        fontSize:12, fontWeight: 700, padding: "1px 6px", borderRadius: 4,
                         background: j.type === "Export" ? C.blueBg : C.amberBg,
                         color: j.type === "Export" ? C.blue : C.amber,
                         border: `1px solid ${j.type === "Export" ? C.blue + "44" : C.amber + "44"}`,
                       }}>{j.type}</span>
                     </div>
-                    <div style={{ fontSize: 10, color: C.textDim, marginTop: 2 }}>{j.tenant} · {j.time}</div>
+                    <div style={{ fontSize:13, color: C.textDim, marginTop: 2 }}>{j.tenant} · {j.time}</div>
                   </div>
                   <StatusPill status={j.status} />
                 </div>
@@ -417,12 +417,12 @@ function TenantListPage({ onSelect, onNew }) {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: C.text }}>Tenants</h1>
-          <p style={{ margin: "4px 0 0", fontSize: 12, color: C.textDim }}>{filtered.length} factories registered</p>
+          <h1 style={{ margin: 0, fontSize:22, fontWeight: 800, color: C.text }}>Tenants</h1>
+          <p style={{ margin: "4px 0 0", fontSize:14, color: C.textDim }}>{filtered.length} factories registered</p>
         </div>
         <button onClick={onNew} style={{
           background: C.teal, color: C.bg0, border: "none", borderRadius: 8,
-          padding: "9px 18px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: C.mono,
+          padding: "9px 18px", fontSize:14, fontWeight: 700, cursor: "pointer", fontFamily: C.mono,
         }}>+ Add tenant</button>
       </div>
 
@@ -430,7 +430,7 @@ function TenantListPage({ onSelect, onNew }) {
       <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
         {["all", "active", "trial", "suspended"].map(f => (
           <button key={f} onClick={() => setFilter(f)} style={{
-            padding: "5px 14px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer",
+            padding: "5px 14px", borderRadius: 20, fontSize:14, fontWeight: 600, cursor: "pointer",
             background: filter === f ? C.teal : "transparent",
             color: filter === f ? C.bg0 : C.textMid,
             border: `1px solid ${filter === f ? C.teal : C.border}`,
@@ -446,7 +446,7 @@ function TenantListPage({ onSelect, onNew }) {
           <thead>
             <tr style={{ borderBottom: `1px solid ${C.border}` }}>
               {["Tenant", "Billing", "Jobs (Mar)", "Revenue", "Outstanding", "API", "Status", ""].map(h => (
-                <th key={h} style={{ padding: "10px 18px", textAlign: "left", fontSize: 10, fontWeight: 700, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.6px", whiteSpace: "nowrap" }}>{h}</th>
+                <th key={h} style={{ padding: "10px 18px", textAlign: "left", fontSize:13, fontWeight: 700, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.6px", whiteSpace: "nowrap" }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -463,26 +463,26 @@ function TenantListPage({ onSelect, onNew }) {
                     <div style={{
                       width: 32, height: 32, borderRadius: 8, background: C.bg3, border: `1px solid ${C.borderHi}`,
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 9, fontFamily: C.mono, fontWeight: 700, color: C.teal, flexShrink: 0,
+                      fontSize:12, fontFamily: C.mono, fontWeight: 700, color: C.teal, flexShrink: 0,
                     }}>{t.code}</div>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{t.name}</div>
-                      <div style={{ fontSize: 10, color: C.textDim, marginTop: 1 }}>Tax: {t.taxId}</div>
+                      <div style={{ fontSize:15, fontWeight: 600, color: C.text }}>{t.name}</div>
+                      <div style={{ fontSize:13, color: C.textDim, marginTop: 1 }}>Tax: {t.taxId}</div>
                     </div>
                   </div>
                 </td>
                 <td style={{ padding: "14px 18px" }}>
-                  <div style={{ fontSize: 12, color: C.text }}>{t.billingType === "per_job" ? "Per job" : `${t.termDays}-day term`}</div>
-                  <div style={{ fontSize: 10, color: C.textDim, marginTop: 1, fontFamily: C.mono }}>฿{t.pricePerJob}/job</div>
+                  <div style={{ fontSize:14, color: C.text }}>{t.billingType === "per_job" ? "Per job" : `${t.termDays}-day term`}</div>
+                  <div style={{ fontSize:13, color: C.textDim, marginTop: 1, fontFamily: C.mono }}>฿{t.pricePerJob}/job</div>
                 </td>
                 <td style={{ padding: "14px 18px" }}>
-                  <div style={{ fontSize: 16, fontWeight: 800, fontFamily: C.mono, color: C.text }}>{t.stats.jobsMonth}</div>
+                  <div style={{ fontSize:18, fontWeight: 800, fontFamily: C.mono, color: C.text }}>{t.stats.jobsMonth}</div>
                 </td>
                 <td style={{ padding: "14px 18px" }}>
-                  <div style={{ fontSize: 13, fontFamily: C.mono, color: C.green, fontWeight: 700 }}>฿{(t.stats.revenue * 35).toLocaleString()}</div>
+                  <div style={{ fontSize:15, fontFamily: C.mono, color: C.green, fontWeight: 700 }}>฿{(t.stats.revenue * 35).toLocaleString()}</div>
                 </td>
                 <td style={{ padding: "14px 18px" }}>
-                  <div style={{ fontSize: 13, fontFamily: C.mono, color: t.stats.outstanding > 0 ? C.red : C.textDim, fontWeight: t.stats.outstanding > 0 ? 700 : 400 }}>
+                  <div style={{ fontSize:15, fontFamily: C.mono, color: t.stats.outstanding > 0 ? C.red : C.textDim, fontWeight: t.stats.outstanding > 0 ? 700 : 400 }}>
                     {t.stats.outstanding > 0 ? `฿${(t.stats.outstanding * 35).toLocaleString()}` : "—"}
                   </div>
                 </td>
@@ -490,17 +490,17 @@ function TenantListPage({ onSelect, onNew }) {
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                       <div style={{ width: 6, height: 6, borderRadius: "50%", background: t.apiStatus.nsw === "connected" ? C.teal : t.apiStatus.nsw === "pending" ? C.amber : C.red }} />
-                      <span style={{ fontSize: 10, color: C.textDim }}>NSW</span>
+                      <span style={{ fontSize:13, color: C.textDim }}>NSW</span>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                       <div style={{ width: 6, height: 6, borderRadius: "50%", background: t.apiStatus.customs === "connected" ? C.teal : t.apiStatus.customs === "pending" ? C.amber : C.red }} />
-                      <span style={{ fontSize: 10, color: C.textDim }}>Customs</span>
+                      <span style={{ fontSize:13, color: C.textDim }}>Customs</span>
                     </div>
                   </div>
                 </td>
                 <td style={{ padding: "14px 18px" }}><StatusPill status={t.status} /></td>
                 <td style={{ padding: "14px 18px" }}>
-                  <span style={{ fontSize: 11, color: C.teal, fontWeight: 600 }}>Details →</span>
+                  <span style={{ fontSize:14, color: C.teal, fontWeight: 600 }}>Details →</span>
                 </td>
               </tr>
             ))}
@@ -526,19 +526,19 @@ function TenantDetailPage({ tenant, onBack }) {
     <div>
       {/* Back + header */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-        <button onClick={onBack} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 12, color: C.textMid }}>← Back</button>
+        <button onClick={onBack} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize:14, color: C.textMid }}>← Back</button>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{
             width: 42, height: 42, borderRadius: 10, background: C.bg3, border: `1px solid ${C.borderHi}`,
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 12, fontFamily: C.mono, fontWeight: 700, color: C.teal,
+            fontSize:14, fontFamily: C.mono, fontWeight: 700, color: C.teal,
           }}>{tenant.code}</div>
           <div>
-            <h1 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: C.text }}>{tenant.name}</h1>
+            <h1 style={{ margin: 0, fontSize:20, fontWeight: 800, color: C.text }}>{tenant.name}</h1>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
               <StatusPill status={status} />
-              <span style={{ fontSize: 10, color: C.textDim, fontFamily: C.mono }}>ID: {tenant.id}</span>
-              <span style={{ fontSize: 10, color: C.textDim }}>Joined: {tenant.joined}</span>
+              <span style={{ fontSize:13, color: C.textDim, fontFamily: C.mono }}>ID: {tenant.id}</span>
+              <span style={{ fontSize:13, color: C.textDim }}>Joined: {tenant.joined}</span>
             </div>
           </div>
         </div>
@@ -560,8 +560,8 @@ function TenantDetailPage({ tenant, onBack }) {
                 ["Users", `${tenant.stats.users} accounts`],
               ].map(([label, val], i) => (
                 <div key={i} style={{ display: "grid", gridTemplateColumns: "140px 1fr", alignItems: "center" }}>
-                  <span style={{ fontSize: 11, color: C.textDim, fontWeight: 600 }}>{label}</span>
-                  <span style={{ fontSize: 12, color: C.text }}>{val}</span>
+                  <span style={{ fontSize:14, color: C.textDim, fontWeight: 600 }}>{label}</span>
+                  <span style={{ fontSize:14, color: C.text }}>{val}</span>
                 </div>
               ))}
             </div>
@@ -573,7 +573,7 @@ function TenantDetailPage({ tenant, onBack }) {
             <div style={{ padding: "16px 20px", display: "grid", gap: 16 }}>
               {/* Billing type toggle */}
               <div>
-                <div style={{ fontSize: 11, color: C.textDim, fontWeight: 600, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Billing type</div>
+                <div style={{ fontSize:14, color: C.textDim, fontWeight: 600, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Billing type</div>
                 <div style={{ display: "flex", gap: 8 }}>
                   {[["per_job", "Per job", "Invoice per job"], ["term", "Term payment", "Bundle by period"]].map(([val, label, sub]) => (
                     <button key={val} onClick={() => setBillingType(val)} style={{
@@ -581,8 +581,8 @@ function TenantDetailPage({ tenant, onBack }) {
                       background: billingType === val ? C.tealBg : C.bg3,
                       border: `1px solid ${billingType === val ? C.teal : C.border}`,
                     }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: billingType === val ? C.teal : C.textMid }}>{label}</div>
-                      <div style={{ fontSize: 10, color: C.textDim, marginTop: 2 }}>{sub}</div>
+                      <div style={{ fontSize:14, fontWeight: 700, color: billingType === val ? C.teal : C.textMid }}>{label}</div>
+                      <div style={{ fontSize:13, color: C.textDim, marginTop: 2 }}>{sub}</div>
                     </button>
                   ))}
                 </div>
@@ -591,14 +591,14 @@ function TenantDetailPage({ tenant, onBack }) {
               {/* Term days (conditional) */}
               {billingType === "term" && (
                 <div>
-                  <div style={{ fontSize: 11, color: C.textDim, fontWeight: 600, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Payment term</div>
+                  <div style={{ fontSize:14, color: C.textDim, fontWeight: 600, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Payment term</div>
                   <div style={{ display: "flex", gap: 8 }}>
                     {[15, 30, 45, 60].map(d => (
                       <button key={d} onClick={() => setTermDays(d)} style={{
                         flex: 1, padding: "8px", borderRadius: 8, cursor: "pointer",
                         background: termDays === d ? C.bg3 : "transparent",
                         border: `1px solid ${termDays === d ? C.teal : C.border}`,
-                        fontSize: 13, fontWeight: 700, fontFamily: C.mono,
+                        fontSize:15, fontWeight: 700, fontFamily: C.mono,
                         color: termDays === d ? C.teal : C.textMid,
                       }}>{d}d</button>
                     ))}
@@ -608,7 +608,7 @@ function TenantDetailPage({ tenant, onBack }) {
 
               {/* Price */}
               <div>
-                <div style={{ fontSize: 11, color: C.textDim, fontWeight: 600, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Price per job (THB)</div>
+                <div style={{ fontSize:14, color: C.textDim, fontWeight: 600, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Price per job (THB)</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <input
                     type="number"
@@ -616,12 +616,12 @@ function TenantDetailPage({ tenant, onBack }) {
                     onChange={e => setPricePerJob(Number(e.target.value))}
                     style={{
                       background: C.bg3, border: `1px solid ${C.borderHi}`, borderRadius: 8,
-                      padding: "8px 12px", fontSize: 16, fontWeight: 700, fontFamily: C.mono,
+                      padding: "8px 12px", fontSize:18, fontWeight: 700, fontFamily: C.mono,
                       color: C.teal, width: 120,
                     }}
                   />
-                  <span style={{ fontSize: 12, color: C.textDim }}>THB / job</span>
-                  <span style={{ fontSize: 11, color: C.textDim, marginLeft: "auto" }}>
+                  <span style={{ fontSize:14, color: C.textDim }}>THB / job</span>
+                  <span style={{ fontSize:14, color: C.textDim, marginLeft: "auto" }}>
                     Est. monthly: ฿{(pricePerJob * tenant.stats.jobsMonth).toLocaleString()}
                   </span>
                 </div>
@@ -629,12 +629,12 @@ function TenantDetailPage({ tenant, onBack }) {
 
               {/* Account status */}
               <div>
-                <div style={{ fontSize: 11, color: C.textDim, fontWeight: 600, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Account status</div>
+                <div style={{ fontSize:14, color: C.textDim, fontWeight: 600, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Account status</div>
                 <div style={{ display: "flex", gap: 8 }}>
                   {["active", "trial", "suspended"].map(s => (
                     <button key={s} onClick={() => setStatus(s)} style={{
                       flex: 1, padding: "7px", borderRadius: 8, cursor: "pointer",
-                      fontSize: 11, fontWeight: 700, textTransform: "capitalize",
+                      fontSize:14, fontWeight: 700, textTransform: "capitalize",
                       background: status === s ? (s === "active" ? C.greenBg : s === "trial" ? C.amberBg : C.redBg) : "transparent",
                       border: `1px solid ${status === s ? (s === "active" ? C.green : s === "trial" ? C.amber : C.red) : C.border}`,
                       color: status === s ? (s === "active" ? C.green : s === "trial" ? C.amber : C.red) : C.textDim,
@@ -645,7 +645,7 @@ function TenantDetailPage({ tenant, onBack }) {
 
               <button style={{
                 background: C.teal, color: C.bg0, border: "none", borderRadius: 8,
-                padding: "10px", fontSize: 12, fontWeight: 700, cursor: "pointer",
+                padding: "10px", fontSize:14, fontWeight: 700, cursor: "pointer",
               }}>Save configuration</button>
             </div>
           </Card>
@@ -681,8 +681,8 @@ function TenantDetailPage({ tenant, onBack }) {
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", background: C.bg3, borderRadius: 8, border: `1px solid ${C.border}` }}>
                     <div style={{ width: 8, height: 8, borderRadius: "50%", background: st === "connected" ? C.teal : st === "pending" ? C.amber : C.red, flexShrink: 0 }} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>{api.name}</div>
-                      <div style={{ fontSize: 10, color: C.textDim, fontFamily: C.mono, marginTop: 2 }}>{api.endpoint}</div>
+                      <div style={{ fontSize:14, fontWeight: 600, color: C.text }}>{api.name}</div>
+                      <div style={{ fontSize:13, color: C.textDim, fontFamily: C.mono, marginTop: 2 }}>{api.endpoint}</div>
                     </div>
                     <StatusPill status={st} />
                   </div>
@@ -701,11 +701,11 @@ function TenantDetailPage({ tenant, onBack }) {
                   display: "flex", justifyContent: "space-between", alignItems: "center",
                 }}>
                   <div>
-                    <div style={{ fontSize: 11, fontFamily: C.mono, color: C.textMid }}>{inv.id}</div>
-                    <div style={{ fontSize: 10, color: C.textDim, marginTop: 2 }}>{inv.jobs} jobs · Issued: {inv.issued}</div>
+                    <div style={{ fontSize:14, fontFamily: C.mono, color: C.textMid }}>{inv.id}</div>
+                    <div style={{ fontSize:13, color: C.textDim, marginTop: 2 }}>{inv.jobs} jobs · Issued: {inv.issued}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, fontFamily: C.mono, color: inv.status === "paid" ? C.green : inv.status === "overdue" ? C.red : C.amber }}>
+                    <div style={{ fontSize:15, fontWeight: 700, fontFamily: C.mono, color: inv.status === "paid" ? C.green : inv.status === "overdue" ? C.red : C.amber }}>
                       ฿{(inv.amount * 35).toLocaleString()}
                     </div>
                     <div style={{ marginTop: 4 }}><StatusPill status={inv.status} /></div>
@@ -731,8 +731,8 @@ function BillingPage() {
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: C.text }}>Billing</h1>
-        <p style={{ margin: "4px 0 0", fontSize: 12, color: C.textDim }}>All invoices across tenants</p>
+        <h1 style={{ margin: 0, fontSize:22, fontWeight: 800, color: C.text }}>Billing</h1>
+        <p style={{ margin: "4px 0 0", fontSize:14, color: C.textDim }}>All invoices across tenants</p>
       </div>
 
       {/* Summary */}
@@ -750,7 +750,7 @@ function BillingPage() {
       <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
         {["all", "pending", "overdue", "paid"].map(f => (
           <button key={f} onClick={() => setFilter(f)} style={{
-            padding: "5px 14px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer",
+            padding: "5px 14px", borderRadius: 20, fontSize:14, fontWeight: 600, cursor: "pointer",
             background: filter === f ? C.teal : "transparent",
             color: filter === f ? C.bg0 : C.textMid,
             border: `1px solid ${filter === f ? C.teal : C.border}`,
@@ -765,7 +765,7 @@ function BillingPage() {
           <thead>
             <tr style={{ borderBottom: `1px solid ${C.border}` }}>
               {["Invoice", "Tenant", "Jobs", "Amount", "Issued", "Due date", "Status", ""].map(h => (
-                <th key={h} style={{ padding: "10px 18px", textAlign: "left", fontSize: 10, fontWeight: 700, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.6px", whiteSpace: "nowrap" }}>{h}</th>
+                <th key={h} style={{ padding: "10px 18px", textAlign: "left", fontSize:13, fontWeight: 700, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.6px", whiteSpace: "nowrap" }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -774,18 +774,18 @@ function BillingPage() {
               <tr key={i} style={{ borderBottom: `1px solid ${C.border}` }}
                 onMouseEnter={e => e.currentTarget.style.background = C.bg3}
                 onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                <td style={{ padding: "12px 18px", fontFamily: C.mono, fontSize: 11, color: C.textMid }}>{inv.id}</td>
-                <td style={{ padding: "12px 18px", fontSize: 12, fontWeight: 600, color: C.text }}>{inv.tenantName}</td>
-                <td style={{ padding: "12px 18px", fontFamily: C.mono, fontSize: 13, color: C.text }}>{inv.jobs}</td>
-                <td style={{ padding: "12px 18px", fontFamily: C.mono, fontSize: 13, fontWeight: 700, color: inv.status === "paid" ? C.green : inv.status === "overdue" ? C.red : C.amber }}>฿{(inv.amount * 35).toLocaleString()}</td>
-                <td style={{ padding: "12px 18px", fontSize: 11, color: C.textDim }}>{inv.issued}</td>
-                <td style={{ padding: "12px 18px", fontSize: 11, color: inv.status === "overdue" ? C.red : C.textDim }}>{inv.due}</td>
+                <td style={{ padding: "12px 18px", fontFamily: C.mono, fontSize:14, color: C.textMid }}>{inv.id}</td>
+                <td style={{ padding: "12px 18px", fontSize:14, fontWeight: 600, color: C.text }}>{inv.tenantName}</td>
+                <td style={{ padding: "12px 18px", fontFamily: C.mono, fontSize:15, color: C.text }}>{inv.jobs}</td>
+                <td style={{ padding: "12px 18px", fontFamily: C.mono, fontSize:15, fontWeight: 700, color: inv.status === "paid" ? C.green : inv.status === "overdue" ? C.red : C.amber }}>฿{(inv.amount * 35).toLocaleString()}</td>
+                <td style={{ padding: "12px 18px", fontSize:14, color: C.textDim }}>{inv.issued}</td>
+                <td style={{ padding: "12px 18px", fontSize:14, color: inv.status === "overdue" ? C.red : C.textDim }}>{inv.due}</td>
                 <td style={{ padding: "12px 18px" }}><StatusPill status={inv.status} /></td>
                 <td style={{ padding: "12px 18px" }}>
                   {inv.status !== "paid" && (
                     <button style={{
                       background: "none", border: `1px solid ${C.teal}`, borderRadius: 6,
-                      padding: "4px 10px", fontSize: 10, color: C.teal, cursor: "pointer", fontWeight: 600,
+                      padding: "4px 10px", fontSize:13, color: C.teal, cursor: "pointer", fontWeight: 600,
                     }}>Send reminder</button>
                   )}
                 </td>
@@ -810,10 +810,10 @@ function AddTenantPage({ onBack }) {
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-        <button onClick={onBack} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 12, color: C.textMid }}>← Back</button>
+        <button onClick={onBack} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize:14, color: C.textMid }}>← Back</button>
         <div>
-          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: C.text }}>Add new tenant</h1>
-          <p style={{ margin: "4px 0 0", fontSize: 12, color: C.textDim }}>Onboard a new factory to the platform</p>
+          <h1 style={{ margin: 0, fontSize:22, fontWeight: 800, color: C.text }}>Add new tenant</h1>
+          <p style={{ margin: "4px 0 0", fontSize:14, color: C.textDim }}>Onboard a new factory to the platform</p>
         </div>
       </div>
 
@@ -832,10 +832,10 @@ function AddTenantPage({ onBack }) {
                     background: done ? C.teal : active ? C.bg3 : C.bg3,
                     border: `1px solid ${done ? C.teal : active ? C.teal : C.border}`,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 11, fontFamily: C.mono, fontWeight: 700,
+                    fontSize:14, fontFamily: C.mono, fontWeight: 700,
                     color: done ? C.bg0 : active ? C.teal : C.textDim,
                   }}>{done ? "✓" : n}</div>
-                  <span style={{ fontSize: 12, fontWeight: active ? 700 : 400, color: active ? C.text : C.textDim, whiteSpace: "nowrap" }}>{s}</span>
+                  <span style={{ fontSize:14, fontWeight: active ? 700 : 400, color: active ? C.text : C.textDim, whiteSpace: "nowrap" }}>{s}</span>
                 </div>
                 {i < steps.length - 1 && <div style={{ flex: 1, height: 1, background: done ? C.teal : C.border, margin: "0 12px" }} />}
               </div>
@@ -860,16 +860,16 @@ function AddTenantPage({ onBack }) {
                   { label: "Address", ph: "123 ถ. พระราม 2 แขวง บางมด เขต จอมทอง กรุงเทพฯ 10150" },
                 ].map((f, i) => (
                   <div key={i}>
-                    <label style={{ fontSize: 11, color: C.textDim, fontWeight: 600, display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>{f.label}</label>
+                    <label style={{ fontSize:14, color: C.textDim, fontWeight: 600, display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>{f.label}</label>
                     <input placeholder={f.ph} style={{
                       width: "100%", background: C.bg3, border: `1px solid ${C.borderHi}`, borderRadius: 8,
-                      padding: "9px 12px", fontSize: 12, color: C.text, boxSizing: "border-box",
+                      padding: "9px 12px", fontSize:14, color: C.text, boxSizing: "border-box",
                     }} />
                   </div>
                 ))}
                 <div>
-                  <label style={{ fontSize: 11, color: C.textDim, fontWeight: 600, display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Industry type</label>
-                  <select style={{ width: "100%", background: C.bg3, border: `1px solid ${C.borderHi}`, borderRadius: 8, padding: "9px 12px", fontSize: 12, color: C.text }}>
+                  <label style={{ fontSize:14, color: C.textDim, fontWeight: 600, display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Industry type</label>
+                  <select style={{ width: "100%", background: C.bg3, border: `1px solid ${C.borderHi}`, borderRadius: 8, padding: "9px 12px", fontSize:14, color: C.text }}>
                     <option>Electronics / Semiconductor</option>
                     <option>Automotive Parts</option>
                     <option>Food & Agriculture</option>
@@ -887,7 +887,7 @@ function AddTenantPage({ onBack }) {
               <CardHeader title="Billing setup" sub="Configure how this tenant will be billed" />
               <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 18 }}>
                 <div>
-                  <label style={{ fontSize: 11, color: C.textDim, fontWeight: 600, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Billing model</label>
+                  <label style={{ fontSize:14, color: C.textDim, fontWeight: 600, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Billing model</label>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {[
                       ["per_job", "Per job", "Invoice sent immediately after each job is completed. Best for low-volume factories."],
@@ -902,9 +902,9 @@ function AddTenantPage({ onBack }) {
                           <div style={{ width: 14, height: 14, borderRadius: "50%", border: `2px solid ${billingType === val ? C.teal : C.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                             {billingType === val && <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.teal }} />}
                           </div>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: billingType === val ? C.teal : C.text }}>{label}</span>
+                          <span style={{ fontSize:15, fontWeight: 700, color: billingType === val ? C.teal : C.text }}>{label}</span>
                         </div>
-                        <p style={{ margin: 0, fontSize: 11, color: C.textDim, lineHeight: 1.5 }}>{desc}</p>
+                        <p style={{ margin: 0, fontSize:14, color: C.textDim, lineHeight: 1.5 }}>{desc}</p>
                       </button>
                     ))}
                   </div>
@@ -912,18 +912,18 @@ function AddTenantPage({ onBack }) {
 
                 {billingType === "term" && (
                   <div>
-                    <label style={{ fontSize: 11, color: C.textDim, fontWeight: 600, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Payment term</label>
+                    <label style={{ fontSize:14, color: C.textDim, fontWeight: 600, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Payment term</label>
                     <div style={{ display: "flex", gap: 8 }}>
                       {[15, 30, 45, 60].map(d => (
                         <button key={d} onClick={() => setTermDays(d)} style={{
                           flex: 1, padding: "12px 8px", borderRadius: 8, cursor: "pointer",
                           background: termDays === d ? C.tealBg : C.bg3,
                           border: `1px solid ${termDays === d ? C.teal : C.border}`,
-                          fontFamily: C.mono, fontSize: 16, fontWeight: 800,
+                          fontFamily: C.mono, fontSize:18, fontWeight: 800,
                           color: termDays === d ? C.teal : C.textMid,
                         }}>
                           <div>{d}</div>
-                          <div style={{ fontSize: 9, fontWeight: 400, fontFamily: "inherit", marginTop: 2, color: termDays === d ? C.tealDim : C.textDim }}>days</div>
+                          <div style={{ fontSize:12, fontWeight: 400, fontFamily: "inherit", marginTop: 2, color: termDays === d ? C.tealDim : C.textDim }}>days</div>
                         </button>
                       ))}
                     </div>
@@ -931,23 +931,23 @@ function AddTenantPage({ onBack }) {
                 )}
 
                 <div>
-                  <label style={{ fontSize: 11, color: C.textDim, fontWeight: 600, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Price per job</label>
+                  <label style={{ fontSize:14, color: C.textDim, fontWeight: 600, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Price per job</label>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <input type="number" defaultValue={450} style={{
                       background: C.bg3, border: `1px solid ${C.borderHi}`, borderRadius: 8,
-                      padding: "10px 14px", fontSize: 20, fontWeight: 800, fontFamily: C.mono,
+                      padding: "10px 14px", fontSize:22, fontWeight: 800, fontFamily: C.mono,
                       color: C.teal, width: 130,
                     }} />
-                    <span style={{ fontSize: 14, color: C.textDim }}>THB per job</span>
+                    <span style={{ fontSize:16, color: C.textDim }}>THB per job</span>
                   </div>
-                  <div style={{ marginTop: 8, fontSize: 11, color: C.textDim }}>Service breakdown: Declaration ฿300 + AI extraction ฿100 + NSW submission ฿50</div>
+                  <div style={{ marginTop: 8, fontSize:14, color: C.textDim }}>Service breakdown: Declaration ฿300 + AI extraction ฿100 + NSW submission ฿50</div>
                 </div>
 
                 <div>
-                  <label style={{ fontSize: 11, color: C.textDim, fontWeight: 600, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Contract start date</label>
+                  <label style={{ fontSize:14, color: C.textDim, fontWeight: 600, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>Contract start date</label>
                   <input type="date" defaultValue="2026-04-01" style={{
                     background: C.bg3, border: `1px solid ${C.borderHi}`, borderRadius: 8,
-                    padding: "9px 12px", fontSize: 12, color: C.text, width: 180,
+                    padding: "9px 12px", fontSize:14, color: C.text, width: 180,
                   }} />
                 </div>
               </div>
@@ -959,8 +959,8 @@ function AddTenantPage({ onBack }) {
               <CardHeader title="API credentials" sub="Customs portal credentials for this tenant" />
               <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 14 }}>
                 <div style={{ background: C.amberBg, border: `1px solid ${C.amber}44`, borderRadius: 8, padding: "10px 14px" }}>
-                  <div style={{ fontSize: 11, color: C.amber, fontWeight: 600, marginBottom: 4 }}>Security note</div>
-                  <div style={{ fontSize: 11, color: C.textMid }}>Credentials are encrypted at rest and never exposed in logs. Stored in environment variables only.</div>
+                  <div style={{ fontSize:14, color: C.amber, fontWeight: 600, marginBottom: 4 }}>Security note</div>
+                  <div style={{ fontSize:14, color: C.textMid }}>Credentials are encrypted at rest and never exposed in logs. Stored in environment variables only.</div>
                 </div>
                 {[
                   { label: "กรมศุลกากร username", ph: "factory_username" },
@@ -969,17 +969,17 @@ function AddTenantPage({ onBack }) {
                   { label: "Customs importer/exporter ID", ph: "EXP-1234567" },
                 ].map((f, i) => (
                   <div key={i}>
-                    <label style={{ fontSize: 11, color: C.textDim, fontWeight: 600, display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>{f.label}</label>
+                    <label style={{ fontSize:14, color: C.textDim, fontWeight: 600, display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>{f.label}</label>
                     <input type={f.type || "text"} placeholder={f.ph} style={{
                       width: "100%", background: C.bg3, border: `1px solid ${C.borderHi}`, borderRadius: 8,
-                      padding: "9px 12px", fontSize: 12, color: C.text, fontFamily: f.type === "password" ? "inherit" : C.mono, boxSizing: "border-box",
+                      padding: "9px 12px", fontSize:14, color: C.text, fontFamily: f.type === "password" ? "inherit" : C.mono, boxSizing: "border-box",
                     }} />
                   </div>
                 ))}
                 <div style={{ background: C.tealBg, border: `1px solid ${C.teal}44`, borderRadius: 8, padding: "10px 14px" }}>
-                  <div style={{ fontSize: 11, color: C.teal, fontWeight: 600, marginBottom: 4 }}>Test connection</div>
-                  <div style={{ fontSize: 11, color: C.textMid, marginBottom: 8 }}>Verify credentials before saving by running a dry-run connection test.</div>
-                  <button style={{ background: C.tealBg, border: `1px solid ${C.teal}`, borderRadius: 6, padding: "6px 14px", fontSize: 11, color: C.teal, cursor: "pointer", fontWeight: 600 }}>Run test</button>
+                  <div style={{ fontSize:14, color: C.teal, fontWeight: 600, marginBottom: 4 }}>Test connection</div>
+                  <div style={{ fontSize:14, color: C.textMid, marginBottom: 8 }}>Verify credentials before saving by running a dry-run connection test.</div>
+                  <button style={{ background: C.tealBg, border: `1px solid ${C.teal}`, borderRadius: 6, padding: "6px 14px", fontSize:14, color: C.teal, cursor: "pointer", fontWeight: 600 }}>Run test</button>
                 </div>
               </div>
             </div>
@@ -999,13 +999,13 @@ function AddTenantPage({ onBack }) {
                   ["Contract start", "2026-04-01"],
                 ].map(([label, val], i) => (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: `1px solid ${C.border}` }}>
-                    <span style={{ fontSize: 12, color: C.textDim }}>{label}</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: C.text }}>{val}</span>
+                    <span style={{ fontSize:14, color: C.textDim }}>{label}</span>
+                    <span style={{ fontSize:14, fontWeight: 600, color: C.text }}>{val}</span>
                   </div>
                 ))}
                 <div style={{ marginTop: 16, background: C.greenBg, border: `1px solid ${C.green}44`, borderRadius: 8, padding: "12px 14px" }}>
-                  <div style={{ fontSize: 12, color: C.green, fontWeight: 600 }}>Ready to create</div>
-                  <div style={{ fontSize: 11, color: C.textMid, marginTop: 4 }}>Tenant ID will be auto-generated. Invitation email sent to contact.</div>
+                  <div style={{ fontSize:14, color: C.green, fontWeight: 600 }}>Ready to create</div>
+                  <div style={{ fontSize:14, color: C.textMid, marginTop: 4 }}>Tenant ID will be auto-generated. Invitation email sent to contact.</div>
                 </div>
               </div>
             </div>
@@ -1016,7 +1016,7 @@ function AddTenantPage({ onBack }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <Card>
             <div style={{ padding: "20px" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: C.text, marginBottom: 16 }}>Onboarding checklist</div>
+              <div style={{ fontSize:14, fontWeight: 700, color: C.text, marginBottom: 16 }}>Onboarding checklist</div>
               {[
                 { label: "Company info", done: step > 1 },
                 { label: "Billing configuration", done: step > 2 },
@@ -1029,9 +1029,9 @@ function AddTenantPage({ onBack }) {
                     background: item.done ? C.tealBg : C.bg3,
                     border: `1px solid ${item.done ? C.teal : C.border}`,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 10, color: C.teal,
+                    fontSize:13, color: C.teal,
                   }}>{item.done ? "✓" : ""}</div>
-                  <span style={{ fontSize: 12, color: item.done ? C.text : C.textDim }}>{item.label}</span>
+                  <span style={{ fontSize:14, color: item.done ? C.text : C.textDim }}>{item.label}</span>
                 </div>
               ))}
             </div>
@@ -1041,18 +1041,18 @@ function AddTenantPage({ onBack }) {
             {step > 1 && (
               <button onClick={() => setStep(s => s - 1)} style={{
                 flex: 1, background: "none", border: `1px solid ${C.border}`, borderRadius: 8,
-                padding: "11px", fontSize: 12, color: C.textMid, cursor: "pointer",
+                padding: "11px", fontSize:14, color: C.textMid, cursor: "pointer",
               }}>← Back</button>
             )}
             {step < 4 ? (
               <button onClick={() => setStep(s => s + 1)} style={{
                 flex: 2, background: C.teal, color: C.bg0, border: "none", borderRadius: 8,
-                padding: "11px", fontSize: 12, fontWeight: 700, cursor: "pointer",
+                padding: "11px", fontSize:14, fontWeight: 700, cursor: "pointer",
               }}>Continue →</button>
             ) : (
               <button style={{
                 flex: 2, background: C.teal, color: C.bg0, border: "none", borderRadius: 8,
-                padding: "11px", fontSize: 12, fontWeight: 700, cursor: "pointer",
+                padding: "11px", fontSize:14, fontWeight: 700, cursor: "pointer",
               }}>Create tenant</button>
             )}
           </div>
@@ -1085,8 +1085,8 @@ function SystemPage() {
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: C.text }}>System monitor</h1>
-        <p style={{ margin: "4px 0 0", fontSize: 12, color: C.textDim }}>API health · connections · audit log</p>
+        <h1 style={{ margin: 0, fontSize:22, fontWeight: 800, color: C.text }}>System monitor</h1>
+        <p style={{ margin: "4px 0 0", fontSize:14, color: C.textDim }}>API health · connections · audit log</p>
       </div>
 
       <Card style={{ marginBottom: 16 }}>
@@ -1096,18 +1096,18 @@ function SystemPage() {
           <thead>
             <tr style={{ borderBottom: `1px solid ${C.border}` }}>
               {["Service", "Endpoint", "Latency", "Uptime", "Req (24h)", "Status"].map(h => (
-                <th key={h} style={{ padding: "9px 18px", textAlign: "left", fontSize: 10, fontWeight: 700, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.6px" }}>{h}</th>
+                <th key={h} style={{ padding: "9px 18px", textAlign: "left", fontSize:13, fontWeight: 700, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.6px" }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {apis.map((api, i) => (
               <tr key={i} style={{ borderBottom: `1px solid ${C.border}` }}>
-                <td style={{ padding: "12px 18px", fontSize: 13, fontWeight: 600, color: C.text }}>{api.name}</td>
-                <td style={{ padding: "12px 18px", fontSize: 11, fontFamily: C.mono, color: C.textDim }}>{api.endpoint}</td>
-                <td style={{ padding: "12px 18px", fontSize: 12, fontFamily: C.mono, color: Number(api.latency) > 500 ? C.amber : C.green }}>{api.latency}</td>
-                <td style={{ padding: "12px 18px", fontSize: 12, fontFamily: C.mono, color: C.teal }}>{api.uptime}</td>
-                <td style={{ padding: "12px 18px", fontSize: 12, fontFamily: C.mono, color: C.text }}>{api.requests}</td>
+                <td style={{ padding: "12px 18px", fontSize:15, fontWeight: 600, color: C.text }}>{api.name}</td>
+                <td style={{ padding: "12px 18px", fontSize:14, fontFamily: C.mono, color: C.textDim }}>{api.endpoint}</td>
+                <td style={{ padding: "12px 18px", fontSize:14, fontFamily: C.mono, color: Number(api.latency) > 500 ? C.amber : C.green }}>{api.latency}</td>
+                <td style={{ padding: "12px 18px", fontSize:14, fontFamily: C.mono, color: C.teal }}>{api.uptime}</td>
+                <td style={{ padding: "12px 18px", fontSize:14, fontFamily: C.mono, color: C.text }}>{api.requests}</td>
                 <td style={{ padding: "12px 18px" }}><StatusPill status={api.status} /></td>
               </tr>
             ))}
@@ -1124,18 +1124,18 @@ function SystemPage() {
               padding: "8px 18px", borderBottom: i < logs.length - 1 ? `1px solid ${C.border}` : "none",
               display: "flex", alignItems: "center", gap: 12,
             }}>
-              <span style={{ fontFamily: C.mono, fontSize: 11, color: C.textDim, width: 72, flexShrink: 0 }}>{log.time}</span>
+              <span style={{ fontFamily: C.mono, fontSize:14, color: C.textDim, width: 72, flexShrink: 0 }}>{log.time}</span>
               <span style={{
-                fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, width: 36, textAlign: "center",
+                fontSize:12, fontWeight: 700, padding: "2px 6px", borderRadius: 4, width: 36, textAlign: "center",
                 background: log.level === "WARN" ? C.amberBg : C.tealBg,
                 color: log.level === "WARN" ? C.amber : C.teal,
                 border: `1px solid ${log.level === "WARN" ? C.amber + "44" : C.teal + "44"}`,
               }}>{log.level}</span>
               <span style={{
-                fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, fontFamily: C.mono,
+                fontSize:12, fontWeight: 700, padding: "2px 6px", borderRadius: 4, fontFamily: C.mono,
                 background: C.bg3, color: C.textMid, border: `1px solid ${C.border}`,
               }}>{log.tenant}</span>
-              <span style={{ fontSize: 12, color: C.textMid }}>{log.msg}</span>
+              <span style={{ fontSize:14, color: C.textMid }}>{log.msg}</span>
             </div>
           ))}
         </div>
@@ -1182,9 +1182,9 @@ export default function App() {
       default:
         return (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "50vh" }}>
-            <div style={{ fontSize: 32, fontFamily: C.mono, color: C.teal, marginBottom: 12 }}>⊙</div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>Coming soon</div>
-            <div style={{ fontSize: 12, color: C.textDim, marginTop: 6 }}>Module under development</div>
+            <div style={{ fontSize:32, fontFamily: C.mono, color: C.teal, marginBottom: 12 }}>⊙</div>
+            <div style={{ fontSize:16, fontWeight: 600, color: C.text }}>Coming soon</div>
+            <div style={{ fontSize:14, color: C.textDim, marginTop: 6 }}>Module under development</div>
           </div>
         );
     }

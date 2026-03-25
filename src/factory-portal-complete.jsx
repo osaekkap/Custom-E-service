@@ -37,22 +37,22 @@ const INVOICES_FACTORY = [
 ];
 
 // ─── Shared helpers ───────────────────────────────────────────────
-const W = "#FFFFFF";
-const BG = "#F8FAFC";
-const BORDER = "#E2E8F0";
-const BORDER2 = "#F1F5F9";
-const TEXT  = "#0F172A";
-const TEXT2 = "#475569";
-const TEXT3 = "#94A3B8";
-const BLUE  = "#0EA5E9";
-const MONO  = "'JetBrains Mono','Courier New',monospace";
+const W = "var(--bg-card)";
+const BG = "var(--bg-main)";
+const BORDER = "var(--border-main)";
+const BORDER2 = "var(--border-light)";
+const TEXT  = "var(--text-main)";
+const TEXT2 = "var(--text-muted)";
+const TEXT3 = "var(--text-light)";
+const BLUE  = "var(--primary)";
+const MONO  = "var(--mono)";
 
 function Badge({ status }) {
   const s = STATUS[status] || STATUS.DRAFT;
   return (
     <span style={{
       display:"inline-block", padding:"2px 9px", borderRadius:20,
-      fontSize:10, fontWeight:700, letterSpacing:"0.4px",
+      fontSize:13, fontWeight:700, letterSpacing:"0.4px",
       color:s.color, background:s.bg, border:`1px solid ${s.border}`,
     }}>{s.label}</span>
   );
@@ -66,8 +66,8 @@ function SectionHeader({ title, sub, right }) {
   return (
     <div style={{ padding:"14px 20px", borderBottom:`1px solid ${BORDER2}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
       <div>
-        <div style={{ fontSize:13, fontWeight:700, color:TEXT }}>{title}</div>
-        {sub && <div style={{ fontSize:11, color:TEXT3, marginTop:2 }}>{sub}</div>}
+        <div style={{ fontSize:15, fontWeight:700, color:TEXT }}>{title}</div>
+        {sub && <div style={{ fontSize:14, color:TEXT3, marginTop:2 }}>{sub}</div>}
       </div>
       {right}
     </div>
@@ -75,7 +75,7 @@ function SectionHeader({ title, sub, right }) {
 }
 
 function Btn({ children, variant="primary", onClick, style={} }) {
-  const base = { border:"none", borderRadius:8, padding:"8px 16px", fontSize:12, fontWeight:600, cursor:"pointer", ...style };
+  const base = { border:"none", borderRadius:8, padding:"8px 16px", fontSize:14, fontWeight:600, cursor:"pointer", ...style };
   const styles = {
     primary:   { background:BLUE,   color:"#fff" },
     secondary: { background:"none", color:TEXT2,  border:`1px solid ${BORDER}` },
@@ -89,7 +89,7 @@ function Tag({ label, color="#0EA5E9" }) {
   return (
     <span style={{
       display:"inline-block", padding:"1px 8px", borderRadius:4,
-      fontSize:10, fontWeight:700, background:`${color}15`, color, border:`1px solid ${color}33`,
+      fontSize:13, fontWeight:700, background:`${color}15`, color, border:`1px solid ${color}33`,
     }}>{label}</span>
   );
 }
@@ -112,19 +112,19 @@ function Sidebar({ active, onNav }) {
     <div style={{ width:220, background:"#0B1929", minHeight:"100vh", display:"flex", flexDirection:"column", flexShrink:0, position:"sticky", top:0, height:"100vh" }}>
       <div style={{ padding:"20px 18px 16px", borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <div style={{ width:32, height:32, borderRadius:8, background:"#0EA5E9", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, color:"#fff", flexShrink:0 }}>⚓</div>
+          <div style={{ width:32, height:32, borderRadius:8, background:"#0EA5E9", display:"flex", alignItems:"center", justifyContent:"center", fontSize:17, color:"#fff", flexShrink:0 }}>⚓</div>
           <div>
-            <div style={{ color:"#F1F5F9", fontSize:11, fontWeight:700, letterSpacing:"1px", fontFamily:MONO }}>CUSTOMS-EDOC</div>
-            <div style={{ color:"#475569", fontSize:10 }}>Factory Portal</div>
+            <div style={{ color:"#F1F5F9", fontSize:14, fontWeight:700, letterSpacing:"1px", fontFamily:MONO }}>CUSTOMS-EDOC</div>
+            <div style={{ color:"#475569", fontSize:13 }}>Factory Portal</div>
           </div>
         </div>
       </div>
 
       <div style={{ padding:"10px 14px", borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
         <div style={{ background:"rgba(14,165,233,0.08)", borderRadius:8, padding:"8px 12px", border:"1px solid rgba(14,165,233,0.2)", cursor:"pointer" }}>
-          <div style={{ fontSize:9, color:"#0EA5E9", fontWeight:700, letterSpacing:"0.8px", textTransform:"uppercase", marginBottom:3 }}>Active factory</div>
-          <div style={{ fontSize:12, color:"#E2E8F0", fontWeight:600 }}>ไทยอิเล็กทรอนิกส์ จำกัด</div>
-          <div style={{ fontSize:10, color:"#475569", marginTop:2 }}>T001 · THEL</div>
+          <div style={{ fontSize:12, color:"#0EA5E9", fontWeight:700, letterSpacing:"0.8px", textTransform:"uppercase", marginBottom:3 }}>Active factory</div>
+          <div style={{ fontSize:14, color:"#E2E8F0", fontWeight:600 }}>ไทยอิเล็กทรอนิกส์ จำกัด</div>
+          <div style={{ fontSize:13, color:"#475569", marginTop:2 }}>T001 · THEL</div>
         </div>
       </div>
 
@@ -138,13 +138,13 @@ function Sidebar({ active, onNav }) {
               background: on ? "rgba(14,165,233,0.12)" : "transparent",
               border: `1px solid ${on ? "rgba(14,165,233,0.25)" : "transparent"}`,
               color: on ? "#38BDF8" : "#64748B",
-              cursor:"pointer", textAlign:"left", fontSize:12,
+              cursor:"pointer", textAlign:"left", fontSize:14,
               fontWeight: on ? 600 : 400,
             }}>
-              <span style={{ fontSize:13, width:16, textAlign:"center" }}>{item.icon}</span>
+              <span style={{ fontSize:15, width:16, textAlign:"center" }}>{item.icon}</span>
               <span style={{ flex:1 }}>{item.label}</span>
               {item.badge && (
-                <span style={{ background:"#EF4444", color:"#fff", borderRadius:10, padding:"1px 5px", fontSize:9, fontWeight:700 }}>{item.badge}</span>
+                <span style={{ background:"#EF4444", color:"#fff", borderRadius:10, padding:"1px 5px", fontSize:12, fontWeight:700 }}>{item.badge}</span>
               )}
             </button>
           );
@@ -152,11 +152,11 @@ function Sidebar({ active, onNav }) {
       </nav>
 
       <div style={{ padding:"14px 18px", borderTop:"1px solid rgba(255,255,255,0.07)" }}>
-        <div style={{ fontSize:10, color:"#334155", marginBottom:3 }}>Service by</div>
-        <div style={{ fontSize:11, color:"#64748B" }}>LogiConnect Co., Ltd.</div>
+        <div style={{ fontSize:13, color:"#334155", marginBottom:3 }}>Service by</div>
+        <div style={{ fontSize:14, color:"#64748B" }}>LogiConnect Co., Ltd.</div>
         <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:6 }}>
           <div style={{ width:5, height:5, borderRadius:"50%", background:"#22C55E" }}/>
-          <span style={{ fontSize:10, color:"#334155" }}>NSW · Customs · BoT</span>
+          <span style={{ fontSize:13, color:"#334155" }}>NSW · Customs · BoT</span>
         </div>
       </div>
     </div>
@@ -169,8 +169,8 @@ function Dashboard({ onNav }) {
   return (
     <div>
       <div style={{ marginBottom:20 }}>
-        <h1 style={{ margin:0, fontSize:20, fontWeight:800, color:TEXT }}>Dashboard</h1>
-        <p style={{ margin:"3px 0 0", fontSize:12, color:TEXT3 }}>บริษัท ไทยอิเล็กทรอนิกส์ จำกัด · March 2026</p>
+        <h1 style={{ margin:0, fontSize:22, fontWeight:800, color:TEXT }}>Dashboard</h1>
+        <p style={{ margin:"3px 0 0", fontSize:14, color:TEXT3 }}>บริษัท ไทยอิเล็กทรอนิกส์ จำกัด · March 2026</p>
       </div>
 
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14, marginBottom:20 }}>
@@ -181,16 +181,16 @@ function Dashboard({ onNav }) {
           { label:"FOB value (Mar)", value:"$4.2M",sub:"Total exported",       color:"#8B5CF6" },
         ].map((k,i) => (
           <Card key={i} style={{ padding:"16px 18px" }}>
-            <div style={{ fontSize:10, color:TEXT3, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:10 }}>{k.label}</div>
+            <div style={{ fontSize:13, color:TEXT3, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:10 }}>{k.label}</div>
             <div style={{ fontSize:24, fontWeight:800, color:k.color, fontFamily:MONO, marginBottom:4 }}>{k.value}</div>
-            <div style={{ fontSize:11, color:TEXT3 }}>{k.sub}</div>
+            <div style={{ fontSize:14, color:TEXT3 }}>{k.sub}</div>
           </Card>
         ))}
       </div>
 
       <div style={{ display:"grid", gridTemplateColumns:"1.4fr 1fr", gap:16 }}>
         <Card>
-          <SectionHeader title="Recent shipments" right={<Btn variant="ghost" onClick={() => onNav("shipments")} style={{ fontSize:11 }}>View all →</Btn>} />
+          <SectionHeader title="Recent shipments" right={<Btn variant="ghost" onClick={() => onNav("shipments")} style={{ fontSize:14 }}>View all →</Btn>} />
           {SHIPMENTS.slice(0,5).map((s,i) => (
             <div key={i} onClick={() => onNav("shipment_detail", s)} style={{
               display:"flex", justifyContent:"space-between", alignItems:"center",
@@ -201,10 +201,10 @@ function Dashboard({ onNav }) {
             onMouseLeave={e=>e.currentTarget.style.background=W}>
               <div>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:2 }}>
-                  <span style={{ fontSize:12, fontWeight:700, color:TEXT, fontFamily:MONO }}>{s.id}</span>
+                  <span style={{ fontSize:14, fontWeight:700, color:TEXT, fontFamily:MONO }}>{s.id}</span>
                   <Tag label={s.type} color={s.type==="Export"?"#2563EB":"#D97706"} />
                 </div>
-                <div style={{ fontSize:11, color:TEXT3 }}>{s.vessel} · {s.fob}</div>
+                <div style={{ fontSize:14, color:TEXT3 }}>{s.vessel} · {s.fob}</div>
               </div>
               <Badge status={s.status} />
             </div>
@@ -214,14 +214,14 @@ function Dashboard({ onNav }) {
         <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
           <Card>
             <SectionHeader title="Jobs awaiting clearance" />
-            {pending.length === 0 && <div style={{ padding:"20px", fontSize:12, color:TEXT3, textAlign:"center" }}>All clear</div>}
+            {pending.length === 0 && <div style={{ padding:"20px", fontSize:14, color:TEXT3, textAlign:"center" }}>All clear</div>}
             {pending.map((s,i) => (
               <div key={i} style={{ padding:"10px 18px", borderBottom:i<pending.length-1?`1px solid ${BORDER2}`:"none" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-                  <span style={{ fontSize:12, fontWeight:700, color:TEXT, fontFamily:MONO }}>{s.id}</span>
+                  <span style={{ fontSize:14, fontWeight:700, color:TEXT, fontFamily:MONO }}>{s.id}</span>
                   <Badge status={s.status} />
                 </div>
-                <div style={{ fontSize:11, color:TEXT3 }}>{s.fob} · {s.date}</div>
+                <div style={{ fontSize:14, color:TEXT3 }}>{s.fob} · {s.date}</div>
               </div>
             ))}
           </Card>
@@ -242,8 +242,8 @@ function Dashboard({ onNav }) {
                 { label:"Outstanding",     value:"฿78,750",   color:"#DC2626" },
               ].map((r,i) => (
                 <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:i<3?`1px solid ${BORDER2}`:"none" }}>
-                  <span style={{ fontSize:12, color:TEXT3 }}>{r.label}</span>
-                  <span style={{ fontSize:12, fontWeight:700, color:r.color }}>{r.value}</span>
+                  <span style={{ fontSize:14, color:TEXT3 }}>{r.label}</span>
+                  <span style={{ fontSize:14, fontWeight:700, color:r.color }}>{r.value}</span>
                 </div>
               ))}
               <Btn variant="secondary" onClick={() => onNav("billing")} style={{ width:"100%", marginTop:12, textAlign:"center" }}>View invoices</Btn>
@@ -265,8 +265,8 @@ function ShipmentList({ onNew, onDetail }) {
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
         <div>
-          <h1 style={{ margin:0, fontSize:20, fontWeight:800, color:TEXT }}>Shipments</h1>
-          <p style={{ margin:"3px 0 0", fontSize:12, color:TEXT3 }}>{shown.length} records</p>
+          <h1 style={{ margin:0, fontSize:22, fontWeight:800, color:TEXT }}>Shipments</h1>
+          <p style={{ margin:"3px 0 0", fontSize:14, color:TEXT3 }}>{shown.length} records</p>
         </div>
         <Btn onClick={onNew}>+ New shipment</Btn>
       </div>
@@ -274,7 +274,7 @@ function ShipmentList({ onNew, onDetail }) {
       <div style={{ display:"flex", gap:6, marginBottom:14 }}>
         {tabs.map(t => (
           <button key={t} onClick={() => setFilter(t)} style={{
-            padding:"5px 13px", borderRadius:20, fontSize:11, fontWeight:600, cursor:"pointer",
+            padding:"5px 13px", borderRadius:20, fontSize:14, fontWeight:600, cursor:"pointer",
             background:filter===t?BLUE:"transparent",
             color:filter===t?"#fff":TEXT2,
             border:`1px solid ${filter===t?BLUE:BORDER}`,
@@ -283,11 +283,11 @@ function ShipmentList({ onNew, onDetail }) {
       </div>
 
       <Card>
-        <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+        <table style={{ width:"100%", borderCollapse:"collapse", fontSize:14 }}>
           <thead>
             <tr style={{ background:BG, borderBottom:`1px solid ${BORDER}` }}>
               {["Job ID","Type","Vessel","Container","HS Code","FOB","Items","Status","Date",""].map(h => (
-                <th key={h} style={{ padding:"9px 16px", textAlign:"left", fontSize:10, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px", whiteSpace:"nowrap" }}>{h}</th>
+                <th key={h} style={{ padding:"9px 16px", textAlign:"left", fontSize:13, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px", whiteSpace:"nowrap" }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -297,16 +297,16 @@ function ShipmentList({ onNew, onDetail }) {
                 onMouseEnter={e=>e.currentTarget.style.background=BG}
                 onMouseLeave={e=>e.currentTarget.style.background=W}
                 onClick={() => onDetail(s)}>
-                <td style={{ padding:"12px 16px", fontFamily:MONO, fontSize:11, fontWeight:700, color:TEXT }}>{s.id}</td>
+                <td style={{ padding:"12px 16px", fontFamily:MONO, fontSize:14, fontWeight:700, color:TEXT }}>{s.id}</td>
                 <td style={{ padding:"12px 16px" }}><Tag label={s.type} color={s.type==="Export"?"#2563EB":"#D97706"}/></td>
                 <td style={{ padding:"12px 16px", color:TEXT2, maxWidth:140, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.vessel}</td>
-                <td style={{ padding:"12px 16px", fontFamily:MONO, fontSize:11, color:TEXT2 }}>{s.container}</td>
-                <td style={{ padding:"12px 16px", fontFamily:MONO, fontSize:11, color:"#2563EB", fontWeight:600 }}>{s.hs}</td>
+                <td style={{ padding:"12px 16px", fontFamily:MONO, fontSize:14, color:TEXT2 }}>{s.container}</td>
+                <td style={{ padding:"12px 16px", fontFamily:MONO, fontSize:14, color:"#2563EB", fontWeight:600 }}>{s.hs}</td>
                 <td style={{ padding:"12px 16px", fontWeight:700, color:TEXT }}>{s.fob}</td>
                 <td style={{ padding:"12px 16px", fontFamily:MONO, color:TEXT2 }}>{s.items||"—"}</td>
                 <td style={{ padding:"12px 16px" }}><Badge status={s.status}/></td>
-                <td style={{ padding:"12px 16px", color:TEXT3, fontSize:11 }}>{s.date}</td>
-                <td style={{ padding:"12px 16px", color:BLUE, fontSize:11, fontWeight:600 }}>→</td>
+                <td style={{ padding:"12px 16px", color:TEXT3, fontSize:14 }}>{s.date}</td>
+                <td style={{ padding:"12px 16px", color:BLUE, fontSize:14, fontWeight:600 }}>→</td>
               </tr>
             ))}
           </tbody>
@@ -347,11 +347,11 @@ function ShipmentDetail({ job, onBack }) {
         <Btn variant="secondary" onClick={onBack}>← Back</Btn>
         <div style={{ flex:1 }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-            <h1 style={{ margin:0, fontSize:18, fontWeight:800, color:TEXT, fontFamily:MONO }}>{job.id}</h1>
+            <h1 style={{ margin:0, fontSize:20, fontWeight:800, color:TEXT, fontFamily:MONO }}>{job.id}</h1>
             <Tag label={job.type} color={job.type==="Export"?"#2563EB":"#D97706"} />
             <Badge status={job.status} />
           </div>
-          <p style={{ margin:"3px 0 0", fontSize:12, color:TEXT3 }}>{job.vessel} · {job.fob} · {job.date}</p>
+          <p style={{ margin:"3px 0 0", fontSize:14, color:TEXT3 }}>{job.vessel} · {job.fob} · {job.date}</p>
         </div>
         {job.status !== "COMPLETED" && job.status !== "CLEARED" && (
           <Btn>Continue →</Btn>
@@ -365,7 +365,7 @@ function ShipmentDetail({ job, onBack }) {
             padding:"10px 18px", background:"none", border:"none",
             borderBottom:`2px solid ${tab===t?BLUE:"transparent"}`,
             color:tab===t?BLUE:TEXT2, fontWeight:tab===t?700:400,
-            fontSize:13, cursor:"pointer", textTransform:"capitalize",
+            fontSize:15, cursor:"pointer", textTransform:"capitalize",
           }}>{t}</button>
         ))}
       </div>
@@ -386,8 +386,8 @@ function ShipmentDetail({ job, onBack }) {
                 ["NSW reference", job.nsw || "—"],
               ].map(([l,v],i) => (
                 <div key={i} style={{ display:"grid", gridTemplateColumns:"150px 1fr", gap:8, alignItems:"center" }}>
-                  <span style={{ fontSize:11, color:TEXT3, fontWeight:600 }}>{l}</span>
-                  <span style={{ fontSize:12, color:TEXT, fontFamily: l.includes("number")||l.includes("reference")||l.includes("Container")?MONO:"inherit" }}>{v}</span>
+                  <span style={{ fontSize:14, color:TEXT3, fontWeight:600 }}>{l}</span>
+                  <span style={{ fontSize:14, color:TEXT, fontFamily: l.includes("number")||l.includes("reference")||l.includes("Container")?MONO:"inherit" }}>{v}</span>
                 </div>
               ))}
             </div>
@@ -406,14 +406,14 @@ function ShipmentDetail({ job, onBack }) {
                 ["Exporter tax ID","0105561000123"],
               ].map(([l,v],i) => (
                 <div key={i} style={{ display:"grid", gridTemplateColumns:"150px 1fr", gap:8, alignItems:"center" }}>
-                  <span style={{ fontSize:11, color:TEXT3, fontWeight:600 }}>{l}</span>
-                  <span style={{ fontSize:12, color:TEXT, fontFamily: l.includes("no.")||l.includes("HS")||l.includes("tax")?MONO:"inherit" }}>{v}</span>
+                  <span style={{ fontSize:14, color:TEXT3, fontWeight:600 }}>{l}</span>
+                  <span style={{ fontSize:14, color:TEXT, fontFamily: l.includes("no.")||l.includes("HS")||l.includes("tax")?MONO:"inherit" }}>{v}</span>
                 </div>
               ))}
             </div>
             <div style={{ padding:"12px 20px", borderTop:`1px solid ${BORDER2}`, display:"flex", gap:8 }}>
-              <Btn variant="secondary" style={{ fontSize:11 }}>Print A008-1</Btn>
-              <Btn variant="secondary" style={{ fontSize:11 }}>Export Netbay CSV</Btn>
+              <Btn variant="secondary" style={{ fontSize:14 }}>Print A008-1</Btn>
+              <Btn variant="secondary" style={{ fontSize:14 }}>Export Netbay CSV</Btn>
             </div>
           </Card>
         </div>
@@ -422,11 +422,11 @@ function ShipmentDetail({ job, onBack }) {
       {tab === "items" && (
         <Card>
           <SectionHeader title={`Items (${ITEMS.length})`} sub="Extracted by AI · verified" />
-          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:14 }}>
             <thead>
               <tr style={{ background:BG, borderBottom:`1px solid ${BORDER}` }}>
                 {["#","Description","Thai desc.","HS Code","Qty","Unit","FOB/unit","Total","Origin",""].map(h=>(
-                  <th key={h} style={{ padding:"8px 14px", textAlign:"left", fontSize:10, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px", whiteSpace:"nowrap" }}>{h}</th>
+                  <th key={h} style={{ padding:"8px 14px", textAlign:"left", fontSize:13, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px", whiteSpace:"nowrap" }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -435,8 +435,8 @@ function ShipmentDetail({ job, onBack }) {
                 <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}`, background:it.ok?W:"#FFFBEB" }}>
                   <td style={{ padding:"10px 14px", color:TEXT3 }}>{it.seq}</td>
                   <td style={{ padding:"10px 14px", fontWeight:500, color:TEXT, maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{it.desc}</td>
-                  <td style={{ padding:"10px 14px", color:TEXT2, fontSize:11 }}>{it.thDesc}</td>
-                  <td style={{ padding:"10px 14px", fontFamily:MONO, fontSize:11, color:"#2563EB", fontWeight:600 }}>{it.hs}</td>
+                  <td style={{ padding:"10px 14px", color:TEXT2, fontSize:14 }}>{it.thDesc}</td>
+                  <td style={{ padding:"10px 14px", fontFamily:MONO, fontSize:14, color:"#2563EB", fontWeight:600 }}>{it.hs}</td>
                   <td style={{ padding:"10px 14px", fontFamily:MONO, color:TEXT2 }}>{it.qty.toLocaleString()}</td>
                   <td style={{ padding:"10px 14px", color:TEXT2 }}>{it.unit}</td>
                   <td style={{ padding:"10px 14px", color:TEXT2 }}>{it.fob}</td>
@@ -444,8 +444,8 @@ function ShipmentDetail({ job, onBack }) {
                   <td style={{ padding:"10px 14px" }}><Tag label={it.origin} color="#16A34A"/></td>
                   <td style={{ padding:"10px 14px" }}>
                     {it.ok
-                      ? <span style={{ fontSize:10, color:"#16A34A", fontWeight:700 }}>✓ AI</span>
-                      : <span style={{ fontSize:10, color:"#D97706", fontWeight:700 }}>Manual</span>
+                      ? <span style={{ fontSize:13, color:"#16A34A", fontWeight:700 }}>✓ AI</span>
+                      : <span style={{ fontSize:13, color:"#D97706", fontWeight:700 }}>Manual</span>
                     }
                   </td>
                 </tr>
@@ -466,17 +466,17 @@ function ShipmentDetail({ job, onBack }) {
                     width:18, height:18, borderRadius:"50%", flexShrink:0,
                     background:t.done?"#22C55E":"#E2E8F0",
                     display:"flex", alignItems:"center", justifyContent:"center",
-                    fontSize:9, color:"#fff", fontWeight:700,
+                    fontSize:12, color:"#fff", fontWeight:700,
                   }}>{t.done?"✓":""}</div>
                   {i<TL.length-1 && <div style={{ width:2, flex:1, minHeight:16, background:t.done?"#BBF7D0":"#E2E8F0", margin:"2px 0" }}/>}
                 </div>
                 <div style={{ paddingBottom:16 }}>
                   <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom:2 }}>
-                    <span style={{ fontSize:13, fontWeight:600, color:TEXT }}>{t.step}</span>
-                    <span style={{ fontSize:11, color:TEXT3, fontFamily:MONO }}>{t.time}</span>
-                    <span style={{ fontSize:10, color:TEXT3 }}>by {t.by}</span>
+                    <span style={{ fontSize:15, fontWeight:600, color:TEXT }}>{t.step}</span>
+                    <span style={{ fontSize:14, color:TEXT3, fontFamily:MONO }}>{t.time}</span>
+                    <span style={{ fontSize:13, color:TEXT3 }}>by {t.by}</span>
                   </div>
-                  <div style={{ fontSize:11, color:TEXT3 }}>{t.detail}</div>
+                  <div style={{ fontSize:14, color:TEXT3 }}>{t.detail}</div>
                 </div>
               </div>
             ))}
@@ -498,12 +498,12 @@ function ShipmentDetail({ job, onBack }) {
               <div style={{ fontSize:24, marginBottom:10 }}>
                 {doc.file.endsWith(".pdf")?"📄":doc.file.endsWith(".xlsx")?"📊":doc.file.endsWith(".csv")?"📋":"📎"}
               </div>
-              <div style={{ fontSize:12, fontWeight:700, color:TEXT, marginBottom:4 }}>{doc.name}</div>
-              <div style={{ fontSize:10, fontFamily:MONO, color:TEXT3, marginBottom:4 }}>{doc.file}</div>
-              <div style={{ fontSize:10, color:TEXT3, marginBottom:8 }}>{doc.size} · {doc.uploaded}</div>
+              <div style={{ fontSize:14, fontWeight:700, color:TEXT, marginBottom:4 }}>{doc.name}</div>
+              <div style={{ fontSize:13, fontFamily:MONO, color:TEXT3, marginBottom:4 }}>{doc.file}</div>
+              <div style={{ fontSize:13, color:TEXT3, marginBottom:8 }}>{doc.size} · {doc.uploaded}</div>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                 <Tag label={doc.type} color={doc.type==="source"?BLUE:doc.type==="generated"?"#7C3AED":"#16A34A"} />
-                <Btn variant="ghost" style={{ fontSize:11, padding:"3px 8px" }}>Download</Btn>
+                <Btn variant="ghost" style={{ fontSize:14, padding:"3px 8px" }}>Download</Btn>
               </div>
             </Card>
           ))}
@@ -524,8 +524,8 @@ function NewShipment({ onBack }) {
       <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:22 }}>
         <Btn variant="secondary" onClick={onBack}>← Back</Btn>
         <div>
-          <h1 style={{ margin:0, fontSize:20, fontWeight:800, color:TEXT }}>New export shipment</h1>
-          <p style={{ margin:"3px 0 0", fontSize:12, color:TEXT3 }}>ยื่นใบขนสินค้าขาออก · Export declaration wizard</p>
+          <h1 style={{ margin:0, fontSize:22, fontWeight:800, color:TEXT }}>New export shipment</h1>
+          <p style={{ margin:"3px 0 0", fontSize:14, color:TEXT3 }}>ยื่นใบขนสินค้าขาออก · Export declaration wizard</p>
         </div>
       </div>
 
@@ -542,9 +542,9 @@ function NewShipment({ onBack }) {
                     background:done?"#22C55E":active?BLUE:"#F1F5F9",
                     border:`2px solid ${done?"#22C55E":active?BLUE:BORDER}`,
                     display:"flex", alignItems:"center", justifyContent:"center",
-                    fontSize:11, fontWeight:700, color:done||active?"#fff":TEXT3,
+                    fontSize:14, fontWeight:700, color:done||active?"#fff":TEXT3,
                   }}>{done?"✓":n}</div>
-                  <span style={{ fontSize:12, fontWeight:active?700:400, color:active?TEXT:TEXT3 }}>{s}</span>
+                  <span style={{ fontSize:14, fontWeight:active?700:400, color:active?TEXT:TEXT3 }}>{s}</span>
                 </div>
                 {i<STEPS.length-1 && <div style={{ flex:1, height:1, background:done?"#BBF7D0":BORDER, margin:"0 14px" }}/>}
               </div>
@@ -565,17 +565,17 @@ function NewShipment({ onBack }) {
                 onMouseEnter={e=>e.currentTarget.style.borderColor=BLUE}
                 onMouseLeave={e=>e.currentTarget.style.borderColor=BORDER}>
                 <div style={{ fontSize:28, marginBottom:10 }}>📄</div>
-                <div style={{ fontSize:13, fontWeight:700, color:TEXT, marginBottom:4 }}>
+                <div style={{ fontSize:15, fontWeight:700, color:TEXT, marginBottom:4 }}>
                   {doc.title} {doc.required && <span style={{ color:"#DC2626" }}>*</span>}
                 </div>
-                <div style={{ fontSize:11, color:TEXT3, marginBottom:14 }}>{doc.accept} · Max 20 MB</div>
-                <Btn variant="secondary" style={{ fontSize:11 }}>Choose file</Btn>
+                <div style={{ fontSize:14, color:TEXT3, marginBottom:14 }}>{doc.accept} · Max 20 MB</div>
+                <Btn variant="secondary" style={{ fontSize:14 }}>Choose file</Btn>
               </Card>
             ))}
           </div>
 
           <Card style={{ padding:"14px 18px", marginBottom:16 }}>
-            <div style={{ fontSize:12, fontWeight:600, color:TEXT, marginBottom:10 }}>AI extraction settings</div>
+            <div style={{ fontSize:14, fontWeight:600, color:TEXT, marginBottom:10 }}>AI extraction settings</div>
             <div style={{ display:"flex", gap:24 }}>
               {[
                 { label:"Extraction mode",    value:"DECLARATION_PREP (all 3 docs)" },
@@ -590,8 +590,8 @@ function NewShipment({ onBack }) {
                 { label:"Thai translation",  value:"Auto-enabled" },
               ].map((r,i) => (
                 <div key={i}>
-                  <div style={{ fontSize:10, color:TEXT3, fontWeight:600, marginBottom:2 }}>{r.label}</div>
-                  <div style={{ fontSize:11, color:TEXT, fontWeight:500 }}>{r.value}</div>
+                  <div style={{ fontSize:13, color:TEXT3, fontWeight:600, marginBottom:2 }}>{r.label}</div>
+                  <div style={{ fontSize:14, color:TEXT, fontWeight:500 }}>{r.value}</div>
                 </div>
               ))}
             </div>
@@ -608,14 +608,14 @@ function NewShipment({ onBack }) {
           {/* AI status bar */}
           <div style={{ background:"#F0FDF4", border:"1px solid #BBF7D0", borderRadius:10, padding:"12px 18px", marginBottom:16, display:"flex", alignItems:"center", gap:12 }}>
             <div style={{ width:8, height:8, borderRadius:"50%", background:"#22C55E" }}/>
-            <span style={{ fontSize:12, fontWeight:700, color:"#15803D" }}>AI Extraction complete</span>
-            <span style={{ fontSize:11, color:"#16A34A" }}>Gemini Flash · 14 items · 13 HS matched · 1 missing</span>
-            <div style={{ marginLeft:"auto", background:"#FEF3C7", border:"1px solid #FDE68A", borderRadius:20, padding:"2px 10px", fontSize:10, fontWeight:700, color:"#D97706" }}>1 item needs HS code</div>
+            <span style={{ fontSize:14, fontWeight:700, color:"#15803D" }}>AI Extraction complete</span>
+            <span style={{ fontSize:14, color:"#16A34A" }}>Gemini Flash · 14 items · 13 HS matched · 1 missing</span>
+            <div style={{ marginLeft:"auto", background:"#FEF3C7", border:"1px solid #FDE68A", borderRadius:20, padding:"2px 10px", fontSize:13, fontWeight:700, color:"#D97706" }}>1 item needs HS code</div>
           </div>
 
           {/* Header fields */}
           <Card style={{ padding:"16px 20px", marginBottom:14 }}>
-            <div style={{ fontSize:12, fontWeight:700, color:TEXT, marginBottom:12 }}>Shipment header</div>
+            <div style={{ fontSize:14, fontWeight:700, color:TEXT, marginBottom:12 }}>Shipment header</div>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12 }}>
               {[
                 { label:"Shipper", val:"บริษัท ไทยอิเล็กทรอนิกส์ จำกัด" },
@@ -628,8 +628,8 @@ function NewShipment({ onBack }) {
                 { label:"Exchange Rate", val:"35.75 THB/USD" },
               ].map((f,i) => (
                 <div key={i}>
-                  <label style={{ fontSize:10, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase" }}>{f.label}</label>
-                  <input defaultValue={f.val} style={{ width:"100%", background:BG, border:`1px solid ${BORDER}`, borderRadius:7, padding:"7px 10px", fontSize:11, color:TEXT, boxSizing:"border-box" }}/>
+                  <label style={{ fontSize:13, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase" }}>{f.label}</label>
+                  <input defaultValue={f.val} style={{ width:"100%", background:BG, border:`1px solid ${BORDER}`, borderRadius:7, padding:"7px 10px", fontSize:14, color:TEXT, boxSizing:"border-box" }}/>
                 </div>
               ))}
             </div>
@@ -638,11 +638,11 @@ function NewShipment({ onBack }) {
           {/* Items table */}
           <Card style={{ marginBottom:14 }}>
             <SectionHeader title="Extracted items" sub="Review and confirm HS codes" />
-            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:14 }}>
               <thead>
                 <tr style={{ background:BG, borderBottom:`1px solid ${BORDER}` }}>
                   {["#","Description","Thai description","HS Code","Qty","Unit","FOB/unit","Status"].map(h=>(
-                    <th key={h} style={{ padding:"8px 14px", textAlign:"left", fontSize:10, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px" }}>{h}</th>
+                    <th key={h} style={{ padding:"8px 14px", textAlign:"left", fontSize:13, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -657,11 +657,11 @@ function NewShipment({ onBack }) {
                   <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}`, background:row[7]?W:"#FFFBEB" }}>
                     <td style={{ padding:"9px 14px", color:TEXT3 }}>{row[0]}</td>
                     <td style={{ padding:"9px 14px", fontWeight:500, color:TEXT }}>{row[1]}</td>
-                    <td style={{ padding:"9px 14px", color:TEXT2, fontSize:11 }}>{row[2]}</td>
+                    <td style={{ padding:"9px 14px", color:TEXT2, fontSize:14 }}>{row[2]}</td>
                     <td style={{ padding:"9px 14px" }}>
                       {row[3]
-                        ? <span style={{ fontFamily:MONO, fontSize:11, color:"#2563EB", fontWeight:600 }}>{row[3]}</span>
-                        : <input placeholder="Enter HS code" style={{ border:`1px solid #FCD34D`, borderRadius:6, padding:"4px 8px", fontSize:11, width:110, background:"#FFFBEB" }}/>
+                        ? <span style={{ fontFamily:MONO, fontSize:14, color:"#2563EB", fontWeight:600 }}>{row[3]}</span>
+                        : <input placeholder="Enter HS code" style={{ border:`1px solid #FCD34D`, borderRadius:6, padding:"4px 8px", fontSize:14, width:110, background:"#FFFBEB" }}/>
                       }
                     </td>
                     <td style={{ padding:"9px 14px", fontFamily:MONO, color:TEXT2 }}>{row[4]}</td>
@@ -669,7 +669,7 @@ function NewShipment({ onBack }) {
                     <td style={{ padding:"9px 14px", color:TEXT2 }}>{row[6]}</td>
                     <td style={{ padding:"9px 14px" }}>
                       <span style={{
-                        padding:"2px 8px", borderRadius:20, fontSize:10, fontWeight:700,
+                        padding:"2px 8px", borderRadius:20, fontSize:13, fontWeight:700,
                         background:row[7]?"#F0FDF4":"#FEF3C7",
                         color:row[7]?"#16A34A":"#D97706",
                         border:`1px solid ${row[7]?"#BBF7D0":"#FDE68A"}`,
@@ -706,8 +706,8 @@ function NewShipment({ onBack }) {
                 ["สิทธิพิเศษ (Privilege)","IEAT Zone 3"],
               ].map(([l,v],i) => (
                 <div key={i}>
-                  <label style={{ fontSize:10, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase" }}>{l}</label>
-                  <input defaultValue={v} style={{ width:"100%", background:BG, border:`1px solid ${BORDER}`, borderRadius:7, padding:"7px 10px", fontSize:11, color:TEXT, boxSizing:"border-box" }}/>
+                  <label style={{ fontSize:13, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase" }}>{l}</label>
+                  <input defaultValue={v} style={{ width:"100%", background:BG, border:`1px solid ${BORDER}`, borderRadius:7, padding:"7px 10px", fontSize:14, color:TEXT, boxSizing:"border-box" }}/>
                 </div>
               ))}
             </div>
@@ -728,10 +728,10 @@ function NewShipment({ onBack }) {
                     background:submitMethod===opt.id?`${opt.color}08`:W,
                     border:`${submitMethod===opt.id?2:1}px solid ${submitMethod===opt.id?opt.color:BORDER}`,
                   }}>
-                    <div style={{ width:28, height:28, borderRadius:7, background:`${opt.color}15`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0 }}>{opt.icon}</div>
+                    <div style={{ width:28, height:28, borderRadius:7, background:`${opt.color}15`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, flexShrink:0 }}>{opt.icon}</div>
                     <div>
-                      <div style={{ fontSize:12, fontWeight:700, color:TEXT }}>{opt.title}</div>
-                      <div style={{ fontSize:10, color:TEXT3, marginTop:2 }}>{opt.desc}</div>
+                      <div style={{ fontSize:14, fontWeight:700, color:TEXT }}>{opt.title}</div>
+                      <div style={{ fontSize:13, color:TEXT3, marginTop:2 }}>{opt.desc}</div>
                     </div>
                   </button>
                 ))}
@@ -739,8 +739,8 @@ function NewShipment({ onBack }) {
             </Card>
 
             <div style={{ background:"#F0FDF4", border:"1px solid #BBF7D0", borderRadius:10, padding:"14px 16px" }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#15803D", marginBottom:6 }}>✓ Ready to submit</div>
-              <div style={{ fontSize:11, color:"#16A34A", lineHeight:1.6 }}>
+              <div style={{ fontSize:14, fontWeight:700, color:"#15803D", marginBottom:6 }}>✓ Ready to submit</div>
+              <div style={{ fontSize:14, color:"#16A34A", lineHeight:1.6 }}>
                 14 items · 13 AI matched · 1 manual<br/>
                 BoT rate: 35.75 THB/USD<br/>
                 Total FOB: ฿4,592,094
@@ -751,7 +751,7 @@ function NewShipment({ onBack }) {
               <Btn variant="secondary" onClick={() => setStep(2)} style={{ flex:1, textAlign:"center" }}>← Back</Btn>
               <button style={{
                 flex:2, background:BLUE, color:"#fff", border:"none", borderRadius:8,
-                padding:"11px", fontSize:13, fontWeight:700, cursor:"pointer",
+                padding:"11px", fontSize:15, fontWeight:700, cursor:"pointer",
               }}>Submit to NSW →</button>
             </div>
           </div>
@@ -768,8 +768,8 @@ function NSWTracking() {
   return (
     <div>
       <div style={{ marginBottom:18 }}>
-        <h1 style={{ margin:0, fontSize:20, fontWeight:800, color:TEXT }}>NSW Tracking</h1>
-        <p style={{ margin:"3px 0 0", fontSize:12, color:TEXT3 }}>Real-time submission status</p>
+        <h1 style={{ margin:0, fontSize:22, fontWeight:800, color:TEXT }}>NSW Tracking</h1>
+        <p style={{ margin:"3px 0 0", fontSize:14, color:TEXT3 }}>Real-time submission status</p>
       </div>
 
       <div style={{ background:W, border:`1px solid ${BORDER}`, borderRadius:10, padding:"12px 20px", marginBottom:20, display:"flex", alignItems:"center", gap:20 }}>
@@ -780,11 +780,11 @@ function NSWTracking() {
         ].map((s,i) => (
           <div key={i} style={{ display:"flex", alignItems:"center", gap:8 }}>
             <div style={{ width:7, height:7, borderRadius:"50%", background:s.dot }}/>
-            <span style={{ fontSize:12, color:TEXT2 }}>{s.label}: <strong>{s.val}</strong></span>
+            <span style={{ fontSize:14, color:TEXT2 }}>{s.label}: <strong>{s.val}</strong></span>
             {i<2 && <span style={{ color:BORDER, marginLeft:12 }}>|</span>}
           </div>
         ))}
-        <span style={{ marginLeft:"auto", fontSize:11, color:TEXT3 }}>Last sync: 3 min ago</span>
+        <span style={{ marginLeft:"auto", fontSize:14, color:TEXT3 }}>Last sync: 3 min ago</span>
       </div>
 
       <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
@@ -801,9 +801,9 @@ function NSWTracking() {
             <Card key={ji}>
               <div style={{ padding:"12px 20px", borderBottom:`1px solid ${BORDER2}`, display:"flex", justifyContent:"space-between", alignItems:"center", background:BG }}>
                 <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                  <span style={{ fontFamily:MONO, fontWeight:700, color:TEXT, fontSize:13 }}>{job.id}</span>
+                  <span style={{ fontFamily:MONO, fontWeight:700, color:TEXT, fontSize:15 }}>{job.id}</span>
                   <Tag label={job.type} color={job.type==="Export"?"#2563EB":"#D97706"}/>
-                  <span style={{ fontSize:12, color:TEXT3 }}>{job.vessel} · {job.fob}</span>
+                  <span style={{ fontSize:14, color:TEXT3 }}>{job.vessel} · {job.fob}</span>
                 </div>
                 <Badge status={job.status}/>
               </div>
@@ -817,17 +817,17 @@ function NSWTracking() {
                         background:s.done?"#22C55E":s.active?"#0EA5E9":"#F1F5F9",
                         border:`2px solid ${s.done?"#22C55E":s.active?"#0EA5E9":BORDER}`,
                         display:"flex", alignItems:"center", justifyContent:"center",
-                        fontSize:10, fontWeight:700, color:s.done||s.active?"#fff":TEXT3,
+                        fontSize:13, fontWeight:700, color:s.done||s.active?"#fff":TEXT3,
                       }}>{s.done?"✓":s.active?"●":""}</div>
                       {si<steps.length-1 && <div style={{ flex:1, height:2, background:s.done?"#22C55E":BORDER }}/>}
                     </div>
-                    <div style={{ fontSize:9, fontWeight:600, color:s.active?BLUE:s.done?"#16A34A":TEXT3, marginTop:6, textAlign:"center", maxWidth:70 }}>{s.label}</div>
+                    <div style={{ fontSize:12, fontWeight:600, color:s.active?BLUE:s.done?"#16A34A":TEXT3, marginTop:6, textAlign:"center", maxWidth:70 }}>{s.label}</div>
                   </div>
                 ))}
               </div>
               {job.nsw && (
                 <div style={{ padding:"8px 24px 14px", display:"flex", gap:20 }}>
-                  <span style={{ fontSize:11, color:TEXT3 }}>NSW ref: <span style={{ fontFamily:MONO, color:"#2563EB" }}>{job.nsw}</span></span>
+                  <span style={{ fontSize:14, color:TEXT3 }}>NSW ref: <span style={{ fontFamily:MONO, color:"#2563EB" }}>{job.nsw}</span></span>
                 </div>
               )}
             </Card>
@@ -846,13 +846,13 @@ function Declarations() {
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
         <div>
-          <h1 style={{ margin:0, fontSize:20, fontWeight:800, color:TEXT }}>Declarations</h1>
-          <p style={{ margin:"3px 0 0", fontSize:12, color:TEXT3 }}>ใบขนสินค้าและเอกสารศุลกากร</p>
+          <h1 style={{ margin:0, fontSize:22, fontWeight:800, color:TEXT }}>Declarations</h1>
+          <p style={{ margin:"3px 0 0", fontSize:14, color:TEXT3 }}>ใบขนสินค้าและเอกสารศุลกากร</p>
         </div>
         <div style={{ display:"flex", gap:8 }}>
           {["list","cards"].map(v => (
             <button key={v} onClick={() => setView(v)} style={{
-              padding:"6px 12px", borderRadius:7, fontSize:11, fontWeight:600, cursor:"pointer",
+              padding:"6px 12px", borderRadius:7, fontSize:14, fontWeight:600, cursor:"pointer",
               background:view===v?BLUE:"transparent",
               color:view===v?"#fff":TEXT2,
               border:`1px solid ${view===v?BLUE:BORDER}`,
@@ -870,8 +870,8 @@ function Declarations() {
           { label:"Cleared this month",   value:"42",    color:"#16A34A" },
         ].map((s,i) => (
           <Card key={i} style={{ padding:"14px 18px" }}>
-            <div style={{ fontSize:10, color:TEXT3, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:8 }}>{s.label}</div>
-            <div style={{ fontSize:22, fontWeight:800, color:s.color, fontFamily:MONO }}>{s.value}</div>
+            <div style={{ fontSize:13, color:TEXT3, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:8 }}>{s.label}</div>
+            <div style={{ fontSize:24, fontWeight:800, color:s.color, fontFamily:MONO }}>{s.value}</div>
           </Card>
         ))}
       </div>
@@ -879,15 +879,15 @@ function Declarations() {
       <Card>
         <SectionHeader title="Declaration list" sub="Export A008-1 and Import declarations" right={
           <div style={{ display:"flex", gap:8 }}>
-            <Btn variant="secondary" style={{ fontSize:11 }}>Print selected</Btn>
-            <Btn variant="secondary" style={{ fontSize:11 }}>Export CSV</Btn>
+            <Btn variant="secondary" style={{ fontSize:14 }}>Print selected</Btn>
+            <Btn variant="secondary" style={{ fontSize:14 }}>Export CSV</Btn>
           </div>
         }/>
-        <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+        <table style={{ width:"100%", borderCollapse:"collapse", fontSize:14 }}>
           <thead>
             <tr style={{ background:BG, borderBottom:`1px solid ${BORDER}` }}>
               {["Declaration no.","Type","Job ref","Vessel","FOB value","HS Code (main)","Form","Status","Date",""].map(h=>(
-                <th key={h} style={{ padding:"9px 16px", textAlign:"left", fontSize:10, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px", whiteSpace:"nowrap" }}>{h}</th>
+                <th key={h} style={{ padding:"9px 16px", textAlign:"left", fontSize:13, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px", whiteSpace:"nowrap" }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -896,18 +896,18 @@ function Declarations() {
               <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}`, cursor:"pointer" }}
                 onMouseEnter={e=>e.currentTarget.style.background=BG}
                 onMouseLeave={e=>e.currentTarget.style.background=W}>
-                <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:11, color:"#7C3AED", fontWeight:700 }}>DEC-2026-0{230+i}</td>
+                <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:14, color:"#7C3AED", fontWeight:700 }}>DEC-2026-0{230+i}</td>
                 <td style={{ padding:"11px 16px" }}><Tag label={s.type} color={s.type==="Export"?"#2563EB":"#D97706"}/></td>
-                <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:11, color:TEXT2 }}>{s.id}</td>
+                <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:14, color:TEXT2 }}>{s.id}</td>
                 <td style={{ padding:"11px 16px", color:TEXT2, maxWidth:130, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.vessel}</td>
                 <td style={{ padding:"11px 16px", fontWeight:700, color:TEXT }}>{s.fob}</td>
-                <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:11, color:"#2563EB" }}>{s.hs}</td>
-                <td style={{ padding:"11px 16px", fontSize:11, color:TEXT2 }}>A008-1</td>
+                <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:14, color:"#2563EB" }}>{s.hs}</td>
+                <td style={{ padding:"11px 16px", fontSize:14, color:TEXT2 }}>A008-1</td>
                 <td style={{ padding:"11px 16px" }}><Badge status={s.status}/></td>
-                <td style={{ padding:"11px 16px", color:TEXT3, fontSize:11 }}>{s.date}</td>
+                <td style={{ padding:"11px 16px", color:TEXT3, fontSize:14 }}>{s.date}</td>
                 <td style={{ padding:"11px 16px", display:"flex", gap:6 }}>
-                  <Btn variant="ghost" style={{ fontSize:10, padding:"3px 8px" }}>Print</Btn>
-                  <Btn variant="ghost" style={{ fontSize:10, padding:"3px 8px" }}>CSV</Btn>
+                  <Btn variant="ghost" style={{ fontSize:13, padding:"3px 8px" }}>Print</Btn>
+                  <Btn variant="ghost" style={{ fontSize:13, padding:"3px 8px" }}>CSV</Btn>
                 </td>
               </tr>
             ))}
@@ -925,8 +925,8 @@ function MasterData() {
   return (
     <div>
       <div style={{ marginBottom:18 }}>
-        <h1 style={{ margin:0, fontSize:20, fontWeight:800, color:TEXT }}>Master Data</h1>
-        <p style={{ margin:"3px 0 0", fontSize:12, color:TEXT3 }}>HS codes · Exporters · Privilege codes · Customers</p>
+        <h1 style={{ margin:0, fontSize:22, fontWeight:800, color:TEXT }}>Master Data</h1>
+        <p style={{ margin:"3px 0 0", fontSize:14, color:TEXT3 }}>HS codes · Exporters · Privilege codes · Customers</p>
       </div>
 
       <div style={{ display:"flex", gap:0, borderBottom:`1px solid ${BORDER}`, marginBottom:18 }}>
@@ -936,7 +936,7 @@ function MasterData() {
           <button key={id} onClick={() => setTab(id)} style={{
             padding:"10px 18px", background:"none", border:"none",
             borderBottom:`2px solid ${tab===id?BLUE:"transparent"}`,
-            color:tab===id?BLUE:TEXT2, fontWeight:tab===id?700:400, fontSize:13, cursor:"pointer",
+            color:tab===id?BLUE:TEXT2, fontWeight:tab===id?700:400, fontSize:15, cursor:"pointer",
           }}>{label}</button>
         ))}
       </div>
@@ -944,15 +944,15 @@ function MasterData() {
       {tab==="hs" && (
         <div>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
-            <input placeholder="Search HS code or description..." style={{ border:`1px solid ${BORDER}`, borderRadius:8, padding:"8px 14px", fontSize:12, width:320, background:W }}/>
+            <input placeholder="Search HS code or description..." style={{ border:`1px solid ${BORDER}`, borderRadius:8, padding:"8px 14px", fontSize:14, width:320, background:W }}/>
             <Btn>+ Add HS code</Btn>
           </div>
           <Card>
-            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:14 }}>
               <thead>
                 <tr style={{ background:BG, borderBottom:`1px solid ${BORDER}` }}>
                   {["HS Code","Description (EN)","Thai description","Unit","Duty rate","Origin",""].map(h=>(
-                    <th key={h} style={{ padding:"9px 16px", textAlign:"left", fontSize:10, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px" }}>{h}</th>
+                    <th key={h} style={{ padding:"9px 16px", textAlign:"left", fontSize:13, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -961,17 +961,17 @@ function MasterData() {
                   <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}`, cursor:"pointer" }}
                     onMouseEnter={e=>e.currentTarget.style.background=BG}
                     onMouseLeave={e=>e.currentTarget.style.background=W}>
-                    <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:12, color:"#2563EB", fontWeight:700 }}>{hs.code}</td>
+                    <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:14, color:"#2563EB", fontWeight:700 }}>{hs.code}</td>
                     <td style={{ padding:"11px 16px", color:TEXT, maxWidth:200, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{hs.desc}</td>
-                    <td style={{ padding:"11px 16px", color:TEXT2, fontSize:11 }}>{hs.thDesc}</td>
+                    <td style={{ padding:"11px 16px", color:TEXT2, fontSize:14 }}>{hs.thDesc}</td>
                     <td style={{ padding:"11px 16px", color:TEXT2 }}>{hs.unit}</td>
                     <td style={{ padding:"11px 16px" }}>
                       <Tag label={hs.dutyRate} color={hs.dutyRate==="0%"?"#16A34A":"#DC2626"}/>
                     </td>
                     <td style={{ padding:"11px 16px" }}><Tag label={hs.origin} color="#16A34A"/></td>
                     <td style={{ padding:"11px 16px", display:"flex", gap:6 }}>
-                      <Btn variant="ghost" style={{ fontSize:10, padding:"3px 8px" }}>Edit</Btn>
-                      <Btn variant="danger" style={{ fontSize:10, padding:"3px 8px" }}>Delete</Btn>
+                      <Btn variant="ghost" style={{ fontSize:13, padding:"3px 8px" }}>Edit</Btn>
+                      <Btn variant="danger" style={{ fontSize:13, padding:"3px 8px" }}>Delete</Btn>
                     </td>
                   </tr>
                 ))}
@@ -990,15 +990,15 @@ function MasterData() {
             <div key={i} style={{ padding:"16px 20px", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
               <div>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-                  <span style={{ fontSize:13, fontWeight:700, color:TEXT }}>{e.name}</span>
+                  <span style={{ fontSize:15, fontWeight:700, color:TEXT }}>{e.name}</span>
                   {e.default && <Tag label="Default" color="#16A34A"/>}
                 </div>
-                <div style={{ fontSize:11, color:TEXT3, marginBottom:2 }}>Tax ID: <span style={{ fontFamily:MONO }}>{e.taxId}</span></div>
-                <div style={{ fontSize:11, color:TEXT3, marginBottom:2 }}>{e.address}</div>
-                <div style={{ fontSize:11, color:TEXT3 }}>{e.tel}</div>
+                <div style={{ fontSize:14, color:TEXT3, marginBottom:2 }}>Tax ID: <span style={{ fontFamily:MONO }}>{e.taxId}</span></div>
+                <div style={{ fontSize:14, color:TEXT3, marginBottom:2 }}>{e.address}</div>
+                <div style={{ fontSize:14, color:TEXT3 }}>{e.tel}</div>
               </div>
               <div style={{ display:"flex", gap:8 }}>
-                <Btn variant="secondary" style={{ fontSize:11 }}>Edit</Btn>
+                <Btn variant="secondary" style={{ fontSize:14 }}>Edit</Btn>
               </div>
             </div>
           ))}
@@ -1018,16 +1018,16 @@ function MasterData() {
                 <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                   <div>
                     <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-                      <span style={{ fontFamily:MONO, fontSize:12, fontWeight:700, color:"#7C3AED" }}>{p.code}</span>
-                      <span style={{ fontSize:12, color:TEXT }}>{p.name}</span>
+                      <span style={{ fontFamily:MONO, fontSize:14, fontWeight:700, color:"#7C3AED" }}>{p.code}</span>
+                      <span style={{ fontSize:14, color:TEXT }}>{p.name}</span>
                       <Tag label={p.type} color="#7C3AED"/>
                     </div>
-                    <div style={{ fontSize:11, color:TEXT3 }}>{p.taxBenefit}</div>
+                    <div style={{ fontSize:14, color:TEXT3 }}>{p.taxBenefit}</div>
                   </div>
                 </div>
                 <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                   <Tag label={p.active?"Active":"Inactive"} color={p.active?"#16A34A":"#DC2626"}/>
-                  <Btn variant="ghost" style={{ fontSize:11 }}>Edit</Btn>
+                  <Btn variant="ghost" style={{ fontSize:14 }}>Edit</Btn>
                 </div>
               </div>
             ))}
@@ -1046,12 +1046,12 @@ function MasterData() {
             ].map((c,i) => (
               <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 14px", background:BG, borderRadius:8, border:`1px solid ${BORDER}` }}>
                 <div>
-                  <div style={{ fontSize:13, fontWeight:600, color:TEXT, marginBottom:2 }}>{c.name}</div>
-                  <div style={{ fontSize:11, color:TEXT3 }}>{c.country} · {c.jobs} shipments</div>
+                  <div style={{ fontSize:15, fontWeight:600, color:TEXT, marginBottom:2 }}>{c.name}</div>
+                  <div style={{ fontSize:14, color:TEXT3 }}>{c.country} · {c.jobs} shipments</div>
                 </div>
                 <div style={{ display:"flex", gap:8 }}>
                   <Tag label={c.code} color={BLUE}/>
-                  <Btn variant="ghost" style={{ fontSize:11 }}>Edit</Btn>
+                  <Btn variant="ghost" style={{ fontSize:14 }}>Edit</Btn>
                 </div>
               </div>
             ))}
@@ -1067,8 +1067,8 @@ function Billing() {
   return (
     <div>
       <div style={{ marginBottom:18 }}>
-        <h1 style={{ margin:0, fontSize:20, fontWeight:800, color:TEXT }}>Billing</h1>
-        <p style={{ margin:"3px 0 0", fontSize:12, color:TEXT3 }}>Service invoices from LogiConnect Co., Ltd.</p>
+        <h1 style={{ margin:0, fontSize:22, fontWeight:800, color:TEXT }}>Billing</h1>
+        <p style={{ margin:"3px 0 0", fontSize:14, color:TEXT3 }}>Service invoices from LogiConnect Co., Ltd.</p>
       </div>
 
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:14, marginBottom:20 }}>
@@ -1078,8 +1078,8 @@ function Billing() {
           { label:"Outstanding",      value:"฿78,750",     color:"#DC2626" },
         ].map((s,i) => (
           <Card key={i} style={{ padding:"16px 18px" }}>
-            <div style={{ fontSize:10, color:TEXT3, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:8 }}>{s.label}</div>
-            <div style={{ fontSize:22, fontWeight:800, color:s.color, fontFamily:MONO }}>{s.value}</div>
+            <div style={{ fontSize:13, color:TEXT3, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:8 }}>{s.label}</div>
+            <div style={{ fontSize:24, fontWeight:800, color:s.color, fontFamily:MONO }}>{s.value}</div>
           </Card>
         ))}
       </div>
@@ -1090,15 +1090,15 @@ function Billing() {
           {INVOICES_FACTORY.map((inv,i) => (
             <div key={i} style={{ padding:"14px 20px", borderBottom:i<INVOICES_FACTORY.length-1?`1px solid ${BORDER2}`:"none", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
               <div>
-                <div style={{ fontFamily:MONO, fontSize:12, fontWeight:700, color:TEXT, marginBottom:4 }}>{inv.id}</div>
-                <div style={{ fontSize:11, color:TEXT3 }}>{inv.period} · {inv.jobs} jobs</div>
-                <div style={{ fontSize:11, color:TEXT3 }}>Issued: {inv.issued} · Due: {inv.due}</div>
+                <div style={{ fontFamily:MONO, fontSize:14, fontWeight:700, color:TEXT, marginBottom:4 }}>{inv.id}</div>
+                <div style={{ fontSize:14, color:TEXT3 }}>{inv.period} · {inv.jobs} jobs</div>
+                <div style={{ fontSize:14, color:TEXT3 }}>Issued: {inv.issued} · Due: {inv.due}</div>
               </div>
               <div style={{ textAlign:"right" }}>
-                <div style={{ fontSize:16, fontWeight:800, fontFamily:MONO, color:inv.status==="paid"?"#16A34A":"#DC2626", marginBottom:6 }}>{inv.amount}</div>
+                <div style={{ fontSize:18, fontWeight:800, fontFamily:MONO, color:inv.status==="paid"?"#16A34A":"#DC2626", marginBottom:6 }}>{inv.amount}</div>
                 <Tag label={inv.status} color={inv.status==="paid"?"#16A34A":"#DC2626"}/>
                 <div style={{ marginTop:8 }}>
-                  <Btn variant="ghost" style={{ fontSize:10 }}>Download PDF</Btn>
+                  <Btn variant="ghost" style={{ fontSize:13 }}>Download PDF</Btn>
                 </div>
               </div>
             </div>
@@ -1111,15 +1111,15 @@ function Billing() {
             {SHIPMENTS.filter(s=>["CLEARED","COMPLETED"].includes(s.status)).slice(0,3).map((s,i) => (
               <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${BORDER2}` }}>
                 <div>
-                  <div style={{ fontFamily:MONO, fontSize:11, color:TEXT, fontWeight:600 }}>{s.id}</div>
-                  <div style={{ fontSize:10, color:TEXT3, marginTop:2 }}>{s.date} · {s.fob}</div>
+                  <div style={{ fontFamily:MONO, fontSize:14, color:TEXT, fontWeight:600 }}>{s.id}</div>
+                  <div style={{ fontSize:13, color:TEXT3, marginTop:2 }}>{s.date} · {s.fob}</div>
                 </div>
-                <span style={{ fontSize:12, fontWeight:700, color:TEXT }}>฿450</span>
+                <span style={{ fontSize:14, fontWeight:700, color:TEXT }}>฿450</span>
               </div>
             ))}
             <div style={{ marginTop:12, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-              <span style={{ fontSize:12, color:TEXT3 }}>Estimated invoice (5 jobs)</span>
-              <span style={{ fontSize:14, fontWeight:800, color:TEXT }}>฿2,250</span>
+              <span style={{ fontSize:14, color:TEXT3 }}>Estimated invoice (5 jobs)</span>
+              <span style={{ fontSize:16, fontWeight:800, color:TEXT }}>฿2,250</span>
             </div>
           </div>
         </Card>
@@ -1133,8 +1133,8 @@ function Reports() {
   return (
     <div>
       <div style={{ marginBottom:18 }}>
-        <h1 style={{ margin:0, fontSize:20, fontWeight:800, color:TEXT }}>Reports</h1>
-        <p style={{ margin:"3px 0 0", fontSize:12, color:TEXT3 }}>Export analytics · monthly summary · FOB breakdown</p>
+        <h1 style={{ margin:0, fontSize:22, fontWeight:800, color:TEXT }}>Reports</h1>
+        <p style={{ margin:"3px 0 0", fontSize:14, color:TEXT3 }}>Export analytics · monthly summary · FOB breakdown</p>
       </div>
 
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
@@ -1148,16 +1148,16 @@ function Reports() {
             ].map((r,i) => (
               <div key={i} style={{ marginBottom:14 }}>
                 <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
-                  <span style={{ fontSize:12, fontWeight:600, color:TEXT }}>{r.month}</span>
-                  <span style={{ fontSize:12, fontWeight:700, color:"#16A34A" }}>{r.fob}</span>
+                  <span style={{ fontSize:14, fontWeight:600, color:TEXT }}>{r.month}</span>
+                  <span style={{ fontSize:14, fontWeight:700, color:"#16A34A" }}>{r.fob}</span>
                 </div>
                 <div style={{ display:"flex", gap:4, marginBottom:4 }}>
                   <div style={{ height:8, background:"#2563EB", borderRadius:4, width:`${(r.export/50)*100}%` }}/>
                   <div style={{ height:8, background:"#D97706", borderRadius:4, width:`${(r.import/50)*100}%` }}/>
                 </div>
                 <div style={{ display:"flex", gap:16 }}>
-                  <span style={{ fontSize:10, color:"#2563EB" }}>Export: {r.export}</span>
-                  <span style={{ fontSize:10, color:"#D97706" }}>Import: {r.import}</span>
+                  <span style={{ fontSize:13, color:"#2563EB" }}>Export: {r.export}</span>
+                  <span style={{ fontSize:13, color:"#D97706" }}>Import: {r.import}</span>
                 </div>
               </div>
             ))}
@@ -1175,8 +1175,8 @@ function Reports() {
             ].map((r,i) => (
               <div key={i} style={{ marginBottom:12 }}>
                 <div style={{ display:"flex", justifyContent:"space-between", marginBottom:5 }}>
-                  <span style={{ fontSize:12, color:TEXT }}>{r.dest}</span>
-                  <span style={{ fontSize:12, fontWeight:700, color:r.color }}>{r.fob} ({r.pct}%)</span>
+                  <span style={{ fontSize:14, color:TEXT }}>{r.dest}</span>
+                  <span style={{ fontSize:14, fontWeight:700, color:r.color }}>{r.fob} ({r.pct}%)</span>
                 </div>
                 <div style={{ height:6, background:BG, borderRadius:3, overflow:"hidden" }}>
                   <div style={{ width:`${r.pct}%`, height:"100%", background:r.color, borderRadius:3 }}/>
@@ -1189,13 +1189,13 @@ function Reports() {
 
       <Card>
         <SectionHeader title="Export by HS chapter" sub="March 2026 — top product categories" right={
-          <Btn variant="secondary" style={{ fontSize:11 }}>Download report</Btn>
+          <Btn variant="secondary" style={{ fontSize:14 }}>Download report</Btn>
         }/>
-        <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+        <table style={{ width:"100%", borderCollapse:"collapse", fontSize:14 }}>
           <thead>
             <tr style={{ background:BG, borderBottom:`1px solid ${BORDER}` }}>
               {["HS Chapter","Description","Jobs","FOB value","% of total","Trend"].map(h=>(
-                <th key={h} style={{ padding:"9px 16px", textAlign:"left", fontSize:10, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px" }}>{h}</th>
+                <th key={h} style={{ padding:"9px 16px", textAlign:"left", fontSize:13, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px" }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -1216,10 +1216,10 @@ function Reports() {
                     <div style={{ width:50, height:6, background:BG, borderRadius:3, overflow:"hidden" }}>
                       <div style={{ width:r[4], height:"100%", background:BLUE, borderRadius:3 }}/>
                     </div>
-                    <span style={{ fontSize:11, color:TEXT2 }}>{r[4]}</span>
+                    <span style={{ fontSize:14, color:TEXT2 }}>{r[4]}</span>
                   </div>
                 </td>
-                <td style={{ padding:"11px 16px", fontSize:14, color:r[5]==="↑"?"#16A34A":r[5]==="↓"?"#DC2626":TEXT3 }}>{r[5]}</td>
+                <td style={{ padding:"11px 16px", fontSize:16, color:r[5]==="↑"?"#16A34A":r[5]==="↓"?"#DC2626":TEXT3 }}>{r[5]}</td>
               </tr>
             ))}
           </tbody>
@@ -1236,8 +1236,8 @@ function Settings() {
   return (
     <div>
       <div style={{ marginBottom:18 }}>
-        <h1 style={{ margin:0, fontSize:20, fontWeight:800, color:TEXT }}>Settings</h1>
-        <p style={{ margin:"3px 0 0", fontSize:12, color:TEXT3 }}>Account · notifications · users · security</p>
+        <h1 style={{ margin:0, fontSize:22, fontWeight:800, color:TEXT }}>Settings</h1>
+        <p style={{ margin:"3px 0 0", fontSize:14, color:TEXT3 }}>Account · notifications · users · security</p>
       </div>
 
       <div style={{ display:"flex", gap:0, borderBottom:`1px solid ${BORDER}`, marginBottom:18 }}>
@@ -1245,7 +1245,7 @@ function Settings() {
           <button key={id} onClick={() => setTab(id)} style={{
             padding:"10px 18px", background:"none", border:"none",
             borderBottom:`2px solid ${tab===id?BLUE:"transparent"}`,
-            color:tab===id?BLUE:TEXT2, fontWeight:tab===id?700:400, fontSize:13, cursor:"pointer",
+            color:tab===id?BLUE:TEXT2, fontWeight:tab===id?700:400, fontSize:15, cursor:"pointer",
           }}>{label}</button>
         ))}
       </div>
@@ -1263,8 +1263,8 @@ function Settings() {
                 ["Email", "somchai@thaielectronics.co.th"],
               ].map(([l,v],i) => (
                 <div key={i}>
-                  <label style={{ fontSize:11, color:TEXT3, fontWeight:600, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.5px" }}>{l}</label>
-                  <input defaultValue={v} style={{ width:"100%", background:BG, border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:12, color:TEXT, boxSizing:"border-box" }}/>
+                  <label style={{ fontSize:14, color:TEXT3, fontWeight:600, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.5px" }}>{l}</label>
+                  <input defaultValue={v} style={{ width:"100%", background:BG, border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:14, color:TEXT, boxSizing:"border-box" }}/>
                 </div>
               ))}
               <Btn style={{ alignSelf:"flex-start" }}>Save changes</Btn>
@@ -1275,9 +1275,9 @@ function Settings() {
               <SectionHeader title="Service plan" />
               <div style={{ padding:"16px 20px" }}>
                 <div style={{ background:BG, borderRadius:8, padding:"14px", border:`1px solid ${BORDER}`, marginBottom:12 }}>
-                  <div style={{ fontSize:10, color:TEXT3, marginBottom:4, textTransform:"uppercase", fontWeight:600 }}>Current plan</div>
-                  <div style={{ fontSize:16, fontWeight:800, color:TEXT }}>Standard</div>
-                  <div style={{ fontSize:11, color:TEXT3, marginTop:4 }}>฿450 per job · Per-job billing</div>
+                  <div style={{ fontSize:13, color:TEXT3, marginBottom:4, textTransform:"uppercase", fontWeight:600 }}>Current plan</div>
+                  <div style={{ fontSize:18, fontWeight:800, color:TEXT }}>Standard</div>
+                  <div style={{ fontSize:14, color:TEXT3, marginTop:4 }}>฿450 per job · Per-job billing</div>
                 </div>
                 {[
                   ["Provider","LogiConnect Co., Ltd."],
@@ -1286,8 +1286,8 @@ function Settings() {
                   ["Tenant ID","T001 · THEL"],
                 ].map(([l,v],i) => (
                   <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:i<3?`1px solid ${BORDER2}`:"none" }}>
-                    <span style={{ fontSize:11, color:TEXT3 }}>{l}</span>
-                    <span style={{ fontSize:11, fontWeight:600, color:TEXT }}>{v}</span>
+                    <span style={{ fontSize:14, color:TEXT3 }}>{l}</span>
+                    <span style={{ fontSize:14, fontWeight:600, color:TEXT }}>{v}</span>
                   </div>
                 ))}
               </div>
@@ -1299,11 +1299,11 @@ function Settings() {
       {tab==="users" && (
         <Card>
           <SectionHeader title="Factory users" sub="Manage access for your team" right={<Btn>+ Invite user</Btn>}/>
-          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:14 }}>
             <thead>
               <tr style={{ background:BG, borderBottom:`1px solid ${BORDER}` }}>
                 {["Name","Email","Role","Last active","Status",""].map(h=>(
-                  <th key={h} style={{ padding:"9px 18px", textAlign:"left", fontSize:10, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px" }}>{h}</th>
+                  <th key={h} style={{ padding:"9px 18px", textAlign:"left", fontSize:13, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px" }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -1316,23 +1316,23 @@ function Settings() {
                 <tr key={i} style={{ borderBottom:`1px solid ${BORDER2}` }}>
                   <td style={{ padding:"13px 18px" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                      <div style={{ width:32, height:32, borderRadius:"50%", background:"#0EA5E915", border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:BLUE }}>
+                      <div style={{ width:32, height:32, borderRadius:"50%", background:"#0EA5E915", border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:700, color:BLUE }}>
                         {u.name.charAt(0)}
                       </div>
-                      <span style={{ fontSize:13, fontWeight:600, color:TEXT }}>{u.name}</span>
+                      <span style={{ fontSize:15, fontWeight:600, color:TEXT }}>{u.name}</span>
                     </div>
                   </td>
                   <td style={{ padding:"13px 18px", color:TEXT2 }}>{u.email}</td>
                   <td style={{ padding:"13px 18px" }}>
                     <Tag label={u.role} color={u.role==="ADMIN"?BLUE:u.role==="USER"?"#7C3AED":TEXT3}/>
                   </td>
-                  <td style={{ padding:"13px 18px", color:TEXT3, fontSize:11 }}>{u.last}</td>
+                  <td style={{ padding:"13px 18px", color:TEXT3, fontSize:14 }}>{u.last}</td>
                   <td style={{ padding:"13px 18px" }}>
                     <Tag label={u.active?"Active":"Inactive"} color={u.active?"#16A34A":"#DC2626"}/>
                   </td>
                   <td style={{ padding:"13px 18px", display:"flex", gap:6 }}>
-                    <Btn variant="ghost" style={{ fontSize:10 }}>Edit role</Btn>
-                    {u.role!=="ADMIN" && <Btn variant="danger" style={{ fontSize:10 }}>Remove</Btn>}
+                    <Btn variant="ghost" style={{ fontSize:13 }}>Edit role</Btn>
+                    {u.role!=="ADMIN" && <Btn variant="danger" style={{ fontSize:13 }}>Remove</Btn>}
                   </td>
                 </tr>
               ))}
@@ -1355,7 +1355,7 @@ function Settings() {
               ["New user invited",        false],
             ].map(([label, on], i) => (
               <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 0", borderBottom:i<6?`1px solid ${BORDER2}`:"none" }}>
-                <span style={{ fontSize:13, color:TEXT }}>{label}</span>
+                <span style={{ fontSize:15, color:TEXT }}>{label}</span>
                 <button style={{
                   width:44, height:24, borderRadius:12, border:"none", cursor:"pointer", position:"relative",
                   background:on?BLUE:"#E2E8F0", transition:"background 0.15s",
@@ -1375,8 +1375,8 @@ function Settings() {
             <div style={{ padding:"20px", display:"flex", flexDirection:"column", gap:12 }}>
               {["Current password","New password","Confirm new password"].map((l,i) => (
                 <div key={i}>
-                  <label style={{ fontSize:11, color:TEXT3, fontWeight:600, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.5px" }}>{l}</label>
-                  <input type="password" placeholder="••••••••" style={{ width:"100%", background:BG, border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:12, color:TEXT, boxSizing:"border-box" }}/>
+                  <label style={{ fontSize:14, color:TEXT3, fontWeight:600, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.5px" }}>{l}</label>
+                  <input type="password" placeholder="••••••••" style={{ width:"100%", background:BG, border:`1px solid ${BORDER}`, borderRadius:8, padding:"9px 12px", fontSize:14, color:TEXT, boxSizing:"border-box" }}/>
                 </div>
               ))}
               <Btn style={{ alignSelf:"flex-start" }}>Update password</Btn>
@@ -1392,8 +1392,8 @@ function Settings() {
                 ["ISO 27001",          "Compliant — Audit log active"],
               ].map(([l,v],i) => (
                 <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"9px 0", borderBottom:i<3?`1px solid ${BORDER2}`:"none" }}>
-                  <span style={{ fontSize:11, color:TEXT3 }}>{l}</span>
-                  <span style={{ fontSize:11, fontWeight:600, color:TEXT }}>{v}</span>
+                  <span style={{ fontSize:14, color:TEXT3 }}>{l}</span>
+                  <span style={{ fontSize:14, fontWeight:600, color:TEXT }}>{v}</span>
                 </div>
               ))}
               <Btn variant="danger" style={{ marginTop:16, width:"100%", textAlign:"center" }}>Sign out all devices</Btn>

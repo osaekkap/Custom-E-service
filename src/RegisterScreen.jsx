@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import client from './api/client';
 
-const BLUE   = '#2563EB';
-const TEXT   = '#111827';
-const TEXT2  = '#6B7280';
-const TEXT3  = '#9CA3AF';
-const BORDER = '#E5E7EB';
-const BG     = '#F3F4F6';
-const GREEN  = '#16A34A';
-const RED    = '#DC2626';
-const MONO   = "'JetBrains Mono','Courier New',monospace";
+const BLUE   = 'var(--primary)';
+const TEXT   = 'var(--text-main)';
+const TEXT2  = 'var(--text-muted)';
+const TEXT3  = 'var(--text-light)';
+const BORDER = 'var(--border-main)';
+const BG     = 'var(--bg-main)';
+const GREEN  = 'var(--success)';
+const RED    = 'var(--danger)';
+const MONO   = 'var(--mono)';
 
 const TC_VERSION = '2026-v1';
 
@@ -18,15 +18,38 @@ const STEPS = ['ข้อมูลบริษัท', 'ผู้ดูแลร
 function Input({ label, required, ...props }) {
   return (
     <div>
-      <label style={{ fontSize: 11, fontWeight: 600, color: TEXT2, display: 'block', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+      <label style={{ fontSize:14, fontWeight: 600, color: TEXT2, display: 'block', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
         {label} {required && <span style={{ color: RED }}>*</span>}
       </label>
       <input {...props} style={{
         width: '100%', padding: '9px 12px', borderRadius: 8,
-        border: `1px solid ${BORDER}`, fontSize: 13, color: TEXT,
+        border: `1px solid ${BORDER}`, fontSize:15, color: TEXT,
         background: '#FFFFFF', boxSizing: 'border-box', outline: 'none',
         ...props.style,
       }} />
+    </div>
+  );
+}
+
+function FileInput({ label, required, accept, onChange, file }) {
+  return (
+    <div>
+      <label style={{ fontSize:14, fontWeight: 600, color: TEXT2, display: 'block', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        {label} {required && <span style={{ color: RED }}>*</span>}
+      </label>
+      <div style={{
+        width: '100%', padding: '9px 12px', borderRadius: 8,
+        border: `1px solid ${BORDER}`, fontSize:15, color: TEXT,
+        background: '#FFFFFF', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+      }}>
+        <span style={{ color: file ? TEXT : TEXT3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 }}>
+          {file ? file.name : 'Choose file...'}
+        </span>
+        <label style={{ background: BG, border: `1px solid ${BORDER}`, padding: '4px 10px', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: TEXT2 }}>
+          Browse
+          <input type="file" accept={accept} onChange={onChange} style={{ display: 'none' }} />
+        </label>
+      </div>
     </div>
   );
 }
@@ -50,7 +73,7 @@ function PasswordInput({ label, required, value, onChange, placeholder }) {
   const [show, setShow] = useState(false);
   return (
     <div>
-      <label style={{ fontSize: 11, fontWeight: 600, color: TEXT2, display: 'block', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+      <label style={{ fontSize:14, fontWeight: 600, color: TEXT2, display: 'block', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
         {label} {required && <span style={{ color: RED }}>*</span>}
       </label>
       <div style={{ position: 'relative' }}>
@@ -61,7 +84,7 @@ function PasswordInput({ label, required, value, onChange, placeholder }) {
           placeholder={placeholder}
           style={{
             width: '100%', padding: '9px 40px 9px 12px', borderRadius: 8,
-            border: `1px solid ${BORDER}`, fontSize: 13, color: TEXT,
+            border: `1px solid ${BORDER}`, fontSize:15, color: TEXT,
             background: '#FFFFFF', boxSizing: 'border-box', outline: 'none',
           }}
         />
@@ -89,6 +112,8 @@ function StepCompany({ data, onChange, onNext }) {
   const ok = () => {
     if (!data.companyNameTh.trim()) return setErr('กรุณากรอกชื่อบริษัท (ภาษาไทย)');
     if (!/^\d{13}$/.test(data.taxId)) return setErr('เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก');
+    if (!data.companyCert) return setErr('กรุณาอัปโหลดหนังสือรับรองบริษัท');
+    if (!data.pp20) return setErr('กรุณาอัปโหลดใบทะเบียนภาษีมูลค่าเพิ่ม (ภ.พ.20)');
     setErr('');
     onNext();
   };
@@ -102,14 +127,18 @@ function StepCompany({ data, onChange, onNext }) {
         value={data.taxId} onChange={e => onChange('taxId', e.target.value)} maxLength={13} />
       <Input label="ที่อยู่บริษัท" placeholder="เลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด"
         value={data.address} onChange={e => onChange('address', e.target.value)} />
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div className="grid-2">
         <Input label="รหัสไปรษณีย์" placeholder="10400"
           value={data.postcode} onChange={e => onChange('postcode', e.target.value)} maxLength={10} />
         <Input label="เบอร์โทรบริษัท" placeholder="02-000-0000"
           value={data.companyPhone} onChange={e => onChange('companyPhone', e.target.value)} />
       </div>
-      {err && <div style={{ fontSize: 12, color: RED, padding: '8px 12px', background: '#FEF2F2', borderRadius: 8, border: '1px solid #FECACA' }}>{err}</div>}
-      <button onClick={ok} style={{ background: BLUE, color: '#fff', border: 'none', borderRadius: 8, padding: '10px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+      <div className="grid-2">
+        <FileInput label="หนังสือรับรองบริษัท (PDF)" required accept=".pdf" file={data.companyCert} onChange={e => onChange('companyCert', e.target.files[0])} />
+        <FileInput label="ภ.พ.20 (PDF/IMG)" required accept=".pdf,image/*" file={data.pp20} onChange={e => onChange('pp20', e.target.files[0])} />
+      </div>
+      {err && <div style={{ fontSize:14, color: RED, padding: '8px 12px', background: '#FEF2F2', borderRadius: 8, border: '1px solid #FECACA' }}>{err}</div>}
+      <button onClick={ok} style={{ background: BLUE, color: '#fff', border: 'none', borderRadius: 8, padding: '10px', fontSize:15, fontWeight: 700, cursor: 'pointer' }}>
         ถัดไป →
       </button>
     </div>
@@ -130,7 +159,7 @@ function StepAdmin({ data, onChange, onNext, onBack }) {
   };
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{ padding: '10px 14px', background: '#F0F9FF', borderRadius: 8, border: '1px solid #BAE6FD', fontSize: 12, color: '#0369A1' }}>
+      <div style={{ padding: '10px 14px', background: '#F0F9FF', borderRadius: 8, border: '1px solid #BAE6FD', fontSize:14, color: '#0369A1' }}>
         บัญชีนี้จะมีสิทธิ์ระดับ <strong>Tenant Admin</strong> — สามารถจัดการผู้ใช้และข้อมูลทั้งหมดของบริษัท
       </div>
       <Input label="ชื่อ-นามสกุล" required placeholder="สมชาย ใจดี"
@@ -145,12 +174,12 @@ function StepAdmin({ data, onChange, onNext, onBack }) {
         value={data.password} onChange={e => onChange('password', e.target.value)} />
       <PasswordInput label="ยืนยันรหัสผ่าน" required placeholder="••••••••"
         value={data.confirmPassword} onChange={e => onChange('confirmPassword', e.target.value)} />
-      {err && <div style={{ fontSize: 12, color: RED, padding: '8px 12px', background: '#FEF2F2', borderRadius: 8, border: '1px solid #FECACA' }}>{err}</div>}
-      <div style={{ display: 'flex', gap: 10 }}>
-        <button onClick={onBack} style={{ flex: 1, background: 'none', color: TEXT2, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '10px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+      {err && <div style={{ fontSize:14, color: RED, padding: '8px 12px', background: '#FEF2F2', borderRadius: 8, border: '1px solid #FECACA' }}>{err}</div>}
+      <div className="grid-2">
+        <button onClick={onBack} style={{ background: 'none', color: TEXT2, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '10px', fontSize:15, fontWeight: 600, cursor: 'pointer' }}>
           ← ย้อนกลับ
         </button>
-        <button onClick={ok} style={{ flex: 2, background: BLUE, color: '#fff', border: 'none', borderRadius: 8, padding: '10px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+        <button onClick={ok} style={{ flex: 2, background: BLUE, color: '#fff', border: 'none', borderRadius: 8, padding: '10px', fontSize:15, fontWeight: 700, cursor: 'pointer' }}>
           ถัดไป →
         </button>
       </div>
@@ -172,7 +201,7 @@ function StepTerms({ onBack, onSubmit, loading, err }) {
   const CheckRow = ({ checked, onChange, children }) => (
     <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer', padding: '10px 14px', background: checked ? '#F0FDF4' : '#FAFAFA', borderRadius: 8, border: `1px solid ${checked ? '#86EFAC' : BORDER}`, transition: 'all 0.15s' }}>
       <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} style={{ marginTop: 2, accentColor: GREEN, width: 15, height: 15, flexShrink: 0 }} />
-      <span style={{ fontSize: 12, color: TEXT2, lineHeight: 1.5 }}>{children}</span>
+      <span style={{ fontSize:14, color: TEXT2, lineHeight: 1.5 }}>{children}</span>
     </label>
   );
 
@@ -181,10 +210,10 @@ function StepTerms({ onBack, onSubmit, loading, err }) {
       {/* T&C Box */}
       <div style={{ border: `1px solid ${BORDER}`, borderRadius: 10, overflow: 'hidden' }}>
         <div style={{ padding: '10px 16px', background: '#F8FAFC', borderBottom: `1px solid ${BORDER}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: TEXT }}>ข้อกำหนดการใช้งาน (Terms of Service)</span>
-          <span style={{ fontFamily: MONO, fontSize: 10, color: TEXT3 }}>v{TC_VERSION} · ISO 27001:2022</span>
+          <span style={{ fontSize:14, fontWeight: 700, color: TEXT }}>ข้อกำหนดการใช้งาน (Terms of Service)</span>
+          <span style={{ fontFamily: MONO, fontSize:13, color: TEXT3 }}>v{TC_VERSION} · ISO 27001:2022</span>
         </div>
-        <div style={{ maxHeight: 180, overflowY: 'auto', padding: '14px 16px', fontSize: 11.5, color: TEXT2, lineHeight: 1.7 }}>
+        <div style={{ maxHeight: 180, overflowY: 'auto', padding: '14px 16px', fontSize:14.5, color: TEXT2, lineHeight: 1.7 }}>
           <p style={{ margin: '0 0 10px', fontWeight: 700, color: TEXT }}>1. ขอบเขตการให้บริการ</p>
           <p style={{ margin: '0 0 10px' }}>Customs-Edoc ("ผู้ให้บริการ") ให้บริการระบบยื่นใบขนสินค้าออกอิเล็กทรอนิกส์ผ่าน NSW Thailand สำหรับองค์กรธุรกิจ ("ผู้ใช้บริการ") โดยเชื่อมต่อกับระบบของกรมศุลกากรแห่งประเทศไทย</p>
 
@@ -220,10 +249,10 @@ function StepTerms({ onBack, onSubmit, loading, err }) {
       {/* PDPA Box */}
       <div style={{ border: `1px solid ${BORDER}`, borderRadius: 10, overflow: 'hidden' }}>
         <div style={{ padding: '10px 16px', background: '#F8FAFC', borderBottom: `1px solid ${BORDER}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: TEXT }}>นโยบายความเป็นส่วนตัว (Privacy Policy)</span>
-          <span style={{ fontFamily: MONO, fontSize: 10, color: TEXT3 }}>PDPA พ.ร.บ. 2562</span>
+          <span style={{ fontSize:14, fontWeight: 700, color: TEXT }}>นโยบายความเป็นส่วนตัว (Privacy Policy)</span>
+          <span style={{ fontFamily: MONO, fontSize:13, color: TEXT3 }}>PDPA พ.ร.บ. 2562</span>
         </div>
-        <div style={{ maxHeight: 180, overflowY: 'auto', padding: '14px 16px', fontSize: 11.5, color: TEXT2, lineHeight: 1.7 }}>
+        <div style={{ maxHeight: 180, overflowY: 'auto', padding: '14px 16px', fontSize:14.5, color: TEXT2, lineHeight: 1.7 }}>
           <p style={{ margin: '0 0 10px', fontWeight: 700, color: TEXT }}>การคุ้มครองข้อมูลส่วนบุคคลตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA)</p>
 
           <p style={{ margin: '0 0 6px', fontWeight: 700, color: TEXT }}>1. ข้อมูลที่เก็บรวบรวม</p>
@@ -271,20 +300,20 @@ function StepTerms({ onBack, onSubmit, loading, err }) {
       </CheckRow>
 
       {err && (
-        <div style={{ fontSize: 12, color: RED, padding: '10px 14px', background: '#FEF2F2', borderRadius: 8, border: '1px solid #FECACA' }}>
+        <div style={{ fontSize:14, color: RED, padding: '10px 14px', background: '#FEF2F2', borderRadius: 8, border: '1px solid #FECACA' }}>
           {err}
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 10 }}>
-        <button onClick={onBack} disabled={loading} style={{ flex: 1, background: 'none', color: TEXT2, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '10px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+      <div className="grid-2">
+        <button onClick={onBack} disabled={loading} style={{ background: 'none', color: TEXT2, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '10px', fontSize:15, fontWeight: 600, cursor: 'pointer' }}>
           ← ย้อนกลับ
         </button>
         <button
           onClick={handleSubmit}
           disabled={loading || !tcOk || !pdpaOk}
           style={{
-            flex: 2, border: 'none', borderRadius: 8, padding: '10px', fontSize: 13, fontWeight: 700,
+            flex: 2, border: 'none', borderRadius: 8, padding: '10px', fontSize:15, fontWeight: 700,
             background: (loading || !tcOk || !pdpaOk) ? TEXT3 : GREEN,
             color: '#fff', cursor: (loading || !tcOk || !pdpaOk) ? 'not-allowed' : 'pointer',
           }}
@@ -300,29 +329,29 @@ function StepTerms({ onBack, onSubmit, loading, err }) {
 function SuccessScreen({ result, onLogin }) {
   return (
     <div style={{ textAlign: 'center', padding: '10px 0' }}>
-      <div style={{ fontSize: 40, marginBottom: 16 }}>✅</div>
-      <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 800, color: TEXT }}>สมัครใช้งานสำเร็จ!</h3>
-      <p style={{ fontSize: 13, color: TEXT2, margin: '0 0 20px' }}>บัญชีของคุณอยู่ในสถานะ <strong style={{ color: BLUE }}>Trial</strong> — ทีมงานจะติดต่อกลับเพื่อเปิดใช้งานเต็มรูปแบบ</p>
+      <div style={{ fontSize:40, marginBottom: 16 }}>✅</div>
+      <h3 style={{ margin: '0 0 8px', fontSize:20, fontWeight: 800, color: TEXT }}>สมัครใช้งานสำเร็จ!</h3>
+      <p style={{ fontSize:15, color: TEXT2, margin: '0 0 20px' }}>บัญชีของคุณอยู่ในสถานะ <strong style={{ color: BLUE }}>Trial</strong> — ทีมงานจะติดต่อกลับเพื่อเปิดใช้งานเต็มรูปแบบ</p>
 
       <div style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: 10, padding: '14px 16px', textAlign: 'left', marginBottom: 20 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>ข้อมูลบริษัทที่ลงทะเบียน</div>
+        <div style={{ fontSize:14, fontWeight: 700, color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>ข้อมูลบริษัทที่ลงทะเบียน</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize:14 }}>
             <span style={{ color: TEXT2 }}>รหัสบริษัท</span>
             <span style={{ fontFamily: MONO, fontWeight: 700, color: TEXT }}>{result.companyCode}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize:14 }}>
             <span style={{ color: TEXT2 }}>อีเมล</span>
             <span style={{ color: TEXT }}>{result.email}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize:14 }}>
             <span style={{ color: TEXT2 }}>สถานะ</span>
             <span style={{ color: '#D97706', fontWeight: 600 }}>TRIAL</span>
           </div>
         </div>
       </div>
 
-      <button onClick={onLogin} style={{ width: '100%', background: BLUE, color: '#fff', border: 'none', borderRadius: 8, padding: '11px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+      <button onClick={onLogin} style={{ width: '100%', background: BLUE, color: '#fff', border: 'none', borderRadius: 8, padding: '11px', fontSize:15, fontWeight: 700, cursor: 'pointer' }}>
         เข้าสู่ระบบ
       </button>
     </div>
@@ -340,6 +369,7 @@ export default function RegisterScreen({ onBack }) {
     // Step 1 — Company
     companyNameTh: '', companyNameEn: '', taxId: '',
     address: '', postcode: '', companyPhone: '',
+    companyCert: null, pp20: null,
     // Step 2 — Admin
     fullName: '', jobTitle: '', email: '',
     adminPhone: '', password: '', confirmPassword: '',
@@ -351,21 +381,29 @@ export default function RegisterScreen({ onBack }) {
     setLoading(true);
     setSubmitErr('');
     try {
-      const { data } = await client.post('/auth/register/b2b', {
-        companyNameTh: form.companyNameTh,
-        companyNameEn: form.companyNameEn || undefined,
-        taxId: form.taxId,
-        address: form.address || undefined,
-        postcode: form.postcode || undefined,
-        companyPhone: form.companyPhone || undefined,
-        fullName: form.fullName,
-        jobTitle: form.jobTitle || undefined,
-        email: form.email,
-        adminPhone: form.adminPhone || undefined,
-        password: form.password,
-        tcAccepted: tcOk,
-        pdpaAccepted: pdpaOk,
-        tcVersion: TC_VERSION,
+      const formData = new FormData();
+      formData.append('companyNameTh', form.companyNameTh);
+      if (form.companyNameEn) formData.append('companyNameEn', form.companyNameEn);
+      formData.append('taxId', form.taxId);
+      if (form.address) formData.append('address', form.address);
+      if (form.postcode) formData.append('postcode', form.postcode);
+      if (form.companyPhone) formData.append('companyPhone', form.companyPhone);
+      formData.append('fullName', form.fullName);
+      if (form.jobTitle) formData.append('jobTitle', form.jobTitle);
+      formData.append('email', form.email);
+      if (form.adminPhone) formData.append('adminPhone', form.adminPhone);
+      formData.append('password', form.password);
+      formData.append('tcAccepted', tcOk);
+      formData.append('pdpaAccepted', pdpaOk);
+      formData.append('tcVersion', TC_VERSION);
+      
+      if (form.companyCert) formData.append('companyCert', form.companyCert);
+      if (form.pp20) formData.append('pp20', form.pp20);
+
+      const { data } = await client.post('/auth/register/b2b', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
       setResult(data);
     } catch (e) {
@@ -384,13 +422,13 @@ export default function RegisterScreen({ onBack }) {
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
             <div style={{
               width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 12, fontWeight: 700,
+              fontSize:14, fontWeight: 700,
               background: i < step ? GREEN : i === step ? BLUE : BORDER,
               color: i <= step ? '#fff' : TEXT3,
             }}>
               {i < step ? '✓' : i + 1}
             </div>
-            <span style={{ fontSize: 10, color: i === step ? BLUE : TEXT3, fontWeight: i === step ? 700 : 400, whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize:13, color: i === step ? BLUE : TEXT3, fontWeight: i === step ? 700 : 400, whiteSpace: 'nowrap' }}>
               {label}
             </span>
           </div>
@@ -415,12 +453,12 @@ export default function RegisterScreen({ onBack }) {
           <div style={{
             width: 44, height: 44, borderRadius: 11, background: '#0B1929',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 20, margin: '0 auto 12px',
+            fontSize:22, margin: '0 auto 12px',
           }}>⚓</div>
-          <div style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, letterSpacing: '1.5px', color: TEXT }}>
+          <div style={{ fontFamily: MONO, fontSize:14, fontWeight: 700, letterSpacing: '1.5px', color: TEXT }}>
             CUSTOMS-EDOC
           </div>
-          <div style={{ fontSize: 12, color: TEXT3, marginTop: 3 }}>สมัครใช้งานสำหรับองค์กร (B2B)</div>
+          <div style={{ fontSize:14, color: TEXT3, marginTop: 3 }}>สมัครใช้งานสำหรับองค์กร (B2B)</div>
         </div>
 
         {/* Card */}
@@ -442,7 +480,7 @@ export default function RegisterScreen({ onBack }) {
 
         {!result && (
           <div style={{ textAlign: 'center', marginTop: 18 }}>
-            <button onClick={onBack} style={{ background: 'none', border: 'none', fontSize: 12, color: TEXT3, cursor: 'pointer' }}>
+            <button onClick={onBack} style={{ background: 'none', border: 'none', fontSize:14, color: TEXT3, cursor: 'pointer' }}>
               ← กลับไปหน้า Sign in
             </button>
           </div>

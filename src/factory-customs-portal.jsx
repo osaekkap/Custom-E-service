@@ -44,7 +44,7 @@ function StatusBadge({ status }) {
   return (
     <span style={{
       display: "inline-block", padding: "2px 10px", borderRadius: 20,
-      fontSize: 11, fontWeight: 600, letterSpacing: "0.3px",
+      fontSize:14, fontWeight: 600, letterSpacing: "0.3px",
       color: cfg.color, background: cfg.bg, border: `1px solid ${cfg.color}33`
     }}>
       {cfg.label}
@@ -64,11 +64,11 @@ function Sidebar({ active, onNav }) {
           <div style={{
             width: 34, height: 34, borderRadius: 8, background: "linear-gradient(135deg,#1A8FA3,#0EA5E9)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 16, color: "#fff"
+            fontSize:18, color: "#fff"
           }}>⚓</div>
           <div>
-            <div style={{ color: "#F1F5F9", fontSize: 13, fontWeight: 700, letterSpacing: "0.5px" }}>CUSTOMS-EDOC</div>
-            <div style={{ color: "#94A3B8", fontSize: 10 }}>Factory Portal</div>
+            <div style={{ color: "#F1F5F9", fontSize:15, fontWeight: 700, letterSpacing: "0.5px" }}>CUSTOMS-EDOC</div>
+            <div style={{ color: "#94A3B8", fontSize:13 }}>Factory Portal</div>
           </div>
         </div>
       </div>
@@ -79,8 +79,8 @@ function Sidebar({ active, onNav }) {
           background: "rgba(255,255,255,0.06)", borderRadius: 8, padding: "8px 12px",
           cursor: "pointer", border: "1px solid rgba(255,255,255,0.1)"
         }}>
-          <div style={{ color: "#94A3B8", fontSize: 10, marginBottom: 2 }}>Active Factory</div>
-          <div style={{ color: "#E2E8F0", fontSize: 12, fontWeight: 600 }}>ไทยอิเล็กทรอนิกส์ จำกัด</div>
+          <div style={{ color: "#94A3B8", fontSize:13, marginBottom: 2 }}>Active Factory</div>
+          <div style={{ color: "#E2E8F0", fontSize:14, fontWeight: 600 }}>ไทยอิเล็กทรอนิกส์ จำกัด</div>
         </div>
       </div>
 
@@ -96,10 +96,10 @@ function Sidebar({ active, onNav }) {
               border: isActive ? "1px solid rgba(14,165,233,0.3)" : "1px solid transparent",
               color: isActive ? "#38BDF8" : "#94A3B8",
               cursor: "pointer", textAlign: "left", marginBottom: 2,
-              fontSize: 13, fontWeight: isActive ? 600 : 400,
+              fontSize:15, fontWeight: isActive ? 600 : 400,
               transition: "all 0.15s"
             }}>
-              <span style={{ fontSize: 15, width: 18, textAlign: "center" }}>{item.icon}</span>
+              <span style={{ fontSize:17, width: 18, textAlign: "center" }}>{item.icon}</span>
               {item.label}
             </button>
           );
@@ -108,9 +108,9 @@ function Sidebar({ active, onNav }) {
 
       {/* Footer */}
       <div style={{ padding: "16px 20px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-        <div style={{ color: "#64748B", fontSize: 10, marginBottom: 4 }}>Service Provider</div>
-        <div style={{ color: "#94A3B8", fontSize: 11 }}>LogiConnect Co., Ltd.</div>
-        <div style={{ color: "#475569", fontSize: 10, marginTop: 4 }}>v2.0 · ISO 27001 Compliant</div>
+        <div style={{ color: "#64748B", fontSize:13, marginBottom: 4 }}>Service Provider</div>
+        <div style={{ color: "#94A3B8", fontSize:14 }}>LogiConnect Co., Ltd.</div>
+        <div style={{ color: "#475569", fontSize:13, marginTop: 4 }}>v2.0 · ISO 27001 Compliant</div>
       </div>
     </div>
   );
@@ -120,8 +120,8 @@ function DashboardPage() {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: "#0F172A", margin: 0 }}>Dashboard</h1>
-        <p style={{ color: "#64748B", fontSize: 13, margin: "4px 0 0" }}>บริษัท ไทยอิเล็กทรอนิกส์ จำกัด · March 2026</p>
+        <h1 style={{ fontSize:24, fontWeight: 700, color: "#0F172A", margin: 0 }}>Dashboard</h1>
+        <p style={{ color: "#64748B", fontSize:15, margin: "4px 0 0" }}>บริษัท ไทยอิเล็กทรอนิกส์ จำกัด · March 2026</p>
       </div>
 
       {/* KPI Cards */}
@@ -132,11 +132,11 @@ function DashboardPage() {
             border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.04)"
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-              <div style={{ fontSize: 11, color: "#94A3B8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>{k.label}</div>
-              <div style={{ width: 30, height: 30, borderRadius: 8, background: `${k.color}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>{k.icon}</div>
+              <div style={{ fontSize:14, color: "#94A3B8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>{k.label}</div>
+              <div style={{ width: 30, height: 30, borderRadius: 8, background: `${k.color}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize:16 }}>{k.icon}</div>
             </div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: k.color, marginBottom: 4 }}>{k.value}</div>
-            <div style={{ fontSize: 12, color: "#94A3B8" }}>{k.sub}</div>
+            <div style={{ fontSize:26, fontWeight: 800, color: k.color, marginBottom: 4 }}>{k.value}</div>
+            <div style={{ fontSize:14, color: "#94A3B8" }}>{k.sub}</div>
           </div>
         ))}
       </div>
@@ -145,14 +145,14 @@ function DashboardPage() {
         {/* Recent Shipments */}
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #E2E8F0", overflow: "hidden" }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid #F1F5F9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>Recent Shipments</div>
-            <span style={{ fontSize: 11, color: "#0EA5E9", cursor: "pointer", fontWeight: 600 }}>View all →</span>
+            <div style={{ fontSize:16, fontWeight: 700, color: "#0F172A" }}>Recent Shipments</div>
+            <span style={{ fontSize:14, color: "#0EA5E9", cursor: "pointer", fontWeight: 600 }}>View all →</span>
           </div>
           {SHIPMENTS.slice(0, 4).map((s, i) => (
             <div key={i} style={{ padding: "12px 20px", borderBottom: "1px solid #F8FAFC", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A" }}>{s.id}</div>
-                <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 2 }}>{s.vessel} · {s.fob}</div>
+                <div style={{ fontSize:15, fontWeight: 600, color: "#0F172A" }}>{s.id}</div>
+                <div style={{ fontSize:14, color: "#94A3B8", marginTop: 2 }}>{s.vessel} · {s.fob}</div>
               </div>
               <StatusBadge status={s.status} />
             </div>
@@ -162,7 +162,7 @@ function DashboardPage() {
         {/* NSW Status Summary */}
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #E2E8F0", overflow: "hidden" }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid #F1F5F9" }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>NSW Submission Status</div>
+            <div style={{ fontSize:16, fontWeight: 700, color: "#0F172A" }}>NSW Submission Status</div>
           </div>
           <div style={{ padding: "20px" }}>
             {[
@@ -173,8 +173,8 @@ function DashboardPage() {
             ].map((item, i) => (
               <div key={i} style={{ marginBottom: 14 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                  <span style={{ fontSize: 12, color: "#475569" }}>{item.label}</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: item.color }}>{item.val}</span>
+                  <span style={{ fontSize:14, color: "#475569" }}>{item.label}</span>
+                  <span style={{ fontSize:14, fontWeight: 700, color: item.color }}>{item.val}</span>
                 </div>
                 <div style={{ height: 6, background: "#F1F5F9", borderRadius: 3, overflow: "hidden" }}>
                   <div style={{ width: `${(item.val / 28) * 100}%`, height: "100%", background: item.color, borderRadius: 3, transition: "width 0.3s" }} />
@@ -187,8 +187,8 @@ function DashboardPage() {
           <div style={{ margin: "0 20px 20px", background: "#F0FDF4", borderRadius: 8, padding: "10px 14px", border: "1px solid #BBF7D0" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#22C55E" }} />
-              <span style={{ fontSize: 12, color: "#15803D", fontWeight: 600 }}>NSW Connected</span>
-              <span style={{ fontSize: 11, color: "#86EFAC", marginLeft: "auto" }}>API Active</span>
+              <span style={{ fontSize:14, color: "#15803D", fontWeight: 600 }}>NSW Connected</span>
+              <span style={{ fontSize:14, color: "#86EFAC", marginLeft: "auto" }}>API Active</span>
             </div>
           </div>
         </div>
@@ -206,12 +206,12 @@ function ShipmentListPage({ onNewShipment }) {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#0F172A", margin: 0 }}>Shipment List</h1>
-          <p style={{ color: "#64748B", fontSize: 13, margin: "4px 0 0" }}>{filtered.length} records found</p>
+          <h1 style={{ fontSize:24, fontWeight: 700, color: "#0F172A", margin: 0 }}>Shipment List</h1>
+          <p style={{ color: "#64748B", fontSize:15, margin: "4px 0 0" }}>{filtered.length} records found</p>
         </div>
         <button onClick={onNewShipment} style={{
           background: "#0EA5E9", color: "#fff", border: "none", borderRadius: 8,
-          padding: "10px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer"
+          padding: "10px 18px", fontSize:15, fontWeight: 600, cursor: "pointer"
         }}>+ New Shipment</button>
       </div>
 
@@ -219,7 +219,7 @@ function ShipmentListPage({ onNewShipment }) {
       <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
         {filters.map(f => (
           <button key={f} onClick={() => setFilter(f)} style={{
-            padding: "6px 14px", borderRadius: 20, border: "1px solid", fontSize: 12, fontWeight: 600,
+            padding: "6px 14px", borderRadius: 20, border: "1px solid", fontSize:14, fontWeight: 600,
             cursor: "pointer", transition: "all 0.15s",
             background: filter === f ? "#0EA5E9" : "#fff",
             color: filter === f ? "#fff" : "#64748B",
@@ -229,11 +229,11 @@ function ShipmentListPage({ onNewShipment }) {
       </div>
 
       <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #E2E8F0", overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize:15 }}>
           <thead>
             <tr style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" }}>
               {["Job ID", "Type", "Factory", "Vessel / Container", "HS Code", "FOB Value", "Status", "Date"].map(h => (
-                <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.5px", whiteSpace: "nowrap" }}>{h}</th>
+                <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize:14, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.5px", whiteSpace: "nowrap" }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -242,20 +242,20 @@ function ShipmentListPage({ onNewShipment }) {
               <tr key={i} style={{ borderBottom: "1px solid #F8FAFC", cursor: "pointer" }}
                 onMouseEnter={e => e.currentTarget.style.background = "#F8FAFC"}
                 onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                <td style={{ padding: "12px 16px", fontWeight: 700, color: "#0F172A", fontFamily: "monospace", fontSize: 12 }}>{s.id}</td>
+                <td style={{ padding: "12px 16px", fontWeight: 700, color: "#0F172A", fontFamily: "monospace", fontSize:14 }}>{s.id}</td>
                 <td style={{ padding: "12px 16px" }}>
                   <span style={{
-                    padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600,
+                    padding: "2px 8px", borderRadius: 4, fontSize:14, fontWeight: 600,
                     background: s.type === "Export" ? "#EFF6FF" : "#FFF7ED",
                     color: s.type === "Export" ? "#1D4ED8" : "#C2410C"
                   }}>{s.type}</span>
                 </td>
                 <td style={{ padding: "12px 16px", color: "#475569", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.factory}</td>
-                <td style={{ padding: "12px 16px", color: "#475569", fontFamily: "monospace", fontSize: 11 }}>{s.vessel}<br />{s.container}</td>
-                <td style={{ padding: "12px 16px", color: "#475569", fontFamily: "monospace", fontSize: 12 }}>{s.hs}</td>
-                <td style={{ padding: "12px 16px", color: "#0F172A", fontWeight: 600, fontSize: 12 }}>{s.fob}</td>
+                <td style={{ padding: "12px 16px", color: "#475569", fontFamily: "monospace", fontSize:14 }}>{s.vessel}<br />{s.container}</td>
+                <td style={{ padding: "12px 16px", color: "#475569", fontFamily: "monospace", fontSize:14 }}>{s.hs}</td>
+                <td style={{ padding: "12px 16px", color: "#0F172A", fontWeight: 600, fontSize:14 }}>{s.fob}</td>
                 <td style={{ padding: "12px 16px" }}><StatusBadge status={s.status} /></td>
-                <td style={{ padding: "12px 16px", color: "#94A3B8", fontSize: 12 }}>{s.date}</td>
+                <td style={{ padding: "12px 16px", color: "#94A3B8", fontSize:14 }}>{s.date}</td>
               </tr>
             ))}
           </tbody>
@@ -272,10 +272,10 @@ function NewShipmentPage({ onBack }) {
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-        <button onClick={onBack} style={{ background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, color: "#64748B" }}>← Back</button>
+        <button onClick={onBack} style={{ background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize:15, color: "#64748B" }}>← Back</button>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#0F172A", margin: 0 }}>New Export Shipment</h1>
-          <p style={{ color: "#64748B", fontSize: 13, margin: "4px 0 0" }}>ยื่นใบขนสินค้าขาออก — Export Declaration Wizard</p>
+          <h1 style={{ fontSize:24, fontWeight: 700, color: "#0F172A", margin: 0 }}>New Export Shipment</h1>
+          <p style={{ color: "#64748B", fontSize:15, margin: "4px 0 0" }}>ยื่นใบขนสินค้าขาออก — Export Declaration Wizard</p>
         </div>
       </div>
 
@@ -290,11 +290,11 @@ function NewShipmentPage({ onBack }) {
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{
                   width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 13, fontWeight: 700,
+                  fontSize:15, fontWeight: 700,
                   background: done ? "#22C55E" : active ? "#0EA5E9" : "#F1F5F9",
                   color: done || active ? "#fff" : "#94A3B8"
                 }}>{done ? "✓" : n}</div>
-                <span style={{ fontSize: 13, fontWeight: active ? 700 : 400, color: active ? "#0F172A" : "#94A3B8" }}>{s}</span>
+                <span style={{ fontSize:15, fontWeight: active ? 700 : 400, color: active ? "#0F172A" : "#94A3B8" }}>{s}</span>
               </div>
               {i < steps.length - 1 && <div style={{ flex: 1, height: 2, background: done ? "#22C55E" : "#E2E8F0", margin: "0 16px" }} />}
             </div>
@@ -309,14 +309,14 @@ function NewShipmentPage({ onBack }) {
             <div key={i} style={{ background: "#fff", borderRadius: 12, border: "2px dashed #CBD5E1", padding: "28px 20px", textAlign: "center", cursor: "pointer" }}
               onMouseEnter={e => e.currentTarget.style.borderColor = "#0EA5E9"}
               onMouseLeave={e => e.currentTarget.style.borderColor = "#CBD5E1"}>
-              <div style={{ fontSize: 32, marginBottom: 12 }}>📄</div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>{doc}</div>
-              <div style={{ fontSize: 11, color: "#94A3B8", marginBottom: 16 }}>Drag & drop or click to upload</div>
-              <div style={{ fontSize: 11, color: "#CBD5E1" }}>Max 20MB · PDF, XLSX, CSV</div>
+              <div style={{ fontSize:32, marginBottom: 12 }}>📄</div>
+              <div style={{ fontSize:15, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>{doc}</div>
+              <div style={{ fontSize:14, color: "#94A3B8", marginBottom: 16 }}>Drag & drop or click to upload</div>
+              <div style={{ fontSize:14, color: "#CBD5E1" }}>Max 20MB · PDF, XLSX, CSV</div>
             </div>
           ))}
           <div style={{ gridColumn: "1/-1", display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-            <button onClick={() => setStep(2)} style={{ background: "#0EA5E9", color: "#fff", border: "none", borderRadius: 8, padding: "10px 24px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+            <button onClick={() => setStep(2)} style={{ background: "#0EA5E9", color: "#fff", border: "none", borderRadius: 8, padding: "10px 24px", fontSize:15, fontWeight: 600, cursor: "pointer" }}>
               Extract with AI →
             </button>
           </div>
@@ -328,16 +328,16 @@ function NewShipmentPage({ onBack }) {
           {/* AI status banner */}
           <div style={{ background: "linear-gradient(90deg,#EFF6FF,#F5F3FF)", padding: "14px 20px", borderBottom: "1px solid #E2E8F0", display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#22C55E" }} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: "#1E40AF" }}>AI Extraction Complete</span>
-            <span style={{ fontSize: 12, color: "#94A3B8", marginLeft: 4 }}>Gemini Flash · 14 items extracted · 12 matched</span>
-            <div style={{ marginLeft: "auto", background: "#FEF3C7", color: "#D97706", fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20, border: "1px solid #FDE68A" }}>2 items need HS Code</div>
+            <span style={{ fontSize:15, fontWeight: 600, color: "#1E40AF" }}>AI Extraction Complete</span>
+            <span style={{ fontSize:14, color: "#94A3B8", marginLeft: 4 }}>Gemini Flash · 14 items extracted · 12 matched</span>
+            <div style={{ marginLeft: "auto", background: "#FEF3C7", color: "#D97706", fontSize:14, fontWeight: 600, padding: "3px 10px", borderRadius: 20, border: "1px solid #FDE68A" }}>2 items need HS Code</div>
           </div>
 
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize:14 }}>
             <thead>
               <tr style={{ background: "#F8FAFC" }}>
                 {["#", "Item Description", "Thai Description", "HS Code", "Qty", "Unit", "FOB/Unit", "Status"].map(h => (
-                  <th key={h} style={{ padding: "9px 14px", textAlign: "left", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: "1px solid #E2E8F0" }}>{h}</th>
+                  <th key={h} style={{ padding: "9px 14px", textAlign: "left", fontSize:13, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: "1px solid #E2E8F0" }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -352,10 +352,10 @@ function NewShipmentPage({ onBack }) {
                 <tr key={i} style={{ borderBottom: "1px solid #F8FAFC", background: row[7] === "MISSING" ? "#FFFBEB" : "transparent" }}>
                   <td style={{ padding: "10px 14px", color: "#94A3B8" }}>{row[0]}</td>
                   <td style={{ padding: "10px 14px", color: "#0F172A", fontWeight: 500 }}>{row[1]}</td>
-                  <td style={{ padding: "10px 14px", color: "#475569", fontSize: 11 }}>{row[2]}</td>
+                  <td style={{ padding: "10px 14px", color: "#475569", fontSize:14 }}>{row[2]}</td>
                   <td style={{ padding: "10px 14px" }}>
                     {row[7] === "MISSING"
-                      ? <input defaultValue="" placeholder="Enter HS Code" style={{ border: "1px solid #FCD34D", borderRadius: 6, padding: "4px 8px", fontSize: 11, width: 100, background: "#FFFBEB" }} />
+                      ? <input defaultValue="" placeholder="Enter HS Code" style={{ border: "1px solid #FCD34D", borderRadius: 6, padding: "4px 8px", fontSize:14, width: 100, background: "#FFFBEB" }} />
                       : <span style={{ fontFamily: "monospace", color: "#1D4ED8", fontWeight: 600 }}>{row[3]}</span>
                     }
                   </td>
@@ -364,7 +364,7 @@ function NewShipmentPage({ onBack }) {
                   <td style={{ padding: "10px 14px", color: "#475569" }}>{row[6]}</td>
                   <td style={{ padding: "10px 14px" }}>
                     <span style={{
-                      padding: "2px 8px", borderRadius: 20, fontSize: 10, fontWeight: 600,
+                      padding: "2px 8px", borderRadius: 20, fontSize:13, fontWeight: 600,
                       background: row[7] === "MATCHED" ? "#F0FDF4" : "#FEF3C7",
                       color: row[7] === "MATCHED" ? "#16A34A" : "#D97706",
                       border: `1px solid ${row[7] === "MATCHED" ? "#BBF7D0" : "#FDE68A"}`
@@ -376,8 +376,8 @@ function NewShipmentPage({ onBack }) {
           </table>
 
           <div style={{ padding: "16px 20px", borderTop: "1px solid #F1F5F9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <button onClick={() => setStep(1)} style={{ background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "9px 18px", cursor: "pointer", fontSize: 13, color: "#64748B" }}>← Back</button>
-            <button onClick={() => setStep(3)} style={{ background: "#0EA5E9", color: "#fff", border: "none", borderRadius: 8, padding: "9px 24px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+            <button onClick={() => setStep(1)} style={{ background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "9px 18px", cursor: "pointer", fontSize:15, color: "#64748B" }}>← Back</button>
+            <button onClick={() => setStep(3)} style={{ background: "#0EA5E9", color: "#fff", border: "none", borderRadius: 8, padding: "9px 24px", fontSize:15, fontWeight: 600, cursor: "pointer" }}>
               Generate Declaration →
             </button>
           </div>
@@ -388,7 +388,7 @@ function NewShipmentPage({ onBack }) {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
           {/* Declaration Form */}
           <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #E2E8F0", padding: "20px" }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid #F1F5F9" }}>
+            <div style={{ fontSize:16, fontWeight: 700, color: "#0F172A", marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid #F1F5F9" }}>
               ใบขนสินค้าขาออก A008-1
             </div>
             {[
@@ -404,8 +404,8 @@ function NewShipmentPage({ onBack }) {
               ["Incoterms", "FOB"],
             ].map(([label, val], i) => (
               <div key={i} style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 8, marginBottom: 10, alignItems: "center" }}>
-                <label style={{ fontSize: 11, color: "#94A3B8", fontWeight: 600 }}>{label}</label>
-                <input defaultValue={val} style={{ border: "1px solid #E2E8F0", borderRadius: 6, padding: "6px 10px", fontSize: 12, color: "#0F172A", background: "#F8FAFC" }} />
+                <label style={{ fontSize:14, color: "#94A3B8", fontWeight: 600 }}>{label}</label>
+                <input defaultValue={val} style={{ border: "1px solid #E2E8F0", borderRadius: 6, padding: "6px 10px", fontSize:14, color: "#0F172A", background: "#F8FAFC" }} />
               </div>
             ))}
           </div>
@@ -413,7 +413,7 @@ function NewShipmentPage({ onBack }) {
           {/* Submit panel */}
           <div>
             <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #E2E8F0", padding: "20px", marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", marginBottom: 16 }}>Submit Options</div>
+              <div style={{ fontSize:16, fontWeight: 700, color: "#0F172A", marginBottom: 16 }}>Submit Options</div>
               {[
                 { icon: "⊙", title: "Submit via NSW Thailand", desc: "National Single Window API — Recommended", color: "#0EA5E9", check: true },
                 { icon: "⊡", title: "Submit via Customs Portal", desc: "Playwright automation — Direct submission", color: "#8B5CF6", check: false },
@@ -425,24 +425,24 @@ function NewShipmentPage({ onBack }) {
                   border: opt.check ? `2px solid ${opt.color}` : "1px solid #E2E8F0",
                   background: opt.check ? `${opt.color}08` : "#fff"
                 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: `${opt.color}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>{opt.icon}</div>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: `${opt.color}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize:18, flexShrink: 0 }}>{opt.icon}</div>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A" }}>{opt.title}</div>
-                    <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 2 }}>{opt.desc}</div>
+                    <div style={{ fontSize:15, fontWeight: 600, color: "#0F172A" }}>{opt.title}</div>
+                    <div style={{ fontSize:14, color: "#94A3B8", marginTop: 2 }}>{opt.desc}</div>
                   </div>
                 </div>
               ))}
             </div>
 
             <div style={{ background: "#F0FDF4", borderRadius: 12, border: "1px solid #BBF7D0", padding: "16px" }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#15803D", marginBottom: 8 }}>✓ Ready to Submit</div>
-              <div style={{ fontSize: 12, color: "#16A34A" }}>14 items · 12 HS codes verified · 2 manually confirmed</div>
-              <div style={{ fontSize: 11, color: "#4ADE80", marginTop: 4 }}>Exchange rate fetched from BoT API · 35.75 THB/USD</div>
+              <div style={{ fontSize:15, fontWeight: 700, color: "#15803D", marginBottom: 8 }}>✓ Ready to Submit</div>
+              <div style={{ fontSize:14, color: "#16A34A" }}>14 items · 12 HS codes verified · 2 manually confirmed</div>
+              <div style={{ fontSize:14, color: "#4ADE80", marginTop: 4 }}>Exchange rate fetched from BoT API · 35.75 THB/USD</div>
             </div>
 
             <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
-              <button onClick={() => setStep(2)} style={{ flex: 1, background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "11px", cursor: "pointer", fontSize: 13, color: "#64748B" }}>← Back</button>
-              <button style={{ flex: 2, background: "linear-gradient(135deg,#0EA5E9,#0284C7)", color: "#fff", border: "none", borderRadius: 8, padding: "11px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+              <button onClick={() => setStep(2)} style={{ flex: 1, background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "11px", cursor: "pointer", fontSize:15, color: "#64748B" }}>← Back</button>
+              <button style={{ flex: 2, background: "linear-gradient(135deg,#0EA5E9,#0284C7)", color: "#fff", border: "none", borderRadius: 8, padding: "11px", fontSize:15, fontWeight: 700, cursor: "pointer" }}>
                 Submit to NSW →
               </button>
             </div>
@@ -457,21 +457,21 @@ function NSWTrackingPage() {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: "#0F172A", margin: 0 }}>NSW Tracking</h1>
-        <p style={{ color: "#64748B", fontSize: 13, margin: "4px 0 0" }}>Real-time submission status — NSW Thailand Integration</p>
+        <h1 style={{ fontSize:24, fontWeight: 700, color: "#0F172A", margin: 0 }}>NSW Tracking</h1>
+        <p style={{ color: "#64748B", fontSize:15, margin: "4px 0 0" }}>Real-time submission status — NSW Thailand Integration</p>
       </div>
 
       {/* NSW connection status */}
       <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #E2E8F0", padding: "20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 20 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#22C55E", boxShadow: "0 0 8px #22C55E" }} />
-          <span style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>NSW API Connected</span>
+          <span style={{ fontSize:16, fontWeight: 700, color: "#0F172A" }}>NSW API Connected</span>
         </div>
-        <div style={{ fontSize: 12, color: "#94A3B8" }}>|</div>
-        <div style={{ fontSize: 12, color: "#475569" }}>กรมศุลกากร Portal: <span style={{ color: "#22C55E", fontWeight: 600 }}>Online</span></div>
-        <div style={{ fontSize: 12, color: "#94A3B8" }}>|</div>
-        <div style={{ fontSize: 12, color: "#475569" }}>BoT Exchange Rate: <span style={{ color: "#0EA5E9", fontWeight: 600 }}>35.75 THB/USD</span></div>
-        <div style={{ marginLeft: "auto", fontSize: 11, color: "#94A3B8" }}>Last sync: 5 min ago</div>
+        <div style={{ fontSize:14, color: "#94A3B8" }}>|</div>
+        <div style={{ fontSize:14, color: "#475569" }}>กรมศุลกากร Portal: <span style={{ color: "#22C55E", fontWeight: 600 }}>Online</span></div>
+        <div style={{ fontSize:14, color: "#94A3B8" }}>|</div>
+        <div style={{ fontSize:14, color: "#475569" }}>BoT Exchange Rate: <span style={{ color: "#0EA5E9", fontWeight: 600 }}>35.75 THB/USD</span></div>
+        <div style={{ marginLeft: "auto", fontSize:14, color: "#94A3B8" }}>Last sync: 5 min ago</div>
       </div>
 
       {/* Tracking timeline */}
@@ -492,8 +492,8 @@ function NSWTrackingPage() {
         <div key={ji} style={{ background: "#fff", borderRadius: 12, border: "1px solid #E2E8F0", overflow: "hidden" }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid #F1F5F9", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#F8FAFC" }}>
             <div>
-              <span style={{ fontFamily: "monospace", fontWeight: 700, color: "#0F172A", fontSize: 14 }}>{job.id}</span>
-              <span style={{ marginLeft: 12, fontSize: 12, color: "#94A3B8" }}>{job.factory} · {job.fob}</span>
+              <span style={{ fontFamily: "monospace", fontWeight: 700, color: "#0F172A", fontSize:16 }}>{job.id}</span>
+              <span style={{ marginLeft: 12, fontSize:14, color: "#94A3B8" }}>{job.factory} · {job.fob}</span>
             </div>
             <StatusBadge status="NSW_PROCESSING" />
           </div>
@@ -505,17 +505,17 @@ function NSWTrackingPage() {
                     width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
                     background: t.status === "done" ? "#22C55E" : t.status === "active" ? "#0EA5E9" : "#E2E8F0",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 10, color: "#fff", fontWeight: 700,
+                    fontSize:13, color: "#fff", fontWeight: 700,
                     border: t.status === "active" ? "2px solid #7DD3FC" : "none"
                   }}>{t.status === "done" ? "✓" : t.status === "active" ? "●" : ""}</div>
                   {ti < job.timeline.length - 1 && <div style={{ width: 2, flex: 1, minHeight: 12, background: t.status === "done" ? "#BBF7D0" : "#E2E8F0", margin: "2px 0" }} />}
                 </div>
                 <div style={{ paddingBottom: 10 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 2 }}>
-                    <span style={{ fontSize: 13, fontWeight: t.status === "active" ? 700 : 500, color: t.status === "pending" ? "#94A3B8" : "#0F172A" }}>{t.step}</span>
-                    <span style={{ fontSize: 11, color: "#94A3B8" }}>{t.time}</span>
+                    <span style={{ fontSize:15, fontWeight: t.status === "active" ? 700 : 500, color: t.status === "pending" ? "#94A3B8" : "#0F172A" }}>{t.step}</span>
+                    <span style={{ fontSize:14, color: "#94A3B8" }}>{t.time}</span>
                   </div>
-                  {t.detail && <div style={{ fontSize: 11, color: "#94A3B8" }}>{t.detail}</div>}
+                  {t.detail && <div style={{ fontSize:14, color: "#94A3B8" }}>{t.detail}</div>}
                 </div>
               </div>
             ))}
@@ -538,9 +538,9 @@ export default function App() {
       default:
         return (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "50vh", color: "#94A3B8" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🚧</div>
-            <div style={{ fontSize: 16, fontWeight: 600 }}>Coming Soon</div>
-            <div style={{ fontSize: 13, marginTop: 6 }}>This module is under development</div>
+            <div style={{ fontSize:40, marginBottom: 12 }}>🚧</div>
+            <div style={{ fontSize:18, fontWeight: 600 }}>Coming Soon</div>
+            <div style={{ fontSize:15, marginTop: 6 }}>This module is under development</div>
           </div>
         );
     }
