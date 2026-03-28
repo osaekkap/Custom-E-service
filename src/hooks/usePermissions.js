@@ -63,6 +63,8 @@ export function usePermissions() {
     canManageUsers:       [...NKTECH_ADMIN, 'CUSTOMER_ADMIN'].includes(role),
     canEditCompanySettings: [...NKTECH_ADMIN, 'CUSTOMER_ADMIN'].includes(role),
     canViewCompanySettings: [...NKTECH_MANAGER_UP, 'CUSTOMER_ADMIN'].includes(role),
+    /** Security tab — NKTech admins see all audit logs; CUSTOMER_ADMIN sees their own company */
+    canViewSecurity:      [...NKTECH_ADMIN, 'CUSTOMER_ADMIN'].includes(role),
 
     // ─── Super Admin Console ─────────────────────────────────────
     canViewSuperAdmin: role === 'SUPER_ADMIN',

@@ -28,7 +28,14 @@ export class AuditController {
    * TENANT_ADMIN → ดู log ของบริษัทตัวเอง
    * SUPER_ADMIN   → ดู log ทั้งหมด
    */
-  @Roles(Role.TENANT_ADMIN, Role.SUPER_ADMIN, Role.USER)
+  @Roles(
+    Role.SUPER_ADMIN,
+    Role.TENANT_ADMIN,
+    Role.MANAGER,
+    Role.STAFF,
+    Role.USER,
+    Role.CUSTOMER_ADMIN,
+  )
   @Get()
   getLogs(
     @Request() req: { user: RequestUser },
@@ -36,14 +43,17 @@ export class AuditController {
   ) {
     const { limit = 100, skip = 0 } = query;
 
+    // SUPER_ADMIN → all logs
     if (req.user.role === Role.SUPER_ADMIN) {
       return this.auditService.findAll(limit, skip);
     }
 
+    // Factory users (CUSTOMER_ADMIN etc.) with customerId → their company's logs
     if (req.user.customerId) {
       return this.auditService.findByCustomer(req.user.customerId, limit, skip);
     }
 
+    // Internal NKTech staff without customerId → their own actions only
     return this.auditService.findByActor(req.user.userId, limit, skip);
   }
 }
