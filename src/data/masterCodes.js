@@ -168,6 +168,66 @@ export const PACKAGE_TYPES = [
   { code:"NE", name:"Unpacked/Unpackaged",      nameTh:"ไม่บรรจุหีบห่อ" },
 ];
 
+// ─── Customs Port Codes (ด่านศุลกากร) ──────────────────────────
+export const CUSTOMS_PORTS = [
+  { code:"0100", name:"Bangkok Port (Klong Toey)", nameTh:"ด่านศุลกากรท่าเรือกรุงเทพ" },
+  { code:"0109", name:"Bangkok Airport",           nameTh:"ด่านศุลกากรท่าอากาศยานกรุงเทพ" },
+  { code:"0110", name:"Suvarnabhumi Airport",      nameTh:"ด่านศุลกากรท่าอากาศยานสุวรรณภูมิ" },
+  { code:"0200", name:"Laem Chabang",              nameTh:"ด่านศุลกากรแหลมฉบัง" },
+  { code:"0201", name:"Sri Racha",                 nameTh:"ด่านศุลกากรศรีราชา" },
+  { code:"0300", name:"Map Ta Phut",               nameTh:"ด่านศุลกากรมาบตาพุด" },
+  { code:"0400", name:"Songkhla",                  nameTh:"ด่านศุลกากรสงขลา" },
+  { code:"0500", name:"Sadao",                     nameTh:"ด่านศุลกากรสะเดา" },
+  { code:"0600", name:"Chiang Mai",                nameTh:"ด่านศุลกากรเชียงใหม่" },
+  { code:"0700", name:"Chiang Saen",               nameTh:"ด่านศุลกากรเชียงแสน" },
+  { code:"0800", name:"Nong Khai",                 nameTh:"ด่านศุลกากรหนองคาย" },
+  { code:"0900", name:"Mukdahan",                  nameTh:"ด่านศุลกากรมุกดาหาร" },
+  { code:"1000", name:"Nakhon Phanom",             nameTh:"ด่านศุลกากรนครพนม" },
+  { code:"1100", name:"Aranyaprathet",             nameTh:"ด่านศุลกากรอรัญประเทศ" },
+  { code:"1200", name:"Phuket",                    nameTh:"ด่านศุลกากรภูเก็ต" },
+  { code:"1300", name:"Surat Thani",               nameTh:"ด่านศุลกากรสุราษฎร์ธานี" },
+  { code:"1400", name:"Ranong",                    nameTh:"ด่านศุลกากรระนอง" },
+  { code:"1500", name:"Don Mueang Airport",        nameTh:"ด่านศุลกากรท่าอากาศยานดอนเมือง" },
+];
+
+// ─── Cargo Type Codes (ประเภทสินค้า — XSD Seq.19) ──────────────
+export const CARGO_TYPES = [
+  { code:"1", name:"General Cargo",       nameTh:"สินค้าทั่วไป" },
+  { code:"2", name:"Container Cargo",     nameTh:"สินค้าตู้คอนเทนเนอร์" },
+  { code:"3", name:"Bulk Cargo",          nameTh:"สินค้าเทกอง" },
+  { code:"4", name:"Liquid Bulk",         nameTh:"สินค้าเหลวเทกอง" },
+  { code:"5", name:"Ro-Ro",              nameTh:"สินค้า Ro-Ro" },
+  { code:"9", name:"Others",             nameTh:"อื่น ๆ" },
+];
+
+// ─── Incoterms (International Commercial Terms 2020) ────────────
+export const INCOTERMS = [
+  { code:"EXW", name:"Ex Works",                      group:"E" },
+  { code:"FCA", name:"Free Carrier",                  group:"F" },
+  { code:"FAS", name:"Free Alongside Ship",           group:"F" },
+  { code:"FOB", name:"Free on Board",                 group:"F" },
+  { code:"CFR", name:"Cost and Freight",              group:"C" },
+  { code:"CIF", name:"Cost, Insurance and Freight",   group:"C" },
+  { code:"CPT", name:"Carriage Paid To",              group:"C" },
+  { code:"CIP", name:"Carriage and Insurance Paid To",group:"C" },
+  { code:"DAP", name:"Delivered at Place",            group:"D" },
+  { code:"DPU", name:"Delivered at Place Unloaded",   group:"D" },
+  { code:"DDP", name:"Delivered Duty Paid",           group:"D" },
+];
+
+// ─── Nature of Transaction (ลักษณะธุรกรรม — กรมศุลกากร) ────────
+export const NATURE_OF_TRANSACTION = [
+  { code:"1", name:"Outright sale/purchase",      nameTh:"ซื้อขายขาด" },
+  { code:"2", name:"Return of goods",             nameTh:"ส่งคืนสินค้า" },
+  { code:"3", name:"Free of charge",              nameTh:"ไม่มีค่าตอบแทน" },
+  { code:"4", name:"Temporary export/import",     nameTh:"ส่งออก/นำเข้าชั่วคราว" },
+  { code:"5", name:"Processing/repair",           nameTh:"แปรรูป/ซ่อมแซม" },
+  { code:"6", name:"After processing/repair",     nameTh:"หลังแปรรูป/ซ่อมแซม" },
+  { code:"7", name:"Government/military",         nameTh:"รัฐบาล/กองทัพ" },
+  { code:"8", name:"Financial leasing",           nameTh:"สัญญาเช่าทางการเงิน" },
+  { code:"9", name:"Others",                      nameTh:"อื่น ๆ" },
+];
+
 // ─── Privilege Types (BOI / IEAT / Free Zone) ───────────────────
 export const PRIVILEGE_TYPES = [
   { code:"BOI",      name:"Board of Investment",      nameTh:"คณะกรรมการส่งเสริมการลงทุน (BOI)" },

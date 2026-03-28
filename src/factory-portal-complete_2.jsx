@@ -11,6 +11,7 @@ import CustomerDashboard from "./CustomerDashboard.jsx";
 import FinanceDashboard from "./FinanceDashboard.jsx";
 import SuperAdminConsole from "./super-admin-console.jsx";
 import { usePermissions } from "./hooks/usePermissions.js";
+import ManualDeclarationForm from "./components/ManualDeclarationForm.jsx";
 
 // ─── Constants ────────────────────────────────────────────────────
 const STATUS = {
@@ -954,6 +955,7 @@ function ShipmentDetail({ job, onBack }) {
 
 // ─── NEW SHIPMENT WIZARD ──────────────────────────────────────────
 function NewShipment({ onBack, onCreated }) {
+  const [manualMode, setManualMode] = useState(false);
   const [step, setStep] = useState(1);
   const [submitMethod, setSubmitMethod] = useState("nsw");
   const [submitting, setSubmitting] = useState(false);
@@ -1043,6 +1045,17 @@ function NewShipment({ onBack, onCreated }) {
     }
   };
 
+  // ─── Manual mode: render ManualDeclarationForm ──────────
+  if (manualMode) {
+    return (
+      <ManualDeclarationForm
+        onBack={() => setManualMode(false)}
+        onSubmit={(data) => { console.log("Manual declaration data:", data); alert("บันทึกใบขนสำเร็จ (demo)"); onBack(); }}
+        hsMaster={HS_MASTER}
+      />
+    );
+  }
+
   return (
     <div>
       <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:22 }}>
@@ -1052,6 +1065,31 @@ function NewShipment({ onBack, onCreated }) {
           <p style={{ margin:"3px 0 0", fontSize:14, color:TEXT3 }}>ยื่นใบขนสินค้าขาออก · Export declaration wizard</p>
         </div>
       </div>
+
+      {/* Mode selector: AI vs Manual */}
+      <Card style={{ marginBottom:16, padding:"14px 20px" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <div style={{ fontSize:14, fontWeight:600, color:TEXT }}>เลือกวิธีกรอกข้อมูล</div>
+          <div style={{ display:"flex", gap:8 }}>
+            <button onClick={() => setManualMode(false)} style={{
+              padding:"7px 16px", borderRadius:7, fontSize:13, fontWeight:600, cursor:"pointer",
+              background: !manualMode ? "#EFF6FF" : "#fff",
+              border: `1.5px solid ${!manualMode ? BLUE : BORDER}`,
+              color: !manualMode ? BLUE : TEXT2, transition:"all 0.15s",
+            }}>
+              🤖 Extract with AI
+            </button>
+            <button onClick={() => setManualMode(true)} style={{
+              padding:"7px 16px", borderRadius:7, fontSize:13, fontWeight:600, cursor:"pointer",
+              background: manualMode ? "#EFF6FF" : "#fff",
+              border: `1.5px solid ${manualMode ? BLUE : BORDER}`,
+              color: manualMode ? BLUE : TEXT2, transition:"all 0.15s",
+            }}>
+              ✏️ กรอกข้อมูลเอง
+            </button>
+          </div>
+        </div>
+      </Card>
 
       {/* Steps */}
       <Card style={{ marginBottom:22, padding:"16px 24px" }}>

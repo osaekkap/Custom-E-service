@@ -1,156 +1,116 @@
 # Custom-E-service — Master Plan
 
-> Updated: 2026-03-28 (Part 4b-4e Backend Seed ✅)
+> อัปเดต: 2026-03-28 | กำลังทำ: **Phase 5C** (Integration — XML + PDF preview)
 
 ---
 
-## Phase 1–4: Backend Core (Auth, Jobs, Master Data, Docs, NSW, Schema)
+## สรุปสถานะ
 
-| Phase | Module | Status |
-|-------|--------|--------|
-| 1 | Auth (login/register/me) + JwtStrategy + RolesGuard | ✅ |
-| 1 | Customer CRUD (SUPER_ADMIN only) | ✅ |
-| 1 | CustomerUser management (invite/role/remove) | ✅ |
-| 2 | Jobs Module — CRUD + status transitions + audit trail | ✅ |
-| 3 | Master Data (HS Codes, Exporters, Consignees, Privileges) | ✅ |
-| 3 | Export Declaration กศก.101/1 + DeclarationItems + HS verify | ✅ |
-| 3 | Billing (auto-create on COMPLETED + invoice bundling) | ✅ |
-| 4.1 | Document Upload — Supabase Storage | ✅ |
-| 4.1.5 | Schema Update — ExportDeclaration aligned with XSD v4.00 (23 fields) | ✅ |
-| 4.2 | NSW Connector — XML Builder + ebXML SOAP + NswSubmission audit trail | ✅ |
-| 4.3 | Frontend Integration — API layer, AuthContext, Login screen, Jobs list | ✅ |
-
----
-
-## RBAC — Role-Based Access Control
-
-### Roles (8 types — all defined in Prisma + usePermissions)
-
-| Role | Group | Prisma | usePermissions | Nav Filter |
-|------|-------|--------|----------------|------------|
-| SUPER_ADMIN | ระบบ (NKTech) | ✅ | ✅ | ✅ |
-| TENANT_ADMIN | แอดมิน (NKTech) | ✅ | ✅ | ✅ |
-| MANAGER | ผู้บริหาร (NKTech) | ✅ | ✅ | ✅ |
-| STAFF | เจ้าหน้าที่ (NKTech) | ✅ | ✅ | ✅ |
-| CUSTOMER_ADMIN | แอดมินโรงงาน | ✅ | ✅ | ✅ |
-| CUSTOMER | ลูกค้า/โรงงาน | ✅ | ✅ | ✅ |
-| USER | Legacy alias | ✅ | ✅ | ✅ |
-| VIEWER | Read-only | ✅ | ✅ | ✅ |
-
-### Implementation Status
-
-| Layer | File | Status |
-|-------|------|--------|
-| Backend Prisma enum | `backend/prisma/schema.prisma` | ✅ 8 roles |
-| Backend RolesGuard | `backend/src/auth/roles.decorator.ts` | ✅ |
-| Backend Audit scoping | `backend/src/audit/audit.controller.ts` | ✅ role-based log filtering |
-| Frontend permissions hook | `src/hooks/usePermissions.js` | ✅ 20+ permission flags |
-| Frontend nav filtering | `src/factory-portal-complete_2.jsx` | ✅ per-role nav items |
-| Frontend screen guards | `src/factory-portal-complete_2.jsx` | ✅ access denied + read-only |
+| Phase | สิ่งที่ทำ | สถานะ |
+|-------|----------|-------|
+| 1 | Auth, Customer CRUD, User Management | ✅ เสร็จ |
+| 2 | Jobs CRUD + status transitions + audit trail | ✅ เสร็จ |
+| 3 | Master Data, Declaration กศก.101/1, Billing | ✅ เสร็จ |
+| 4 | Document Upload, XSD v4.00 alignment, NSW Connector, Frontend | ✅ เสร็จ |
+| — | RBAC 8 roles (Prisma + usePermissions + nav filter + screen guards) | ✅ เสร็จ |
+| — | UI Redesign (สไตล์ Customs-Edoc-test2, 12 steps) | ✅ เสร็จ |
+| — | Data Plan (mock data + backend seed HHA/DKSH + HS codes 15,913) | ✅ เสร็จ |
+| — | XSD Gap Analysis (ExportDeclaration ครบทุก field ตาม v4.00) | ✅ เสร็จ |
+| **5A** | **ProductMaster + PrivilegeDocument models + APIs + master codes** | ✅ เสร็จ |
+| **5B** | **Frontend — ฟอร์มกรอกใบขนเอง (5 sections)** | ✅ เสร็จ |
+| **5C** | **Integration — XML generation + PDF preview** | ⏳ กำลังทำ |
 
 ---
 
-## UI Redesign (Customs-Edoc-test2 style)
+## Phase 5B: ฟอร์มกรอกใบขนเอง (สิ่งที่ต้องทำ)
 
-| Step | Item | Status |
-|------|------|--------|
-| 1 | Color constants → CSS variables | ✅ |
-| 2 | Google Fonts (Sarabun + DM Sans) | ✅ |
-| 3 | Global CSS (focus ring, scrollbar, grids) | ✅ |
-| 4 | App root div (use global font) | ✅ |
-| 5 | Card border-radius 8px + shadow | ✅ |
-| 6 | Badge border-radius 6px | ✅ |
-| 7 | Input backgrounds white + focus ring | ✅ |
-| 8 | Table row hover | ✅ |
-| 9 | LoginScreen logo color | ✅ |
-| 10 | Sidebar — white, blue accents, nav labels | ✅ |
-| 11 | Btn transitions | ✅ |
-| 12 | Visual QA | ✅ |
+> ลูกค้า (เช่น HDMC/Harley-Davidson) กรอกข้อมูลใบขน กศก.101/1 เอง ไม่ใช้ AI extraction
 
----
-
-## Data Plan — Google Drive Reference Data
-
-### Frontend Mock Data
-
-| Part | Item | File | Status |
-|------|------|------|--------|
-| 1 | Super Admin "All Jobs" (16 jobs, HHA/DKSH tenants) | `src/super-admin-console.jsx` | ✅ |
-| 1 | HHA_DECL_ITEMS (12 items from HHA000406A) | `src/super-admin-console.jsx` | ✅ |
-| 1 | HHA tenant (T006) + DKSH tenant (T007) | `src/super-admin-console.jsx` | ✅ |
-| 2 | HS Code Master — 61 real codes (7 categories) | `src/factory-portal-complete_2.jsx` | ✅ |
-| 3 | Master Codes (Country/Currency/Unit/Port/Transport/Package/Privilege) | `src/data/masterCodes.js` | ✅ |
-
-### Backend Seed
-
-| Part | Item | File | Status |
-|------|------|------|--------|
-| 4a | Seed Super Admin user | `backend/prisma/seed.ts` | ✅ |
-| 4b | Seed HS codes from hscode8digits CSV (15,913 records per customer) | `backend/prisma/seed.ts` | ✅ 24,495 records |
-| 4c | Seed HHA customer + 3 jobs + declaration (12 items from HHA000406A) | `backend/prisma/seed.ts` | ✅ |
-| 4d | Seed DKSH customer + 2 jobs (Import/Export) | `backend/prisma/seed.ts` | ✅ |
-| 4e | Seed Exporters (2), Consignees (5), PrivilegeCodes (3) | `backend/prisma/seed.ts` | ✅ |
-| 4f | Seed Customer Users (4 users: HHA admin+user, DKSH admin+user) | `backend/prisma/seed.ts` | ✅ |
-
----
-
-## XSD Gap Analysis — ExportDeclaration vs XSD v4.00
-
-| Group | Status |
-|-------|--------|
-| Exporter fields (TaxId, Branch, Names, Address) | ✅ Added |
-| Agent/Broker (Branch) | ✅ Added |
-| AuthorisedPerson (ManagerIDCard, ManagerName) | ✅ Added |
-| Transport (CargoTypeCode, VesselName, DepartureDate) | ✅ Added |
-| Bill of Lading (Master, House) | ✅ Added |
-| Package/Weight (ShippingMarks, NetWeight, GrossWeight, Units) | ✅ Added |
-| FOB/Financial (FobForeign, PaymentMethod, GuaranteeMethod) | ✅ Added |
-| NSW/Reference (ReferenceNumber, DocumentType, RegistrationId) | ✅ Added |
-| DeclarationItem fields (all GoodsItem XSD fields) | ✅ Complete |
-
----
-
-## Pending / Future Work
-
-### Priority: High (ต้องทำ)
-
-| # | Item | Notes |
+| # | Task | สถานะ |
 |---|------|-------|
-| — | ~~Backend seed expansion~~ | ✅ Completed 2026-03-28 |
+| B1 | ปุ่ม "กรอกข้อมูลเอง" ใน New Shipment wizard (สลับ AI/Manual) | ✅ |
+| B2 | Section 1: Document Control (ท่าเรือ, ประเทศ, สกุลเงิน, transport, B/L) | ✅ |
+| B3 | Section 2: Exporter & Agent (Tax ID, Branch, Address, Agent, Manager) | ✅ |
+| B4 | Section 3: Invoice & Consignee (Invoice, Incoterms, Consignee, Freight) | ✅ |
+| B5 | Section 4: Shipment Summary (Marks, Packages, Weight, Payment, Guarantee) | ✅ |
+| B6 | Section 5: Line Items table (repeatable, add/remove) | ✅ |
+| B7 | HS Code autocomplete (ค้นจาก HS_MASTER, auto-fill desc/unit/duty) | ✅ |
+| B8 | Product Code field (manual entry) | ✅ |
+| B9 | Privilege flags (6 types) + conditional upload zones + file list | ✅ |
+| B10 | Auto-calculations (FOB/NetWeight/Packages auto-sum) | ✅ |
+| B11 | Mandatory field validation + error summary | ✅ |
 
-### Priority: Medium (แนะนำ)
+### รายละเอียดแต่ละ Section
 
-| # | Item | Notes |
-|---|------|-------|
-| 2 | Approval Workflow | Manager อนุมัติก่อน submit NSW |
-| 3 | Job Assignment | Admin/Staff assign shipment ให้คนรับผิดชอบ |
-| 4 | Customer Notifications | แจ้งลูกค้าเมื่อสถานะ shipment เปลี่ยน |
-| 5 | Staff Alert | เมื่อ Customer submit shipment ใหม่ |
+**Section 1 — Document Control**
+DocType, Release/Load Port, Purchase/Destination Country, Currency + Exchange Rate, Transport Mode, Cargo Type, Vessel Name, Departure Date, Master B/L, House B/L
 
-### Priority: Low (เสริม)
+**Section 2 — Exporter & Agent**
+Exporter lookup (Tax ID → auto-fill), Agent (จาก Customer config → read-only), Clearance Card, Manager ID/Name
 
-| # | Item | Notes |
-|---|------|-------|
-| 6 | Read-only Mode Badge | แสดง "View Only" เมื่อ Manager ดู form |
-| 7 | Customer Portal Simplified Dashboard | Widget เฉพาะลูกค้า |
-| 8 | Move mock data to DB queries | แทน hardcoded arrays ใน frontend |
+**Section 3 — Invoice & Consignee**
+Invoice No/Date, PO Number, Incoterms, Total Amount, Consignee (lookup/new), Freight, Insurance
+
+**Section 4 — Shipment Summary**
+Shipping Marks (multiline), Total Packages + Unit, Net/Gross Weight (auto-sum), Payment Method, Guarantee Method
+
+**Section 5 — Line Items** (ตารางแต่ละรายการ)
+- Product Code (lookup จาก ProductMaster หรือพิมพ์เอง)
+- HS Code (autocomplete → auto-fill stat code, unit, tariff)
+- Description EN/TH, Brand, Origin Country
+- Quantity + Unit, Net/Gross Weight, Unit Price, FOB
+- Privilege Flags (checkbox: BOI/Bond/Bis19/ReExport/FZ/IEAT/Compensation)
+  - เมื่อเลือก → แสดง upload zone + License number + Expiry
+  - ต้องแนบไฟล์อย่างน้อย 1 ไฟล์ต่อ flag (PDF/XLSX/PNG/JPG, max 20MB)
+
+### ไฟล์ที่ต้องสร้าง/แก้ไข (Phase 5B)
+
+| ไฟล์ | สิ่งที่ทำ |
+|------|----------|
+| `src/factory-portal-complete_2.jsx` | เพิ่ม ManualDeclarationForm + ปุ่มกรอกเอง |
+| `src/components/HsCodeLookup.jsx` | ใหม่ — HS code autocomplete |
+| `src/components/LineItemsTable.jsx` | ใหม่ — ตารางรายการสินค้า |
+| `src/components/PrivilegeUpload.jsx` | ใหม่ — upload zone ตามสิทธิประโยชน์ |
 
 ---
 
-## Database Stats (after seed 2026-03-28)
+## Phase 5C: Integration (รอทำหลัง 5B)
 
-| Table | Count |
-|-------|-------|
-| Customers | 5 (THEL, SAPT, MITR + HHA, DKSH) |
-| Profiles | 14 |
-| CustomerUsers | 13 |
-| HS Codes | 24,495 |
-| Exporters | 3 |
-| Consignees | 6 |
-| PrivilegeCodes | 4 |
-| LogisticsJobs | 10 |
-| ExportDeclarations | — |
-| DeclarationItems | 15 |
+| # | Task | สถานะ |
+|---|------|-------|
+| C1 | Form data → ExportDeclaration + DeclarationItems (save to DB) | ❌ |
+| C2 | Generate XML ตาม XSD v4.00 | ❌ |
+| C3 | Preview ใบขน PDF (กศก.101/1) ก่อน submit | ❌ |
+
+---
+
+## Privilege Flags → เอกสารที่ต้องแนบ
+
+| Flag | privilegeType | เอกสารที่ต้องแนบ |
+|------|--------------|-----------------|
+| BOI | `BOI` | บัตรส่งเสริม BOI + ใบอนุญาตนำเข้า/ส่งออก |
+| Bond | `Bond` | สัญญาค้ำประกัน + ใบขนนำเข้าเดิม |
+| Section 19 | `Bis19` | ใบขนนำเข้าเดิม + หลักฐานชำระอากร |
+| Re-export | `ReExport` | ใบขนนำเข้าเดิม + ใบรับรองการนำเข้า |
+| FZ | `FZ` | หนังสืออนุญาตเขตปลอดอากร + บัญชีสินค้า |
+| IEAT | `IEAT` | หนังสืออนุญาต กนอ. + สำเนาสัญญาเช่า |
+| Compensation | `Compensation` | ใบสมัครรับค่าชดเชย + หลักฐานต้นทุน |
+
+---
+
+## งานในอนาคต
+
+| ลำดับ | งาน | Priority |
+|-------|-----|----------|
+| 1 | Approval Workflow (Manager อนุมัติก่อน submit NSW) | 🔴 สูง |
+| 2 | Job Assignment (assign shipment ให้คนรับผิดชอบ) | 🟡 กลาง |
+| 3 | Customer Notifications (แจ้งลูกค้าเมื่อสถานะเปลี่ยน) | 🟡 กลาง |
+| 4 | Staff Alert (แจ้งเมื่อลูกค้า submit shipment ใหม่) | 🟡 กลาง |
+| 5 | Read-only Mode Badge | 🟢 ต่ำ |
+| 6 | Customer Portal Dashboard แบบง่าย | 🟢 ต่ำ |
+| 7 | ย้าย mock data → DB queries จริง | 🟢 ต่ำ |
+
+---
 
 ## Test Accounts
 
@@ -164,34 +124,29 @@
 
 ---
 
-## Data Sources (Google Drive)
+## ไฟล์สำคัญ
 
-| File | Purpose |
-|------|---------|
-| `hscode8digits_ahtnprotocol2022.csv` | HS Code master (15,913 codes) |
-| `ตัวอย่างพิกัด.csv` | สถิติส่งออก (202,908 records) |
-| `HHA (THAILAND) CO., LTD. Update.csv` | Template mock jobs + declaration items (93 items) |
-| `HHA泰国进口清关需求...xlsx` | ตัวอย่าง import case (Invoice + Packing List) |
-| `data-dict-rtc_03_03.xlsx` | Data dictionary — field definitions |
-| `CustomsExportDeclaration_4_00.xsd` | Export Declaration XSD schema |
-| `CustomsResponse_10_00.xsd` | Customs Response XSD schema |
-| `mockup/*.pdf` | Booking, Invoice, Packing, ใบขนสินค้าขาออก |
+| ไฟล์ | หน้าที่ |
+|------|--------|
+| `backend/prisma/schema.prisma` | Database schema (roles, models, enums) |
+| `backend/prisma/seed.ts` | Seed ข้อมูลทดสอบ |
+| `backend/src/products/` | ProductMaster CRUD API |
+| `backend/src/privilege-docs/` | PrivilegeDocument upload/list/delete API |
+| `src/components/ManualDeclarationForm.jsx` | ฟอร์มกรอกใบขน กศก.101/1 (5 sections) |
+| `src/factory-portal-complete_2.jsx` | หน้าหลัก factory portal (nav, screens, RBAC) |
+| `src/super-admin-console.jsx` | Super Admin Console |
+| `src/hooks/usePermissions.js` | Frontend permission hook (20+ flags) |
+| `src/data/masterCodes.js` | Master data (Country/Currency/Unit/Port/Customs/Incoterms) |
 
 ---
 
-## Critical Files Reference
+## ข้อมูลอ้างอิง (Google Drive)
 
-| File | Role |
-|------|------|
-| `backend/prisma/schema.prisma` | Database schema (roles, models, enums) |
-| `backend/prisma/seed.ts` | Database seeding |
-| `backend/src/auth/` | Auth module (JWT, roles, guards) |
-| `backend/src/audit/audit.controller.ts` | Audit log with role-based scoping |
-| `src/factory-portal-complete_2.jsx` | Main factory portal (nav, screens, RBAC) |
-| `src/super-admin-console.jsx` | Super Admin Console (All Jobs, Tenants, Billing) |
-| `src/hooks/usePermissions.js` | Frontend permission hook (20+ flags) |
-| `src/data/masterCodes.js` | Frontend master data (Country/Currency/Unit/Port) |
-| `src/LoginScreen.jsx` | Login page |
-| `src/RegisterScreen.jsx` | Registration page |
-| `src/index.css` | Design system (CSS variables, typography, shadows) |
-| `index.html` | Google Fonts, meta tags |
+| ไฟล์ | ใช้ทำอะไร |
+|------|----------|
+| `hscode8digits_ahtnprotocol2022.csv` | HS Code master (15,913 codes) |
+| `HHA (THAILAND) CO., LTD. Update.csv` | Template mock jobs (93 items) |
+| `CustomsExportDeclaration_4_00.xsd` | Export Declaration XSD schema |
+| `117362_Export_BKKC65357.XML` | ตัวอย่าง XML จริง (HDMC/Harley-Davidson) |
+| `Export Declaration Form.pdf` | ตัวอย่าง กศก.101/1 |
+| `NetBay-ShippingNet*.png` | UI ของ NetBay (Declaration Control + Goods Detail) |

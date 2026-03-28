@@ -14,6 +14,8 @@ import { DocumentsModule } from './documents/documents.module';
 import { AuditModule } from './audit/audit.module';
 import { AuditInterceptor } from './audit/audit.interceptor';
 import { AiModule } from './ai/ai.module';
+import { ProductsModule } from './products/products.module';
+import { PrivilegeDocsModule } from './privilege-docs/privilege-docs.module';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { AiModule } from './ai/ai.module';
     DocumentsModule,
     AuditModule,
     AiModule,
+    ProductsModule,
+    PrivilegeDocsModule,
   ],
   controllers: [AppController],
   providers: [

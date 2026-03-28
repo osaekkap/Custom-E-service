@@ -202,6 +202,8 @@ model Customer {
   hsMasterItems    HsMasterItem[]
   consignees       Consignee[]
   nswSubmissions   NswSubmission[]
+  products         ProductMaster[]
+  privilegeDocuments PrivilegeDocument[]
 
   @@index([taxId])
   @@index([code])
@@ -315,6 +317,55 @@ model Consignee {
   jobs     LogisticsJob[]
 
   @@index([customerId])
+}
+
+// ─── PRODUCT MASTER (per-customer product catalog) ───────────────
+
+model ProductMaster {
+  id            String   @id @default(uuid())
+  customerId    String
+  productCode   String   @db.VarChar(50)
+  descriptionEn String   @db.VarChar(500)
+  descriptionTh String?  @db.VarChar(500)
+  hsCode        String?  @db.VarChar(20)
+  brandName     String?  @db.VarChar(200)
+  originCountry String?  @db.VarChar(5)   // ISO 3166 alpha-2
+  defaultUnit   String?  @db.VarChar(10)  // UN/ECE Rec20 code
+  defaultPrice  Decimal? @db.Decimal(15, 4)
+  defaultCurrency String? @db.VarChar(5)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, productCode])
+  @@index([customerId])
+  @@index([customerId, hsCode])
+}
+
+// ─── PRIVILEGE DOCUMENT (supporting docs for BOI/FZ/IEAT etc.) ──
+
+model PrivilegeDocument {
+  id                String   @id @default(uuid())
+  declarationItemId String?
+  customerId        String
+  privilegeType     String   @db.VarChar(20)  // BOI, IEAT, FZ, 29BIS, REEXPORT, REIMPORT
+  licenseNumber     String?  @db.VarChar(100)
+  expiryDate        DateTime?
+  fileName          String   @db.VarChar(255)
+  fileUrl           String   @db.Text
+  fileSizeKb        Int?
+  mimeType          String?  @db.VarChar(100)
+  uploadedById      String
+  createdAt         DateTime @default(now())
+
+  declarationItem DeclarationItem? @relation(fields: [declarationItemId], references: [id], onDelete: SetNull)
+  customer        Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([declarationItemId])
+  @@index([customerId])
+  @@index([customerId, privilegeType])
 }
 
 // ─── LOGISTICS JOB ────────────────────────────────────────────────
@@ -662,6 +713,7 @@ model DeclarationItem {
   updatedAt DateTime @updatedAt
 
   declaration ExportDeclaration @relation(fields: [declarationId], references: [id], onDelete: Cascade)
+  privilegeDocuments PrivilegeDocument[]
 
   @@index([declarationId])
   @@index([customerId])
