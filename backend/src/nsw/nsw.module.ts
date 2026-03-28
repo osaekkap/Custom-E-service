@@ -8,6 +8,6 @@ import { EbxmlWrapperService } from './ebxml-wrapper.service';
 @Module({
   imports: [PrismaModule, ConfigModule],
   providers: [NswService, XmlBuilderService, EbxmlWrapperService],
-  exports: [NswService],
+  exports: [NswService, XmlBuilderService],
 })
 export class NswModule {}

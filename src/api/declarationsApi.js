@@ -27,4 +27,7 @@ export const declarationsApi = {
 
   getNswStatus: (id) =>
     client.get(`/declarations/${id}/nsw-status`).then((r) => r.data),
+
+  getXmlPreview: (id) =>
+    client.get(`/declarations/${id}/xml-preview`).then((r) => r.data),
 };

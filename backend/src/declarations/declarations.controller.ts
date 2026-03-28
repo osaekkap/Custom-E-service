@@ -8,6 +8,7 @@ import { CreateDeclarationItemDto, UpdateDeclarationItemDto } from './dto/create
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RequestUser } from '../auth/jwt.strategy';
 import { NswService } from '../nsw/nsw.service';
+import { XmlBuilderService } from '../nsw/xml-builder.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller()
@@ -15,6 +16,7 @@ export class DeclarationsController {
   constructor(
     private readonly declarationsService: DeclarationsService,
     private readonly nswService: NswService,
+    private readonly xmlBuilder: XmlBuilderService,
   ) {}
 
   /** GET /jobs/:jobId/declarations */
@@ -64,6 +66,17 @@ export class DeclarationsController {
     @Request() req: { user: RequestUser },
   ) {
     return this.nswService.submit(id, req.user);
+  }
+
+  /** GET /declarations/:id/xml-preview — generate XML without submitting */
+  @Get('declarations/:id/xml-preview')
+  async getXmlPreview(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req: { user: RequestUser },
+  ) {
+    const decl = await this.declarationsService.findOne(id, req.user);
+    const xml = this.xmlBuilder.buildExportDeclaration(decl as any);
+    return { xml };
   }
 
   /** GET /declarations/:id/nsw-status */

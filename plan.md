@@ -1,6 +1,6 @@
 # Custom-E-service — Master Plan
 
-> อัปเดต: 2026-03-28 | กำลังทำ: **Phase 5C** (Integration — XML + PDF preview)
+> อัปเดต: 2026-03-28 | เสร็จ: **Phase 5C** (Integration — XML + PDF preview)
 
 ---
 
@@ -18,7 +18,7 @@
 | — | XSD Gap Analysis (ExportDeclaration ครบทุก field ตาม v4.00) | ✅ เสร็จ |
 | **5A** | **ProductMaster + PrivilegeDocument models + APIs + master codes** | ✅ เสร็จ |
 | **5B** | **Frontend — ฟอร์มกรอกใบขนเอง (5 sections)** | ✅ เสร็จ |
-| **5C** | **Integration — XML generation + PDF preview** | ⏳ กำลังทำ |
+| **5C** | **Integration — XML generation + PDF preview** | ✅ เสร็จ |
 
 ---
 
@@ -78,9 +78,9 @@ Shipping Marks (multiline), Total Packages + Unit, Net/Gross Weight (auto-sum), 
 
 | # | Task | สถานะ |
 |---|------|-------|
-| C1 | Form data → ExportDeclaration + DeclarationItems (save to DB) | ❌ |
-| C2 | Generate XML ตาม XSD v4.00 | ❌ |
-| C3 | Preview ใบขน PDF (กศก.101/1) ก่อน submit | ❌ |
+| C1 | Form data → API สร้าง Job + Declaration + Items (save to DB) | ✅ |
+| C2 | Generate XML ตาม XSD v4.00 + Preview modal | ✅ |
+| C3 | Preview ใบขน PDF (กศก.101/1) ก่อน submit | ✅ |
 
 ---
 

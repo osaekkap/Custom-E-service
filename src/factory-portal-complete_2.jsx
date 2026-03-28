@@ -1050,7 +1050,7 @@ function NewShipment({ onBack, onCreated }) {
     return (
       <ManualDeclarationForm
         onBack={() => setManualMode(false)}
-        onSubmit={(data) => { console.log("Manual declaration data:", data); alert("บันทึกใบขนสำเร็จ (demo)"); onBack(); }}
+        onCreated={(jobId) => { if (onCreated) onCreated(jobId); }}
         hsMaster={HS_MASTER}
       />
     );

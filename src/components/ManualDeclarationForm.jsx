@@ -4,6 +4,8 @@ import {
   PACKAGE_TYPES, CUSTOMS_PORTS, CARGO_TYPES, INCOTERMS,
   NATURE_OF_TRANSACTION, PRIVILEGE_TYPES,
 } from "../data/masterCodes.js";
+import { jobsApi } from "../api/jobsApi.js";
+import { declarationsApi } from "../api/declarationsApi.js";
 
 // ─── Design tokens (same as factory-portal) ─────────────────────
 const W      = "var(--bg-card)";
@@ -142,12 +144,161 @@ function emptyItem(seqNo) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// PDF PREVIEW — กศก.101/1 layout (client-side)
+// ═══════════════════════════════════════════════════════════════
+function DeclarationPdfPreview({ doc, exporter, agent, invoice, shipment, items, totals }) {
+  const cellStyle = { border:"1px solid #000", padding:"4px 6px", fontSize:11, verticalAlign:"top" };
+  const headerCell = { ...cellStyle, background:"#F3F4F6", fontWeight:700, textAlign:"center", fontSize:10 };
+  const portName = (code) => CUSTOMS_PORTS.find(p => p.code === code)?.nameTh || code;
+  const countryName = (code) => COUNTRIES.find(c => c.code === code)?.nameTh || code;
+  const currName = (code) => CURRENCIES.find(c => c.code === code)?.name || code;
+
+  return (
+    <div style={{ background:"#fff", border:"1px solid #999", padding:28, fontFamily:"'Sarabun','TH Sarabun New',sans-serif", fontSize:12, lineHeight:1.4, maxWidth:800, margin:"0 auto" }}>
+      {/* Header */}
+      <div style={{ textAlign:"center", marginBottom:12 }}>
+        <div style={{ fontSize:16, fontWeight:700 }}>ใบขนสินค้าขาออก</div>
+        <div style={{ fontSize:13 }}>EXPORT ENTRY (กศก.101/1)</div>
+        <div style={{ fontSize:11, color:"#666", marginTop:4 }}>CustomsExportDeclaration v4.00</div>
+      </div>
+
+      {/* Section A: Document + Exporter */}
+      <table style={{ width:"100%", borderCollapse:"collapse", marginBottom:8 }}>
+        <tbody>
+          <tr>
+            <td style={headerCell} colSpan={4}>ส่วนที่ 1 — Document Control / ข้อมูลเอกสาร</td>
+          </tr>
+          <tr>
+            <td style={{ ...cellStyle, width:"25%" }}><b>ด่านศุลกากร:</b><br/>{portName(doc.releasePort)}</td>
+            <td style={{ ...cellStyle, width:"25%" }}><b>ท่าเรือรับสินค้า:</b><br/>{portName(doc.loadingPort)}</td>
+            <td style={{ ...cellStyle, width:"25%" }}><b>ประเทศปลายทาง:</b><br/>{countryName(doc.destinationCountry)}</td>
+            <td style={{ ...cellStyle, width:"25%" }}><b>สกุลเงิน:</b><br/>{currName(doc.currency)} (อัตรา: {doc.exchangeRate || "-"})</td>
+          </tr>
+          <tr>
+            <td style={cellStyle}><b>วิธีขนส่ง:</b><br/>{TRANSPORT_MODES.find(t=>t.code===doc.transportMode)?.nameTh || doc.transportMode}</td>
+            <td style={cellStyle}><b>ชื่อยานพาหนะ:</b><br/>{doc.vesselName || "-"}</td>
+            <td style={cellStyle}><b>วันเรือออก:</b><br/>{doc.departureDate || "-"}</td>
+            <td style={cellStyle}><b>B/L:</b><br/>M: {doc.masterBl || "-"} / H: {doc.houseBl || "-"}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      {/* Section B: Exporter + Agent */}
+      <table style={{ width:"100%", borderCollapse:"collapse", marginBottom:8 }}>
+        <tbody>
+          <tr>
+            <td style={headerCell} colSpan={4}>ส่วนที่ 2 — Exporter & Agent / ผู้ส่งออก & ตัวแทน</td>
+          </tr>
+          <tr>
+            <td style={{ ...cellStyle, width:"25%" }}><b>เลขผู้เสียภาษี:</b><br/>{exporter.taxId || "-"}</td>
+            <td style={{ ...cellStyle, width:"25%" }}><b>สาขา:</b><br/>{exporter.branch || "00000"}</td>
+            <td style={{ ...cellStyle, width:"50%" }} colSpan={2}><b>ชื่อผู้ส่งออก:</b><br/>{exporter.nameTh || "-"} ({exporter.nameEn || "-"})</td>
+          </tr>
+          <tr>
+            <td style={cellStyle} colSpan={2}><b>ที่อยู่:</b><br/>{exporter.address || "-"}</td>
+            <td style={cellStyle}><b>บัตรผ่านพิธีการ:</b><br/>{agent.cardNo || "-"}</td>
+            <td style={cellStyle}><b>ชื่อผู้ผ่านพิธีการ:</b><br/>{agent.agentName || "-"}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      {/* Section C: Invoice */}
+      <table style={{ width:"100%", borderCollapse:"collapse", marginBottom:8 }}>
+        <tbody>
+          <tr>
+            <td style={headerCell} colSpan={4}>ส่วนที่ 3 — Invoice & Consignee / ใบกำกับสินค้า</td>
+          </tr>
+          <tr>
+            <td style={{ ...cellStyle, width:"25%" }}><b>เลขที่ Invoice:</b><br/>{invoice.invoiceNo || "-"}</td>
+            <td style={{ ...cellStyle, width:"25%" }}><b>วันที่:</b><br/>{invoice.invoiceDate || "-"}</td>
+            <td style={{ ...cellStyle, width:"25%" }}><b>Incoterms:</b><br/>{invoice.incoterms || "-"}</td>
+            <td style={{ ...cellStyle, width:"25%" }}><b>ผู้ซื้อ:</b><br/>{invoice.consigneeName || "-"}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      {/* Section D: Shipment Summary */}
+      <table style={{ width:"100%", borderCollapse:"collapse", marginBottom:8 }}>
+        <tbody>
+          <tr>
+            <td style={headerCell} colSpan={4}>ส่วนที่ 4 — Shipment Summary / สรุปการจัดส่ง</td>
+          </tr>
+          <tr>
+            <td style={cellStyle}><b>Shipping Marks:</b><br/>{shipment.shippingMarks || "N/M"}</td>
+            <td style={cellStyle}><b>จำนวนหีบห่อ:</b><br/>{shipment.totalPackages ?? totals.totalPkgs} {shipment.packageUnit}</td>
+            <td style={cellStyle}><b>น้ำหนักสุทธิ:</b><br/>{totals.totalNetKg} KGM</td>
+            <td style={cellStyle}><b>FOB รวม:</b><br/>{doc.currency} {totals.totalFob.toLocaleString()}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      {/* Section E: Line Items */}
+      <table style={{ width:"100%", borderCollapse:"collapse" }}>
+        <thead>
+          <tr>
+            <td style={headerCell} colSpan={8}>ส่วนที่ 5 — Line Items / รายการสินค้า ({items.length} รายการ)</td>
+          </tr>
+          <tr>
+            <th style={{ ...headerCell, width:30 }}>ลำดับ</th>
+            <th style={{ ...headerCell, width:80 }}>HS Code</th>
+            <th style={headerCell}>รายละเอียดสินค้า</th>
+            <th style={{ ...headerCell, width:60 }}>จำนวน</th>
+            <th style={{ ...headerCell, width:45 }}>หน่วย</th>
+            <th style={{ ...headerCell, width:65 }}>น.น.สุทธิ</th>
+            <th style={{ ...headerCell, width:80 }}>FOB</th>
+            <th style={{ ...headerCell, width:50 }}>สิทธิ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((it, idx) => (
+            <tr key={idx}>
+              <td style={{ ...cellStyle, textAlign:"center" }}>{it.seqNo}</td>
+              <td style={{ ...cellStyle, fontFamily:"monospace", fontSize:10 }}>{it.hsCode}</td>
+              <td style={cellStyle}>{it.descriptionEn}{it.brandName ? ` [${it.brandName}]` : ""}</td>
+              <td style={{ ...cellStyle, textAlign:"right" }}>{it.quantity ?? "-"}</td>
+              <td style={{ ...cellStyle, textAlign:"center" }}>{it.quantityUnit}</td>
+              <td style={{ ...cellStyle, textAlign:"right" }}>{it.netWeightKg ?? "-"}</td>
+              <td style={{ ...cellStyle, textAlign:"right" }}>{it.fobForeign?.toLocaleString() ?? "-"}</td>
+              <td style={{ ...cellStyle, textAlign:"center", fontSize:9 }}>{it.privilegeFlags?.join(",") || "-"}</td>
+            </tr>
+          ))}
+          <tr>
+            <td colSpan={3} style={{ ...cellStyle, fontWeight:700, textAlign:"right" }}>รวม</td>
+            <td style={{ ...cellStyle, textAlign:"right", fontWeight:700 }}></td>
+            <td style={cellStyle}></td>
+            <td style={{ ...cellStyle, textAlign:"right", fontWeight:700 }}>{totals.totalNetKg}</td>
+            <td style={{ ...cellStyle, textAlign:"right", fontWeight:700 }}>{totals.totalFob.toLocaleString()}</td>
+            <td style={cellStyle}></td>
+          </tr>
+        </tbody>
+      </table>
+
+      {/* Footer */}
+      <div style={{ marginTop:16, display:"flex", justifyContent:"space-between", fontSize:11, color:"#666" }}>
+        <div>ลงชื่อ ________________________ ผู้ส่งออก</div>
+        <div>ลงชื่อ ________________________ ผู้ผ่านพิธีการ</div>
+      </div>
+      <div style={{ marginTop:8, textAlign:"center", fontSize:10, color:"#999" }}>
+        * เอกสารนี้เป็น Preview เท่านั้น — ยังไม่ได้ส่งเข้าระบบ NSW *
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════
 
-export default function ManualDeclarationForm({ onBack, onSubmit, hsMaster = [] }) {
+export default function ManualDeclarationForm({ onBack, onSubmit, onCreated, hsMaster = [] }) {
   const [activeSection, setActiveSection] = useState(1);
   const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [savedDeclarationId, setSavedDeclarationId] = useState(null);
+  const [savedJobId, setSavedJobId] = useState(null);
+  const [xmlPreview, setXmlPreview] = useState(null);
+  const [showXml, setShowXml] = useState(false);
+  const [showPdf, setShowPdf] = useState(false);
 
   // ─── Section 1: Document Control ───────────────────────────
   const [doc, setDoc] = useState({
@@ -279,15 +430,120 @@ export default function ManualDeclarationForm({ onBack, onSubmit, hsMaster = [] 
     return Object.keys(errs).length === 0;
   };
 
-  // ─── Submit ───────────────────────────────────────────────
-  const handleSubmit = () => {
+  // ─── Map form data → API DTOs ────────────────────────────
+  const buildDeclarationDto = () => ({
+    declarationType: doc.declarationType === "WITH_PRIVILEGE" ? "EXPORT_WITH_PRIVILEGE" : "EXPORT",
+    invoiceRef: invoice.invoiceNo || undefined,
+    exporterTaxId: exporter.taxId || undefined,
+    exporterBranch: exporter.branch || "0",
+    exporterNameTh: exporter.nameTh || undefined,
+    exporterNameEn: exporter.nameEn || undefined,
+    exporterAddress: exporter.address || undefined,
+    brokerName: agent.brokerName || undefined,
+    brokerTaxId: agent.brokerTaxId || undefined,
+    agentBranch: agent.agentBranch || "0",
+    agentCardNo: agent.cardNo || undefined,
+    agentName: agent.agentName || undefined,
+    managerIdCard: agent.managerIdCard || undefined,
+    managerName: agent.managerName || undefined,
+    transportMode: ({ "1":"SEA","3":"LAND","4":"AIR","5":"POST" })[doc.transportMode] || "SEA",
+    cargoTypeCode: doc.cargoType || undefined,
+    vesselName: doc.vesselName || undefined,
+    departureDate: doc.departureDate || undefined,
+    portOfReleaseCode: doc.releasePort || undefined,
+    portOfLoadingCode: doc.loadingPort || undefined,
+    soldToCountryCode: doc.purchaseCountry || undefined,
+    destinationCode: doc.destinationCountry || undefined,
+    masterBl: doc.masterBl || undefined,
+    houseBl: doc.houseBl || undefined,
+    totalPackages: shipment.totalPackages ?? (totals.totalPkgs || undefined),
+    shippingMarks: shipment.shippingMarks || undefined,
+    packageUnitCode: shipment.packageUnit || "CT",
+    totalNetWeight: totals.totalNetKg || undefined,
+    netWeightUnit: shipment.netWeightUnit || "KGM",
+    totalGrossWeight: undefined,
+    grossWeightUnit: shipment.grossWeightUnit || "KGM",
+    totalFobForeign: totals.totalFob || undefined,
+    exchangeRate: doc.exchangeRate || undefined,
+    exchangeCurrency: doc.currency || "USD",
+    paymentMethod: shipment.paymentMethod || "D",
+    guaranteeMethod: shipment.guaranteeMethod || "A",
+  });
+
+  const buildItemDto = (it) => ({
+    seqNo: it.seqNo,
+    descriptionEn: it.descriptionEn,
+    descriptionTh: it.descriptionTh || undefined,
+    brandName: it.brandName || undefined,
+    netWeightKg: it.netWeightKg || undefined,
+    quantity: it.quantity,
+    quantityUnit: it.quantityUnit || "C62",
+    hsCode: it.hsCode,
+    statisticsCode: it.statisticsCode || undefined,
+    fobForeign: it.fobForeign || 0,
+    fobCurrency: doc.currency || "USD",
+    privilegeCode: it.privilegeFlags?.length > 0 ? it.privilegeFlags[0] : undefined,
+    dutyRate: it.dutyRate || 0,
+    packageMark: it.packageMark || undefined,
+    packageQty: it.packageQty || undefined,
+    packageType: it.packageType || undefined,
+    exportLicenseNo: it.licenseNumber || undefined,
+    exportLicenseExpiry: it.licenseExpiry || undefined,
+    sourceInvoiceNo: invoice.invoiceNo || undefined,
+    sourceProductCode: it.productCode || undefined,
+  });
+
+  // ─── Submit: Create Job → Declaration → Items ───────────
+  const handleSubmit = async () => {
     if (!validate()) {
-      // scroll to first error section
       setActiveSection(1);
       return;
     }
-    if (onSubmit) {
-      onSubmit({ doc, exporter, agent, invoice, shipment, items, totals });
+    setSaving(true);
+    setSaveError("");
+    try {
+      // 1. Create Job
+      const job = await jobsApi.create({
+        jobType: "EXPORT",
+        transportMode: ({ "1":"SEA","3":"LAND","4":"AIR","5":"POST" })[doc.transportMode] || "SEA",
+        vesselName: doc.vesselName || undefined,
+        portOfLoadingCode: doc.loadingPort || undefined,
+        portOfReleaseCode: doc.releasePort || undefined,
+        currency: doc.currency || "USD",
+      });
+
+      // 2. Create Declaration
+      const declDto = buildDeclarationDto();
+      const decl = await declarationsApi.create(job.id, declDto);
+
+      // 3. Add Items (sequential to preserve seqNo order)
+      for (const it of items) {
+        await declarationsApi.addItem(decl.id, buildItemDto(it));
+      }
+
+      setSavedDeclarationId(decl.id);
+      setSavedJobId(job.id);
+
+      // Callback
+      if (onSubmit) onSubmit({ doc, exporter, agent, invoice, shipment, items, totals, jobId: job.id, declarationId: decl.id });
+      if (onCreated) onCreated(job.id);
+    } catch (err) {
+      console.error("Save failed:", err);
+      setSaveError(err?.response?.data?.message || err.message || "บันทึกไม่สำเร็จ");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ─── Load XML preview ──────────────────────────────────
+  const handleXmlPreview = async () => {
+    if (!savedDeclarationId) return;
+    try {
+      const { xml } = await declarationsApi.getXmlPreview(savedDeclarationId);
+      setXmlPreview(xml);
+      setShowXml(true);
+    } catch (err) {
+      alert("โหลด XML ไม่สำเร็จ: " + (err?.response?.data?.message || err.message));
     }
   };
 
@@ -762,6 +1018,79 @@ export default function ManualDeclarationForm({ onBack, onSubmit, hsMaster = [] 
         </div>
       )}
 
+      {/* ═══════════ Save error ═══════════ */}
+      {saveError && (
+        <Card style={{ marginTop:14, padding:"12px 20px", borderColor:"#FECACA", background:"#FEF2F2" }}>
+          <div style={{ fontSize:14, color:"#DC2626", fontWeight:600 }}>เกิดข้อผิดพลาด: {saveError}</div>
+        </Card>
+      )}
+
+      {/* ═══════════ Success panel (after save) ═══════════ */}
+      {savedDeclarationId && (
+        <Card style={{ marginTop:14, padding:"16px 20px", borderColor:"#BBF7D0", background:"#F0FDF4" }}>
+          <div style={{ fontSize:15, fontWeight:700, color:"#16A34A", marginBottom:8 }}>
+            บันทึกใบขนสำเร็จ
+          </div>
+          <div style={{ fontSize:13, color:TEXT2, marginBottom:12 }}>
+            Declaration ID: <code style={{ background:"#F3F4F6", padding:"2px 6px", borderRadius:4 }}>{savedDeclarationId}</code>
+          </div>
+          <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+            <Btn onClick={handleXmlPreview}>Preview XML</Btn>
+            <Btn variant="secondary" onClick={() => setShowPdf(true)}>Preview PDF กศก.101/1</Btn>
+            <Btn variant="ghost" onClick={onBack}>← กลับหน้าหลัก</Btn>
+          </div>
+        </Card>
+      )}
+
+      {/* ═══════════ XML Preview Modal ═══════════ */}
+      {showXml && xmlPreview && (
+        <div style={{ position:"fixed", inset:0, zIndex:9999, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center" }}
+          onClick={() => setShowXml(false)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background:"#fff", borderRadius:12, width:"90%", maxWidth:900, maxHeight:"85vh",
+            display:"flex", flexDirection:"column", boxShadow:"0 20px 60px rgba(0,0,0,0.3)",
+          }}>
+            <div style={{ padding:"14px 20px", borderBottom:`1px solid ${BORDER}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <div style={{ fontSize:16, fontWeight:700, color:TEXT }}>XML Preview — CustomsExportDeclaration v4.00</div>
+              <div style={{ display:"flex", gap:8 }}>
+                <Btn variant="secondary" onClick={() => { navigator.clipboard.writeText(xmlPreview); alert("Copied!"); }} style={{ fontSize:12, padding:"4px 10px" }}>Copy</Btn>
+                <Btn variant="secondary" onClick={() => {
+                  const blob = new Blob([xmlPreview], { type:"application/xml" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a"); a.href = url; a.download = `declaration_${savedDeclarationId}.xml`; a.click();
+                  URL.revokeObjectURL(url);
+                }} style={{ fontSize:12, padding:"4px 10px" }}>Download .xml</Btn>
+                <button onClick={() => setShowXml(false)} style={{ background:"none", border:"none", fontSize:20, cursor:"pointer", color:TEXT2 }}>×</button>
+              </div>
+            </div>
+            <pre style={{
+              flex:1, overflow:"auto", margin:0, padding:20, fontSize:12, lineHeight:1.5,
+              fontFamily:"'Consolas','Monaco','Courier New',monospace", background:"#1E293B", color:"#E2E8F0",
+              borderRadius:"0 0 12px 12px", whiteSpace:"pre-wrap", wordBreak:"break-all",
+            }}>{xmlPreview}</pre>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════ PDF Preview Modal (กศก.101/1) ═══════════ */}
+      {showPdf && savedDeclarationId && (
+        <div style={{ position:"fixed", inset:0, zIndex:9999, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center" }}
+          onClick={() => setShowPdf(false)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background:"#fff", borderRadius:12, width:"90%", maxWidth:900, maxHeight:"90vh",
+            display:"flex", flexDirection:"column", boxShadow:"0 20px 60px rgba(0,0,0,0.3)",
+          }}>
+            <div style={{ padding:"14px 20px", borderBottom:`1px solid ${BORDER}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <div style={{ fontSize:16, fontWeight:700, color:TEXT }}>ใบขนสินค้าขาออก กศก.101/1 — Preview</div>
+              <button onClick={() => setShowPdf(false)} style={{ background:"none", border:"none", fontSize:20, cursor:"pointer", color:TEXT2 }}>×</button>
+            </div>
+            <div style={{ flex:1, overflow:"auto", padding:24, background:"#F3F4F6" }}>
+              <DeclarationPdfPreview doc={doc} exporter={exporter} agent={agent} invoice={invoice} shipment={shipment} items={items} totals={totals} />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ═══════════ Bottom bar ═══════════ */}
       <div style={{ marginTop:22, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
         <div style={{ display:"flex", gap:8 }}>
@@ -772,11 +1101,11 @@ export default function ManualDeclarationForm({ onBack, onSubmit, hsMaster = [] 
         <div style={{ display:"flex", gap:8 }}>
           {activeSection < 5 ? (
             <Btn onClick={() => setActiveSection(s => s + 1)}>ถัดไป →</Btn>
-          ) : (
-            <Btn onClick={handleSubmit} style={{ minWidth:180, padding:"10px 24px" }}>
-              ✓ บันทึกใบขน
+          ) : !savedDeclarationId ? (
+            <Btn onClick={handleSubmit} disabled={saving} style={{ minWidth:180, padding:"10px 24px" }}>
+              {saving ? "กำลังบันทึก..." : "✓ บันทึกใบขน"}
             </Btn>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
