@@ -549,8 +549,8 @@ export default function ManualDeclarationForm({ onBack, onSubmit, onCreated, hsM
 
   // ─── Section nav ──────────────────────────────────────────
   const sections = [
-    { n:1, title:"Document Control", icon:"📋" },
-    { n:2, title:"Exporter & Agent", icon:"🏢" },
+    { n:1, title:"Exporter & Agent", icon:"🏢" },
+    { n:2, title:"Document Control", icon:"📋" },
     { n:3, title:"Invoice & Consignee", icon:"📄" },
     { n:4, title:"Shipment Summary", icon:"📦" },
     { n:5, title:"Line Items", icon:"📝" },
@@ -592,10 +592,10 @@ export default function ManualDeclarationForm({ onBack, onSubmit, onCreated, hsM
         </div>
       )}
 
-      {/* ═══════════ Section 1: Document Control ═══════════ */}
-      {activeSection === 1 && (
+      {/* ═══════════ Section 2: Document Control ═══════════ */}
+      {activeSection === 2 && (
         <Card>
-          <SectionTitle number={1} title="Document Control — ข้อมูลเอกสาร" icon="📋" />
+          <SectionTitle number={2} title="Document Control — ข้อมูลเอกสาร" icon="📋" />
           <div style={{ padding:20 }}>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:14, marginBottom:16 }}>
               <Field label="ประเภทใบขน" required>
@@ -658,10 +658,10 @@ export default function ManualDeclarationForm({ onBack, onSubmit, onCreated, hsM
         </Card>
       )}
 
-      {/* ═══════════ Section 2: Exporter & Agent ═══════════ */}
-      {activeSection === 2 && (
+      {/* ═══════════ Section 1: Exporter & Agent ═══════════ */}
+      {activeSection === 1 && (
         <Card>
-          <SectionTitle number={2} title="Exporter & Agent — ผู้ส่งออกและตัวแทน" icon="🏢" />
+          <SectionTitle number={1} title="Exporter & Agent — ผู้ส่งออกและตัวแทน" icon="🏢" />
           <div style={{ padding:20 }}>
             {/* Exporter */}
             <div style={{ fontSize:14, fontWeight:700, color:TEXT, marginBottom:10, paddingBottom:6, borderBottom:`1px solid ${BORDER2}` }}>
@@ -955,7 +955,7 @@ export default function ManualDeclarationForm({ onBack, onSubmit, onCreated, hsM
                       <div style={{ marginTop:8, padding:12, background:"#fff", border:`1px solid ${BORDER}`, borderRadius:8 }}>
                         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:10 }}>
                           <Field label="เลขที่ใบอนุญาต">
-                            <TextInput value={item.licenseNumber} onChange={v => updateItem(idx,"licenseNumber",v)} placeholder="BOI-001/2026" maxLength={100} />
+                            <TextInput value={item.licenseNumber} onChange={v => updateItem(idx,"licenseNumber",v)} placeholder={`${item.privilegeFlags[0] || "LIC"}-001/2026`} maxLength={100} />
                           </Field>
                           <Field label="วันหมดอายุ">
                             <DateInput value={item.licenseExpiry} onChange={v => updateItem(idx,"licenseExpiry",v)} />
