@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "./stores/AuthContext.jsx";
 import LoginScreen from "./LoginScreen.jsx";
 import RegisterScreen from "./RegisterScreen.jsx";
+import LandingPage from "./LandingPage.jsx";
 import { jobsApi } from "./api/jobsApi.js";
 import { customerApi } from "./api/customerApi.js";
 import { auditApi } from "./api/auditApi.js";
@@ -12,6 +13,7 @@ import FinanceDashboard from "./FinanceDashboard.jsx";
 import SuperAdminConsole from "./super-admin-console.jsx";
 import { usePermissions } from "./hooks/usePermissions.js";
 import ManualDeclarationForm from "./components/ManualDeclarationForm.jsx";
+import NotificationBell from "./components/NotificationBell.jsx";
 
 // ─── Constants ────────────────────────────────────────────────────
 const STATUS = {
@@ -207,6 +209,41 @@ function Tag({ label, color="#0EA5E9" }) {
   );
 }
 
+// ─── Approval Badge ───────────────────────────────────────────────
+const APPROVAL = {
+  NONE:     { label:"—",          color:"#94A3B8", bg:"transparent", border:"transparent" },
+  PENDING:  { label:"รออนุมัติ",  color:"#D97706", bg:"#FFFBEB",     border:"#FDE68A" },
+  APPROVED: { label:"อนุมัติแล้ว", color:"#16A34A", bg:"#F0FDF4",     border:"#BBF7D0" },
+  REJECTED: { label:"ถูกปฏิเสธ",  color:"#DC2626", bg:"#FEF2F2",     border:"#FECACA" },
+};
+
+function ApprovalBadge({ status }) {
+  const s = APPROVAL[status] || APPROVAL.NONE;
+  if (status === "NONE") return <span style={{ color:"#94A3B8", fontSize:13 }}>—</span>;
+  return (
+    <span style={{
+      display:"inline-block", padding:"2px 9px", borderRadius:6,
+      fontSize:13, fontWeight:700, letterSpacing:"0.4px",
+      color:s.color, background:s.bg, border:`1px solid ${s.border}`,
+    }}>{s.label}</span>
+  );
+}
+
+// ─── Read-only Banner (D1) ────────────────────────────────────────
+function ReadOnlyBanner() {
+  return (
+    <div style={{
+      background:"#FFFBEB", border:"1px solid #FDE68A", borderRadius:8,
+      padding:"10px 20px", marginBottom:16, display:"flex", alignItems:"center", gap:10,
+    }}>
+      <span style={{ fontSize:18 }}>🔒</span>
+      <span style={{ fontSize:14, fontWeight:600, color:"#92400E" }}>
+        โหมดอ่านอย่างเดียว — บัญชีของคุณไม่สามารถแก้ไขข้อมูลในหน้านี้ได้
+      </span>
+    </div>
+  );
+}
+
 // ─── Role badge helper ─────────────────────────────────────────────
 function RoleBadge({ role }) {
   const map = {
@@ -273,10 +310,11 @@ function Sidebar({ active, onNav }) {
           background:BLUE, display:"flex", alignItems:"center",
           justifyContent:"center", fontSize:20, color:"#fff", flexShrink:0,
         }}>⚓</div>
-        <div>
+        <div style={{ flex:1 }}>
           <div style={{ fontSize:14, fontWeight:800, letterSpacing:"0.05em", color:BLUE, fontFamily:MONO }}>CUSTOMS-EDOC</div>
           <div style={{ fontSize:13, color:TEXT3 }}>Factory Portal</div>
         </div>
+        <NotificationBell />
       </div>
 
       {/* Company info */}
@@ -648,6 +686,13 @@ function mapJob(job) {
     nsw: job.nswRefNo || null,
     consignee: job.consigneeNameEn || "—",
     pod: job.portOfDischarge || job.portOfLoading || "—",
+    // B1: Job Assignment
+    assignedToId: job.assignedToId || null,
+    assignedToName: job.assignedTo?.fullName || job.assignedTo?.email || null,
+    assignedAt: job.assignedAt || null,
+    // B2: Approval Workflow
+    approvalStatus: job.approvalStatus || "NONE",
+    approvalNote: job.approvalNote || null,
     _raw: job,
   };
 }
@@ -692,7 +737,7 @@ function ShipmentList({ onNew, onDetail }) {
         <div className="table-wrapper"><table style={{ width:"100%", borderCollapse:"collapse", fontSize:14 }}>
           <thead>
             <tr style={{ background:BG, borderBottom:`1px solid ${BORDER}` }}>
-              {["Job ID","Type","Vessel","Container","HS Code","FOB","Items","Status","Date",""].map(h => (
+              {["Job ID","Type","Vessel","FOB","Items","ผู้รับผิดชอบ","Approval","Status","Date",""].map(h => (
                 <th key={h} style={{ padding:"9px 16px", textAlign:"left", fontSize:13, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px", whiteSpace:"nowrap" }}>{h}</th>
               ))}
             </tr>
@@ -706,10 +751,15 @@ function ShipmentList({ onNew, onDetail }) {
                 <td style={{ padding:"12px 16px", fontFamily:MONO, fontSize:14, fontWeight:700, color:TEXT }}>{s.id}</td>
                 <td style={{ padding:"12px 16px" }}><Tag label={s.type} color={s.type==="Export"?"#2563EB":"#D97706"}/></td>
                 <td style={{ padding:"12px 16px", color:TEXT2, maxWidth:140, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.vessel}</td>
-                <td style={{ padding:"12px 16px", fontFamily:MONO, fontSize:14, color:TEXT2 }}>{s.container}</td>
-                <td style={{ padding:"12px 16px", fontFamily:MONO, fontSize:14, color:"#2563EB", fontWeight:600 }}>{s.hs}</td>
                 <td style={{ padding:"12px 16px", fontWeight:700, color:TEXT }}>{s.fob}</td>
                 <td style={{ padding:"12px 16px", fontFamily:MONO, color:TEXT2 }}>{s.items||"—"}</td>
+                <td style={{ padding:"12px 16px" }}>
+                  {s.assignedToName
+                    ? <span style={{ fontSize:13, color:TEXT, fontWeight:500 }}>{s.assignedToName}</span>
+                    : <span style={{ fontSize:13, color:TEXT3 }}>—</span>
+                  }
+                </td>
+                <td style={{ padding:"12px 16px" }}><ApprovalBadge status={s.approvalStatus}/></td>
                 <td style={{ padding:"12px 16px" }}><Badge status={s.status}/></td>
                 <td style={{ padding:"12px 16px", color:TEXT3, fontSize:14 }}>{s.date}</td>
                 <td style={{ padding:"12px 16px", color:BLUE, fontSize:14, fontWeight:600 }}>→</td>
@@ -724,8 +774,75 @@ function ShipmentList({ onNew, onDetail }) {
 
 // ─── SHIPMENT DETAIL ──────────────────────────────────────────────
 function ShipmentDetail({ job, onBack }) {
+  const perms = usePermissions();
+  const auth = useContext(AuthContext);
   const [tab, setTab] = useState("overview");
   const tabs = ["overview","items","timeline","documents"];
+
+  // B1: Assignment
+  const [staffList, setStaffList] = useState([]);
+  const [assignLoading, setAssignLoading] = useState(false);
+  const [currentAssigned, setCurrentAssigned] = useState(job.assignedToName || null);
+  const [currentAssignedId, setCurrentAssignedId] = useState(job.assignedToId || "");
+
+  // B2: Approval
+  const [approval, setApproval] = useState(job.approvalStatus || "NONE");
+  const [approvalNote, setApprovalNote] = useState("");
+  const [approvalLoading, setApprovalLoading] = useState(false);
+
+  useEffect(() => {
+    if (perms.canAssignJobs) {
+      jobsApi.listStaff().then(data => {
+        const arr = data?.data ?? (Array.isArray(data) ? data : []);
+        setStaffList(arr);
+      }).catch(() => {});
+    }
+  }, [perms.canAssignJobs]);
+
+  const handleAssign = async (profileId) => {
+    if (!job._id || assignLoading) return;
+    setAssignLoading(true);
+    try {
+      await jobsApi.assign(job._id, profileId);
+      const staff = staffList.find(s => s.id === profileId || s.profileId === profileId);
+      setCurrentAssigned(staff?.fullName || staff?.email || "Assigned");
+      setCurrentAssignedId(profileId);
+    } catch (e) { alert("Assign failed: " + (e?.response?.data?.message || e.message)); }
+    setAssignLoading(false);
+  };
+
+  const handleRequestApproval = async () => {
+    if (!job._id || approvalLoading) return;
+    setApprovalLoading(true);
+    try {
+      await jobsApi.requestApproval(job._id, approvalNote);
+      setApproval("PENDING");
+      setApprovalNote("");
+    } catch (e) { alert("Request failed: " + (e?.response?.data?.message || e.message)); }
+    setApprovalLoading(false);
+  };
+
+  const handleApprove = async () => {
+    if (!job._id || approvalLoading) return;
+    setApprovalLoading(true);
+    try {
+      await jobsApi.approve(job._id, approvalNote);
+      setApproval("APPROVED");
+      setApprovalNote("");
+    } catch (e) { alert("Approve failed: " + (e?.response?.data?.message || e.message)); }
+    setApprovalLoading(false);
+  };
+
+  const handleReject = async () => {
+    if (!job._id || approvalLoading) return;
+    setApprovalLoading(true);
+    try {
+      await jobsApi.reject(job._id, approvalNote);
+      setApproval("REJECTED");
+      setApprovalNote("");
+    } catch (e) { alert("Reject failed: " + (e?.response?.data?.message || e.message)); }
+    setApprovalLoading(false);
+  };
 
   const ITEMS = [
     { seq:1, desc:"Semiconductor IC Controller", thDesc:"วงจรรวมไมโครคอนโทรลเลอร์", hs:"8542.31.10", qty:2000, unit:"pcs", fob:"USD 24.50", total:"USD 49,000", origin:"TH", ok:true },
@@ -850,6 +967,111 @@ function ShipmentDetail({ job, onBack }) {
                 ];
                 downloadCSV(`NETBAY-${job.id}.csv`, [job], cols);
               }}>⬇ Export Netbay CSV</Btn>
+            </div>
+          </Card>
+
+          {/* ── B1: Job Assignment Panel ──────────────────────────── */}
+          {perms.canAssignJobs && (
+            <Card style={{ gridColumn:"1 / -1" }}>
+              <SectionHeader title="ผู้รับผิดชอบ (Job Assignment)" right={<ApprovalBadge status={approval}/>} />
+              <div style={{ padding:"16px 20px", display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <span style={{ fontSize:14, color:TEXT3, fontWeight:600 }}>มอบหมายให้:</span>
+                  <select
+                    value={currentAssignedId}
+                    onChange={e => handleAssign(e.target.value)}
+                    disabled={assignLoading}
+                    style={{
+                      padding:"6px 12px", borderRadius:6, border:`1px solid ${BORDER}`,
+                      fontSize:14, color:TEXT, background:W, cursor:"pointer", minWidth:200,
+                    }}
+                  >
+                    <option value="">— เลือกเจ้าหน้าที่ —</option>
+                    {staffList.map(s => (
+                      <option key={s.id || s.profileId} value={s.id || s.profileId}>
+                        {s.fullName || s.email}
+                      </option>
+                    ))}
+                  </select>
+                  {assignLoading && <span style={{ fontSize:13, color:TEXT3 }}>กำลังบันทึก…</span>}
+                </div>
+                {currentAssigned && (
+                  <span style={{ fontSize:14, color:"#16A34A", fontWeight:600 }}>
+                    ✓ มอบหมายแล้ว: {currentAssigned}
+                  </span>
+                )}
+              </div>
+            </Card>
+          )}
+
+          {/* ── B2: Approval Workflow Panel ────────────────────────── */}
+          <Card style={{ gridColumn:"1 / -1" }}>
+            <SectionHeader title="Approval Workflow" right={<ApprovalBadge status={approval}/>} />
+            <div style={{ padding:"16px 20px" }}>
+              {approval === "NONE" && perms.canRequestApproval && (
+                <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                  <input
+                    value={approvalNote} onChange={e => setApprovalNote(e.target.value)}
+                    placeholder="หมายเหตุ (optional)"
+                    style={{ flex:1, padding:"8px 12px", borderRadius:6, border:`1px solid ${BORDER}`, fontSize:14 }}
+                  />
+                  <Btn onClick={handleRequestApproval} disabled={approvalLoading}>
+                    {approvalLoading ? "กำลังส่ง…" : "ขออนุมัติ"}
+                  </Btn>
+                </div>
+              )}
+              {approval === "PENDING" && (
+                <div>
+                  <div style={{ padding:"12px 16px", background:"#FFFBEB", borderRadius:8, border:"1px solid #FDE68A", marginBottom:12, display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{ fontSize:18 }}>⏳</span>
+                    <span style={{ fontSize:14, fontWeight:600, color:"#92400E" }}>รออนุมัติจากผู้บริหาร</span>
+                  </div>
+                  {perms.canApproveJobs && (
+                    <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                      <input
+                        value={approvalNote} onChange={e => setApprovalNote(e.target.value)}
+                        placeholder="หมายเหตุ (optional)"
+                        style={{ flex:1, padding:"8px 12px", borderRadius:6, border:`1px solid ${BORDER}`, fontSize:14 }}
+                      />
+                      <Btn onClick={handleApprove} disabled={approvalLoading}>
+                        {approvalLoading ? "…" : "✓ อนุมัติ"}
+                      </Btn>
+                      <Btn variant="danger" onClick={handleReject} disabled={approvalLoading}>
+                        {approvalLoading ? "…" : "✕ ปฏิเสธ"}
+                      </Btn>
+                    </div>
+                  )}
+                </div>
+              )}
+              {approval === "APPROVED" && (
+                <div style={{ padding:"12px 16px", background:"#F0FDF4", borderRadius:8, border:"1px solid #BBF7D0", display:"flex", alignItems:"center", gap:8 }}>
+                  <span style={{ fontSize:18 }}>✅</span>
+                  <span style={{ fontSize:14, fontWeight:600, color:"#166534" }}>อนุมัติแล้ว — พร้อมส่ง NSW</span>
+                </div>
+              )}
+              {approval === "REJECTED" && (
+                <div>
+                  <div style={{ padding:"12px 16px", background:"#FEF2F2", borderRadius:8, border:"1px solid #FECACA", marginBottom:12, display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{ fontSize:18 }}>❌</span>
+                    <span style={{ fontSize:14, fontWeight:600, color:"#991B1B" }}>ถูกปฏิเสธ{job.approvalNote ? ` — ${job.approvalNote}` : ""}</span>
+                  </div>
+                  {perms.canRequestApproval && (
+                    <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                      <input
+                        value={approvalNote} onChange={e => setApprovalNote(e.target.value)}
+                        placeholder="หมายเหตุสำหรับขออนุมัติใหม่"
+                        style={{ flex:1, padding:"8px 12px", borderRadius:6, border:`1px solid ${BORDER}`, fontSize:14 }}
+                      />
+                      <Btn onClick={handleRequestApproval} disabled={approvalLoading}>
+                        {approvalLoading ? "กำลังส่ง…" : "ขออนุมัติอีกครั้ง"}
+                      </Btn>
+                    </div>
+                  )}
+                </div>
+              )}
+              {approval === "NONE" && !perms.canRequestApproval && (
+                <span style={{ fontSize:14, color:TEXT3 }}>ยังไม่มีการขออนุมัติ</span>
+              )}
             </div>
           </Card>
         </div>
@@ -2882,10 +3104,10 @@ export default function App() {
   const [detailJob, setDetailJob] = useState(null);
   const [showRegister, setShowRegister] = useState(false);
 
-  // Show register / login screen if not authenticated
+  // Show register / landing page if not authenticated
   if (!auth?.token) {
     if (showRegister) return <RegisterScreen onBack={() => setShowRegister(false)} />;
-    return <LoginScreen onRegister={() => setShowRegister(true)} />;
+    return <LandingPage onRegister={() => setShowRegister(true)} />;
   }
 
   if (screen === "superadmin" && perms.canViewSuperAdmin) {
@@ -2937,6 +3159,7 @@ export default function App() {
     <div style={{ display:"flex", minHeight:"100vh", background:BG }}>
       <Sidebar active={screen} onNav={handleNav}/>
       <main style={{ flex:1, padding:"24px 32px", overflowY:"auto", minHeight:"100vh" }}>
+        {perms.isViewer && <ReadOnlyBanner />}
         {content()}
       </main>
     </div>

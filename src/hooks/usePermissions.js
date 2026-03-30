@@ -69,6 +69,13 @@ export function usePermissions() {
     // ─── Super Admin Console ─────────────────────────────────────
     canViewSuperAdmin: role === 'SUPER_ADMIN',
 
+    // ─── Job Assignment (B1) ────────────────────────────────────────
+    canAssignJobs: NKTECH_INTERNAL.includes(role),
+
+    // ─── Approval Workflow (B2) ───────────────────────────────────
+    canApproveJobs:   NKTECH_MANAGER_UP.includes(role),
+    canRequestApproval: [...NKTECH_INTERNAL, 'CUSTOMER_ADMIN'].includes(role),
+
     // ─── Convenience flags ───────────────────────────────────────
     isSuperAdmin:    role === 'SUPER_ADMIN',
     isAdmin:         NKTECH_ADMIN.includes(role),

@@ -6,11 +6,12 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { BillingService } from '../billing/billing.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { UpdateJobStatusDto } from './dto/update-job-status.dto';
 import { QueryJobDto } from './dto/query-job.dto';
-import { JobStatus, Role, Prisma } from '@prisma/client';
+import { JobStatus, Role, ApprovalStatus, NotificationType, Prisma } from '@prisma/client';
 import { RequestUser } from '../auth/jwt.strategy';
 
 // Valid status transitions
@@ -33,17 +34,16 @@ export class JobsService {
   constructor(
     private prisma: PrismaService,
     private billingService: BillingService,
+    private notificationsService: NotificationsService,
   ) {}
 
   /** POST /jobs */
   async create(dto: CreateJobDto, user: RequestUser) {
-    // SUPER_ADMIN may supply customerId in body; regular users use their own
     const customerId = (user.role === Role.SUPER_ADMIN && dto.customerId)
       ? dto.customerId
       : user.customerId;
     if (!customerId) throw new ForbiddenException('No customer context');
 
-    // Generate jobNo: JOB-YYYY-NNNN
     const jobNo = await this.generateJobNo();
 
     const job = await this.prisma.logisticsJob.create({
@@ -71,7 +71,6 @@ export class JobsService {
       },
     });
 
-    // Record initial status history
     await this.prisma.jobStatusHistory.create({
       data: {
         jobId: job.id,
@@ -81,6 +80,18 @@ export class JobsService {
       },
     });
 
+    // C2: Notify internal staff when customer creates shipment
+    const isCustomerSide = ([Role.CUSTOMER_ADMIN, Role.CUSTOMER] as string[]).includes(user.role);
+    if (isCustomerSide) {
+      this.notificationsService.notifyInternalStaff({
+        type: NotificationType.JOB_CREATED,
+        title: `Shipment ใหม่: ${jobNo}`,
+        message: `ลูกค้าสร้าง shipment ใหม่ ${jobNo}`,
+        entityType: 'JOB',
+        entityId: job.id,
+      }).catch(() => null);
+    }
+
     return job;
   }
 
@@ -89,8 +100,6 @@ export class JobsService {
     const { status, type, search, page = 1, limit = 20 } = query;
     const skip = (page - 1) * limit;
 
-    // SUPER_ADMIN or internal NKTech staff (no customerId) → see all jobs
-    // CUSTOMER_ADMIN / CUSTOMER / tenant-scoped users → see only their customer's jobs
     const isInternalStaff =
       user.role === Role.SUPER_ADMIN ||
       (user.customerId == null &&
@@ -132,6 +141,8 @@ export class JobsService {
           portOfDischarge: true,
           totalFobUsd: true,
           currency: true,
+          assignedToId: true,
+          approvalStatus: true,
           createdAt: true,
           customer: { select: { id: true, code: true, companyNameTh: true } },
           _count: { select: { documents: true, declarations: true } },
@@ -156,6 +167,7 @@ export class JobsService {
         documents: { orderBy: { createdAt: 'asc' } },
         declarations: { select: { id: true, declarationNo: true, declarationType: true, createdAt: true } },
         statusHistory: { orderBy: { createdAt: 'asc' } },
+        approvalLogs: { orderBy: { createdAt: 'asc' } },
         _count: { select: { documents: true, declarations: true } },
       },
     });
@@ -229,17 +241,177 @@ export class JobsService {
       await this.billingService.createBillingItemForJob(id).catch(() => null);
     }
 
+    // C1: Notify customer when status changes
+    this.notificationsService.notifyCustomerUsers(job.customerId, {
+      type: NotificationType.JOB_STATUS_CHANGED,
+      title: `สถานะ ${job.jobNo} เปลี่ยน`,
+      message: `สถานะเปลี่ยนจาก ${job.status} เป็น ${dto.status}`,
+      entityType: 'JOB',
+      entityId: id,
+    }).catch(() => null);
+
+    return updated;
+  }
+
+  // ─── B1: Job Assignment ─────────────────────────────────────────
+
+  /** PATCH /jobs/:id/assign */
+  async assignJob(id: string, assignToId: string, user: RequestUser) {
+    const job = await this.assertJobExists(id, user);
+
+    const updated = await this.prisma.logisticsJob.update({
+      where: { id },
+      data: {
+        assignedToId: assignToId,
+        assignedAt: new Date(),
+        assignedById: user.userId,
+      },
+    });
+
+    // Notify the assigned staff
+    this.notificationsService.create({
+      recipientId: assignToId,
+      type: NotificationType.JOB_ASSIGNED,
+      title: `มอบหมายงาน: ${job.jobNo}`,
+      message: `คุณได้รับมอบหมายให้ดูแล shipment ${job.jobNo}`,
+      entityType: 'JOB',
+      entityId: id,
+    }).catch(() => null);
+
+    return updated;
+  }
+
+  // ─── B2: Approval Workflow ──────────────────────────────────────
+
+  /** PATCH /jobs/:id/request-approval */
+  async requestApproval(id: string, note: string | undefined, user: RequestUser) {
+    const job = await this.assertJobExists(id, user);
+
+    if (job.approvalStatus !== ApprovalStatus.NONE && job.approvalStatus !== ApprovalStatus.REJECTED) {
+      throw new BadRequestException(`Cannot request approval when status is ${job.approvalStatus}`);
+    }
+
+    const [updated] = await this.prisma.$transaction([
+      this.prisma.logisticsJob.update({
+        where: { id },
+        data: {
+          approvalStatus: ApprovalStatus.PENDING,
+          approvalRequestedAt: new Date(),
+          approvalNote: note,
+        },
+      }),
+      this.prisma.approvalLog.create({
+        data: {
+          jobId: id,
+          action: 'REQUEST',
+          fromStatus: job.approvalStatus,
+          toStatus: ApprovalStatus.PENDING,
+          actorId: user.userId,
+          note,
+        },
+      }),
+    ]);
+
+    // Notify managers
+    this.notificationsService.notifyInternalStaff({
+      type: NotificationType.APPROVAL_REQUESTED,
+      title: `ขออนุมัติ: ${job.jobNo}`,
+      message: `${job.jobNo} ขออนุมัติก่อนส่ง NSW${note ? ` — ${note}` : ''}`,
+      entityType: 'JOB',
+      entityId: id,
+    }).catch(() => null);
+
+    return updated;
+  }
+
+  /** PATCH /jobs/:id/approve */
+  async approveJob(id: string, note: string | undefined, user: RequestUser) {
+    const job = await this.assertJobExists(id, user);
+
+    if (!([Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER] as string[]).includes(user.role)) {
+      throw new ForbiddenException('Only managers can approve jobs');
+    }
+
+    if (job.approvalStatus !== ApprovalStatus.PENDING) {
+      throw new BadRequestException('Job is not pending approval');
+    }
+
+    const [updated] = await this.prisma.$transaction([
+      this.prisma.logisticsJob.update({
+        where: { id },
+        data: { approvalStatus: ApprovalStatus.APPROVED, approvalNote: note },
+      }),
+      this.prisma.approvalLog.create({
+        data: {
+          jobId: id,
+          action: 'APPROVE',
+          fromStatus: ApprovalStatus.PENDING,
+          toStatus: ApprovalStatus.APPROVED,
+          actorId: user.userId,
+          note,
+        },
+      }),
+    ]);
+
+    this.notificationsService.create({
+      recipientId: job.createdById,
+      type: NotificationType.APPROVAL_APPROVED,
+      title: `อนุมัติแล้ว: ${job.jobNo}`,
+      message: `${job.jobNo} ได้รับการอนุมัติ${note ? ` — ${note}` : ''}`,
+      entityType: 'JOB',
+      entityId: id,
+    }).catch(() => null);
+
+    return updated;
+  }
+
+  /** PATCH /jobs/:id/reject */
+  async rejectJob(id: string, note: string | undefined, user: RequestUser) {
+    const job = await this.assertJobExists(id, user);
+
+    if (!([Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER] as string[]).includes(user.role)) {
+      throw new ForbiddenException('Only managers can reject jobs');
+    }
+
+    if (job.approvalStatus !== ApprovalStatus.PENDING) {
+      throw new BadRequestException('Job is not pending approval');
+    }
+
+    const [updated] = await this.prisma.$transaction([
+      this.prisma.logisticsJob.update({
+        where: { id },
+        data: { approvalStatus: ApprovalStatus.REJECTED, approvalNote: note },
+      }),
+      this.prisma.approvalLog.create({
+        data: {
+          jobId: id,
+          action: 'REJECT',
+          fromStatus: ApprovalStatus.PENDING,
+          toStatus: ApprovalStatus.REJECTED,
+          actorId: user.userId,
+          note,
+        },
+      }),
+    ]);
+
+    this.notificationsService.create({
+      recipientId: job.createdById,
+      type: NotificationType.APPROVAL_REJECTED,
+      title: `ถูกปฏิเสธ: ${job.jobNo}`,
+      message: `${job.jobNo} ไม่ผ่านการอนุมัติ${note ? ` — ${note}` : ''}`,
+      entityType: 'JOB',
+      entityId: id,
+    }).catch(() => null);
+
     return updated;
   }
 
   /** DELETE /jobs/:id — soft delete only if DRAFT */
   async remove(id: string, user: RequestUser) {
     const job = await this.assertJobExists(id, user);
-
     if (job.status !== JobStatus.DRAFT) {
       throw new BadRequestException('Only DRAFT jobs can be deleted');
     }
-
     await this.prisma.logisticsJob.delete({ where: { id } });
     return { message: `Job ${job.jobNo} deleted` };
   }
@@ -258,12 +430,10 @@ export class JobsService {
   private async generateJobNo(): Promise<string> {
     const year = new Date().getFullYear();
     const prefix = `JOB-${year}-`;
-
     const last = await this.prisma.logisticsJob.findFirst({
       where: { jobNo: { startsWith: prefix } },
       orderBy: { jobNo: 'desc' },
     });
-
     const seq = last ? parseInt(last.jobNo.split('-')[2], 10) + 1 : 1;
     return `${prefix}${String(seq).padStart(4, '0')}`;
   }
@@ -277,8 +447,6 @@ export class JobsService {
 
   private assertAccess(jobCustomerId: string, user: RequestUser) {
     if (user.role === Role.SUPER_ADMIN) return;
-    // Internal NKTech staff (TENANT_ADMIN, MANAGER, STAFF) without customerId → access all jobs
-    // CUSTOMER_ADMIN is scoped to their own customerId (handled by the customerId check below)
     if (
       user.customerId == null &&
       ([Role.TENANT_ADMIN, Role.MANAGER, Role.STAFF] as string[]).includes(user.role)

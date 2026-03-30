@@ -63,6 +63,14 @@ enum TransportMode {
   POST
 }
 
+// ── Approval Workflow (B2) ────────────────────────────────────────
+enum ApprovalStatus {
+  NONE               // ยังไม่ขออนุมัติ
+  PENDING            // รออนุมัติ
+  APPROVED           // อนุมัติแล้ว
+  REJECTED           // ถูกปฏิเสธ
+}
+
 // ใช้สิทธิประโยชน์ / ไม่ใช้ (field 3)
 enum DeclarationType {
   WITH_PRIVILEGE     // ใช้สิทธิประโยชน์
@@ -404,6 +412,16 @@ model LogisticsJob {
   nswRefNo      String?  @db.VarChar(100)
   customsRefNo  String?  @db.VarChar(100)
 
+  // ── Job Assignment (B1) ─────────────────────────────────────────
+  assignedToId    String?                         // Profile.id of assigned staff
+  assignedAt      DateTime?
+  assignedById    String?                         // Profile.id of who assigned
+
+  // ── Approval Workflow (B2) ──────────────────────────────────────
+  approvalStatus  ApprovalStatus @default(NONE)
+  approvalRequestedAt DateTime?
+  approvalNote    String?        @db.Text
+
   createdById   String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -415,11 +433,13 @@ model LogisticsJob {
   statusHistory   JobStatusHistory[]
   billingItem     BillingItem?
   nswSubmissions  NswSubmission[]
+  approvalLogs    ApprovalLog[]
 
   @@index([customerId])
   @@index([customerId, status])
   @@index([jobNo])
   @@index([customerId, createdAt])
+  @@index([assignedToId])
 }
 
 model JobStatusHistory {
@@ -434,6 +454,23 @@ model JobStatusHistory {
   job LogisticsJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@index([jobId])
+}
+
+// ─── APPROVAL LOG (B2) ────────────────────────────────────────────
+model ApprovalLog {
+  id          String         @id @default(uuid())
+  jobId       String
+  action      String         @db.VarChar(20)   // "REQUEST" | "APPROVE" | "REJECT"
+  fromStatus  ApprovalStatus
+  toStatus    ApprovalStatus
+  actorId     String                           // Profile.id of who performed action
+  note        String?        @db.Text
+  createdAt   DateTime       @default(now())
+
+  job LogisticsJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([actorId])
 }
 
 model JobDocument {
@@ -795,3 +832,41 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([createdAt])
 }
+
+// ─── NOTIFICATIONS ────────────────────────────────────────────────
+
+enum NotificationType {
+  JOB_STATUS_CHANGED    // สถานะ shipment เปลี่ยน
+  JOB_CREATED           // shipment ใหม่ถูกสร้าง
+  JOB_ASSIGNED          // ถูก assign งาน
+  APPROVAL_REQUESTED    // มี request approval เข้ามา
+  APPROVAL_APPROVED     // ได้รับ approve
+  APPROVAL_REJECTED     // ถูก reject
+  DECLARATION_READY     // ใบขนพร้อมส่ง
+  NSW_RESPONSE          // NSW ตอบกลับ
+  BILLING_INVOICE       // ออก invoice ใหม่
+  SYSTEM                // ข้อความจากระบบ
+}
+
+model Notification {
+  id            String           @id @default(uuid())
+
+  recipientId   String                                  // Profile.id ของผู้รับ
+  type          NotificationType @default(SYSTEM)
+  title         String           @db.VarChar(200)
+  message       String           @db.Text
+
+  // Link to entity (optional)
+  entityType    String?          @db.VarChar(50)       // "JOB" | "DECLARATION" | "INVOICE" | …
+  entityId      String?          @db.VarChar(50)
+
+  isRead        Boolean          @default(false)
+  readAt        DateTime?
+
+  createdAt     DateTime         @default(now())
+
+  @@index([recipientId, isRead])
+  @@index([recipientId, createdAt])
+  @@index([entityType, entityId])
+}
+

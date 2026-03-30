@@ -1,6 +1,6 @@
 # Custom-E-service — Master Plan
 
-> อัปเดต: 2026-03-28 | เสร็จ: **Phase 5C** (Integration — XML + PDF preview)
+> อัปเดต: 2026-03-30 | **Phase 6 เสร็จสมบูรณ์** (Landing Page + งาน 1-6)
 
 ---
 
@@ -19,6 +19,13 @@
 | **5A** | **ProductMaster + PrivilegeDocument models + APIs + master codes** | ✅ เสร็จ |
 | **5B** | **Frontend — ฟอร์มกรอกใบขนเอง (5 sections)** | ✅ เสร็จ |
 | **5C** | **Integration — XML generation + PDF preview** | ✅ เสร็จ |
+| **6A** | **Landing Page (9 sections + Login Card)** | ✅ เสร็จ |
+| **6A** | **Notification System (backend + bell icon)** | ✅ เสร็จ |
+| **6B** | **Job Assignment (B1) — backend + frontend** | ✅ เสร็จ |
+| **6B** | **Approval Workflow (B2) — backend + frontend** | ✅ เสร็จ |
+| **6C** | **Customer Notifications (C1) + Staff Alert (C2)** | ✅ เสร็จ |
+| **6D** | **Read-only Mode Badge (D1)** | ✅ เสร็จ |
+| **6D** | **Customer Portal Dashboard (D2) — ดึงข้อมูลจริง** | ✅ เสร็จ |
 
 ---
 
@@ -98,16 +105,97 @@ Shipping Marks (multiline), Total Packages + Unit, Net/Gross Weight (auto-sum), 
 
 ---
 
-## งานในอนาคต
+## Phase 6: Landing Page + งาน 1-6
+
+> ✅ เสร็จสมบูรณ์ | 2026-03-30
+
+### ลำดับ Implementation
+
+```
+Phase A (Foundation — คู่ขนานได้):
+  A1. Landing Page (standalone + Login Card)          ✅
+  A2. Notification System (backend + bell icon)       ✅
+
+Phase B (Core — ต้องมี A2):
+  B1. Job Assignment                                  ✅
+  B2. Approval Workflow                               ✅
+
+Phase C (Triggers — ต้องมี A2+B):
+  C1. Customer Notifications                          ✅
+  C2. Staff Alert                                     ✅
+
+Phase D (Polish):
+  D1. Read-only Mode Badge                            ✅
+  D2. Customer Portal Dashboard                       ✅
+```
+
+### A1: Landing Page (9 sections)
+
+| Section | Content |
+|---------|---------|
+| Navbar | Logo CUSTOMS-EDOC + nav links + ปุ่มเข้าสู่ระบบ (sticky) |
+| Hero | Value prop (ซ้าย) + **Login Card** (ขวา) — 2 คอลัมน์ |
+| Pain Points | 3 cards: กรอกซ้ำ / เอกสารผิด / ติดตามยาก |
+| Features | 6 cards: AI / HS Code / NSW / สิทธิฯ / Dashboard / Billing |
+| How It Works | 4 steps: สมัคร → สร้าง Shipment → ส่ง NSW → ติดตาม |
+| Statistics | 15,913+ HS / กศก.101/1 / XSD v4.00 / 7 สิทธิประโยชน์ |
+| Target Customers | 3 cards: Freight Forwarder / โรงงาน / Logistics |
+| CTA Banner | "พร้อมเปลี่ยนการทำใบขนให้เร็วขึ้น?" + ปุ่ม สมัคร/ติดต่อ |
+| Footer | Brand / Product / Resources / Contact (4 คอลัมน์) |
+
+**Login Card** ฝังใน Hero Section — ใช้ useAuth() เดิม, login เดียวสำหรับทุก role
+
+### A2: Notification System
+- DB: Notification model (recipientId, type, title, message, entityType, entityId, isRead)
+- Backend: `backend/src/notifications/` (module, service, controller)
+- Frontend: `NotificationBell.jsx` — bell + badge + dropdown (polling 30s)
+
+### B1: Job Assignment
+- DB: LogisticsJob += assignedToId, assignedAt, assignedById
+- Backend: PATCH /jobs/:id/assign + notification trigger
+- Frontend: คอลัมน์ผู้รับผิดชอบ + dropdown เลือก staff
+
+### B2: Approval Workflow
+- DB: ApprovalStatus enum + ApprovalLog model
+- Flow: Staff ขออนุมัติ → Manager approve/reject → Guard ก่อน submit NSW
+- Backend: 3 endpoints (request-approval, approve, reject)
+- Frontend: approval panel + badges + KPI card
+
+### C1: Customer Notifications
+- jobs.service.ts updateStatus() → notify CUSTOMER_ADMIN/CUSTOMER เมื่อสถานะเปลี่ยน
+
+### C2: Staff Alert
+- jobs.service.ts create() → notify TENANT_ADMIN/MANAGER/STAFF เมื่อ customer สร้าง shipment
+
+### D1: Read-only Badge
+- ReadOnlyBadge component + ตรวจ disabled buttons ทุกหน้า
+
+### D2: Customer Dashboard
+- CustomerDashboard.jsx ดึงข้อมูลจริงจาก jobsApi แทน mock data
+
+### ไฟล์ที่สร้าง/แก้ไข (Phase 6)
+
+| ไฟล์ | สิ่งที่ทำ |
+|------|----------|
+| `src/LandingPage.jsx` | ใหม่ — Landing Page (9 sections + Login Card) |
+| `src/index.css` | เพิ่ม Landing Page CSS + Notification Bell CSS |
+| `src/factory-portal-complete_2.jsx` | Routing → LandingPage, NotificationBell, ApprovalBadge, ReadOnlyBanner, Assignment/Approval panels ใน ShipmentDetail |
+| `src/api/jobsApi.js` | เพิ่ม assign/approve/reject/requestApproval/listStaff methods |
+| `src/api/notificationsApi.js` | ใหม่ — Notification API client |
+| `src/components/NotificationBell.jsx` | ใหม่ — Bell + badge + dropdown (polling 30s) |
+| `src/hooks/usePermissions.js` | เพิ่ม canAssignJobs, canApproveJobs, canRequestApproval flags |
+| `src/CustomerDashboard.jsx` | เขียนใหม่ — ดึงข้อมูลจาก API จริง (KPIs, pipeline, action center) |
+| `backend/prisma/schema.prisma` | เพิ่ม Notification model, ApprovalLog, ApprovalStatus enum, Assignment fields |
+| `backend/src/notifications/` | ใหม่ — NotificationsModule (service + controller) |
+| `backend/src/jobs/jobs.service.ts` | เพิ่ม assignJob, requestApproval, approveJob, rejectJob + notification triggers |
+| `backend/src/jobs/jobs.controller.ts` | เพิ่ม PATCH endpoints (assign, request-approval, approve, reject) |
+
+---
+
+## งานอื่นๆ
 
 | ลำดับ | งาน | Priority |
 |-------|-----|----------|
-| 1 | Approval Workflow (Manager อนุมัติก่อน submit NSW) | 🔴 สูง |
-| 2 | Job Assignment (assign shipment ให้คนรับผิดชอบ) | 🟡 กลาง |
-| 3 | Customer Notifications (แจ้งลูกค้าเมื่อสถานะเปลี่ยน) | 🟡 กลาง |
-| 4 | Staff Alert (แจ้งเมื่อลูกค้า submit shipment ใหม่) | 🟡 กลาง |
-| 5 | Read-only Mode Badge | 🟢 ต่ำ |
-| 6 | Customer Portal Dashboard แบบง่าย | 🟢 ต่ำ |
 | 7 | ย้าย mock data → DB queries จริง | 🟢 ต่ำ |
 
 ---

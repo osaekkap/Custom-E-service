@@ -63,6 +63,50 @@ export class JobsController {
     return this.jobsService.updateStatus(id, dto, req.user);
   }
 
+  // ─── B1: Job Assignment ─────────────────────────────────────────
+
+  /** PATCH /jobs/:id/assign — มอบหมายงาน */
+  @Patch(':id/assign')
+  assignJob(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { assignToId: string },
+    @Request() req: { user: RequestUser },
+  ) {
+    return this.jobsService.assignJob(id, body.assignToId, req.user);
+  }
+
+  // ─── B2: Approval Workflow ──────────────────────────────────────
+
+  /** PATCH /jobs/:id/request-approval — ขออนุมัติ */
+  @Patch(':id/request-approval')
+  requestApproval(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { note?: string },
+    @Request() req: { user: RequestUser },
+  ) {
+    return this.jobsService.requestApproval(id, body.note, req.user);
+  }
+
+  /** PATCH /jobs/:id/approve — อนุมัติ */
+  @Patch(':id/approve')
+  approveJob(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { note?: string },
+    @Request() req: { user: RequestUser },
+  ) {
+    return this.jobsService.approveJob(id, body.note, req.user);
+  }
+
+  /** PATCH /jobs/:id/reject — ปฏิเสธ */
+  @Patch(':id/reject')
+  rejectJob(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { note?: string },
+    @Request() req: { user: RequestUser },
+  ) {
+    return this.jobsService.rejectJob(id, body.note, req.user);
+  }
+
   /** GET /jobs/:id/history — ดู status history */
   @Get(':id/history')
   getHistory(
