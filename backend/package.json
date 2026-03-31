@@ -38,6 +38,7 @@
     "@supabase/supabase-js": "^2.99.3",
     "@types/pg": "^8.18.0",
     "chardet": "^2.1.1",
+    "cheerio": "^1.2.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.4",
     "passport": "^0.7.0",

@@ -1,16 +1,7 @@
 import { useState } from "react";
+import { STATUS_COLORS } from "./theme";
 
-const STATUS_CONFIG = {
-  DRAFT: { label: "Draft", color: "#94A3B8", bg: "#F1F5F9" },
-  PREPARING: { label: "Preparing", color: "#F59E0B", bg: "#FFFBEB" },
-  READY: { label: "Ready", color: "#3B82F6", bg: "#EFF6FF" },
-  SUBMITTED: { label: "Submitted", color: "#8B5CF6", bg: "#F5F3FF" },
-  NSW_PROCESSING: { label: "NSW Processing", color: "#0EA5E9", bg: "#F0F9FF" },
-  CUSTOMS_REVIEW: { label: "Customs Review", color: "#F97316", bg: "#FFF7ED" },
-  CLEARED: { label: "Cleared", color: "#22C55E", bg: "#F0FDF4" },
-  COMPLETED: { label: "Completed", color: "#16A34A", bg: "#DCFCE7" },
-  REJECTED: { label: "Rejected", color: "#EF4444", bg: "#FEF2F2" },
-};
+const STATUS_CONFIG = STATUS_COLORS;
 
 const SHIPMENTS = [
   { id: "SH-2026-0234", type: "Export", factory: "บริษัท ไทยอิเล็กทรอนิกส์ จำกัด", vessel: "MSC AURORA V.124", container: "MSCU7823410", hs: "8542.31.10", fob: "USD 128,450", status: "CLEARED", date: "2026-03-18" },

@@ -1,27 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from './stores/AuthContext';
+import { colors, fonts } from './theme';
 
-// ─── Brand tokens ──────────────────────────────────────────────────
+// ─── Brand tokens (from unified theme) ─────────────────────────────
 const C = {
-  navy:    '#0B1929',
-  navyMid: '#132F4C',
-  primary: '#2563EB',
-  primaryDark: '#1D4ED8',
-  primaryLight: '#60A5FA',
-  accent:  '#06B6D4',
-  accentGlow: 'rgba(6, 182, 212, 0.25)',
-  gold:    '#F59E0B',
-  green:   '#16A34A',
-  red:     '#EF4444',
-  textWhite: '#F8FAFC',
-  textGray:  '#94A3B8',
-  textMuted: '#64748B',
-  textDark:  '#1E293B',
-  cardBg:  'rgba(255,255,255,0.04)',
-  cardBorder: 'rgba(255,255,255,0.08)',
-  glassBg: 'rgba(255,255,255,0.06)',
-  glassBorder: 'rgba(255,255,255,0.12)',
-  mono: "'JetBrains Mono','Fira Code',monospace",
+  navy:        colors.navy,
+  navyMid:     colors.navyMid,
+  primary:     colors.primary,
+  primaryDark: colors.primaryHover,
+  primaryLight:colors.primaryLight,
+  accent:      colors.accent,
+  accentGlow:  colors.accentGlow,
+  gold:        colors.gold,
+  green:       colors.success,
+  red:         colors.danger,
+  textWhite:   colors.textWhite,
+  textGray:    colors.textGray,
+  textMuted:   colors.textDim,
+  textDark:    colors.textMain,
+  cardBg:      colors.cardBg,
+  cardBorder:  colors.cardBorder,
+  glassBg:     colors.glassBg,
+  glassBorder: colors.glassBorder,
+  mono:        fonts.mono,
 };
 
 // ─── Intersection Observer hook for scroll animations ──────────────
@@ -83,8 +84,109 @@ function ParticleField() {
   );
 }
 
+// ─── LOGIN MODAL ──────────────────────────────────────────────────
+function LoginModal({ open, onClose, onRegister }) {
+  const { login, loading, error } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
+
+  useEffect(() => {
+    if (open) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = '';
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
+  if (!open) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await login(email, password);
+  };
+
+  return (
+    <div className="landing-modal-backdrop" onClick={onClose}>
+      <div className="landing-modal-card" onClick={e => e.stopPropagation()}>
+        <button className="landing-modal-close" onClick={onClose}>x</button>
+
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 14, margin: '0 auto 16px',
+            background: `linear-gradient(135deg, ${C.primary}, ${C.accent})`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 24, color: '#fff', boxShadow: `0 4px 16px ${C.accentGlow}`,
+          }}>⚓</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: C.textDark, marginBottom: 4 }}>
+            Sign in
+          </div>
+          <div style={{ fontSize: 14, color: C.textMuted }}>เข้าสู่ระบบด้วยบัญชีองค์กร</div>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <label style={{ fontSize: 13, fontWeight: 600, color: C.textMuted, display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Email
+            </label>
+            <input
+              type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="admin@customs-edoc.local" required
+              className="landing-input"
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 13, fontWeight: 600, color: C.textMuted, display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Password
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPw ? 'text' : 'password'} value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••" required
+                className="landing-input"
+              />
+              <button type="button" onClick={() => setShowPw(s => !s)}
+                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: C.textMuted, fontSize: 14 }}>
+                {showPw ? '👁' : '👁‍🗨'}
+              </button>
+            </div>
+          </div>
+
+          {error && (
+            <div style={{
+              padding: '10px 14px', borderRadius: 10,
+              background: '#FEF2F2', border: '1px solid #FECACA',
+              fontSize: 14, color: C.red,
+            }}>{error}</div>
+          )}
+
+          <button type="submit" disabled={loading} className="landing-login-btn">
+            {loading ? (
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <span className="landing-spinner" /> Signing in…
+              </span>
+            ) : 'เข้าสู่ระบบ →'}
+          </button>
+        </form>
+
+        <div style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: C.textMuted }}>
+          ยังไม่มีบัญชี?{' '}
+          <button onClick={() => { onClose(); onRegister(); }} style={{
+            background: 'none', border: 'none', color: C.primary,
+            fontWeight: 700, fontSize: 14, cursor: 'pointer', padding: 0,
+            textDecoration: 'underline', textUnderlineOffset: 3,
+          }}>สมัครใช้งาน (B2B)</button>
+        </div>
+
+        <div style={{ textAlign: 'center', marginTop: 12, fontSize: 12, color: C.textGray }}>
+          🔒 มาตรฐาน ISO 27001 · AES-256 Encryption
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── NAVBAR ────────────────────────────────────────────────────────
-function Navbar({ onScrollTo }) {
+function Navbar({ onScrollTo, onOpenLogin }) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -112,16 +214,17 @@ function Navbar({ onScrollTo }) {
 
         <div className="landing-nav-links">
           {[
+            ['exchange', 'อัตราแลกเปลี่ยน'],
+            ['news', 'ข่าวศุลกากร'],
             ['features', 'ฟีเจอร์'],
             ['how', 'วิธีใช้งาน'],
-            ['stats', 'ข้อมูล'],
             ['customers', 'กลุ่มลูกค้า'],
           ].map(([id, label]) => (
             <button key={id} onClick={() => onScrollTo(id)} className="landing-nav-link">{label}</button>
           ))}
         </div>
 
-        <button onClick={() => onScrollTo('hero')} className="landing-nav-cta">
+        <button onClick={onOpenLogin} className="landing-nav-cta">
           เข้าสู่ระบบ
         </button>
       </div>
@@ -129,99 +232,13 @@ function Navbar({ onScrollTo }) {
   );
 }
 
-// ─── LOGIN CARD (embedded in Hero) ─────────────────────────────────
-function LoginCard({ onRegister }) {
-  const { login, loading, error } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPw, setShowPw] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    await login(email, password);
-  };
-
-  return (
-    <div className="landing-login-card">
-      <div style={{ textAlign: 'center', marginBottom: 24 }}>
-        <div style={{
-          fontSize: 22, fontWeight: 800, color: C.textDark,
-          marginBottom: 4, letterSpacing: '-0.3px',
-        }}>Sign in</div>
-        <div style={{ fontSize: 14, color: C.textMuted }}>เข้าสู่ระบบด้วยบัญชีองค์กร</div>
-      </div>
-
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div>
-          <label style={{ fontSize: 13, fontWeight: 600, color: C.textMuted, display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Email
-          </label>
-          <input
-            type="email" value={email} onChange={e => setEmail(e.target.value)}
-            placeholder="admin@customs-edoc.local" required
-            className="landing-input"
-          />
-        </div>
-
-        <div>
-          <label style={{ fontSize: 13, fontWeight: 600, color: C.textMuted, display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Password
-          </label>
-          <div style={{ position: 'relative' }}>
-            <input
-              type={showPw ? 'text' : 'password'} value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••" required
-              className="landing-input"
-            />
-            <button type="button" onClick={() => setShowPw(s => !s)}
-              style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: C.textMuted, fontSize: 14 }}>
-              {showPw ? '👁' : '👁‍🗨'}
-            </button>
-          </div>
-        </div>
-
-        {error && (
-          <div style={{
-            padding: '10px 14px', borderRadius: 10,
-            background: '#FEF2F2', border: '1px solid #FECACA',
-            fontSize: 14, color: C.red,
-          }}>{error}</div>
-        )}
-
-        <button type="submit" disabled={loading} className="landing-login-btn">
-          {loading ? (
-            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-              <span className="landing-spinner" /> Signing in…
-            </span>
-          ) : 'เข้าสู่ระบบ →'}
-        </button>
-      </form>
-
-      <div style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: C.textMuted }}>
-        ยังไม่มีบัญชี?{' '}
-        <button onClick={onRegister} style={{
-          background: 'none', border: 'none', color: C.primary,
-          fontWeight: 700, fontSize: 14, cursor: 'pointer', padding: 0,
-          textDecoration: 'underline', textUnderlineOffset: 3,
-        }}>สมัครใช้งาน (B2B)</button>
-      </div>
-
-      <div style={{ textAlign: 'center', marginTop: 12, fontSize: 12, color: C.textGray }}>
-        🔒 มาตรฐาน ISO 27001 · AES-256 Encryption
-      </div>
-    </div>
-  );
-}
-
-// ─── HERO SECTION ──────────────────────────────────────────────────
-function HeroSection({ onRegister }) {
+// ─── HERO SECTION (full-width, no login card) ─────────────────────
+function HeroSection({ onOpenLogin, onRegister }) {
   const [ref, isInView] = useInView();
 
   return (
     <section id="hero" ref={ref} className="landing-hero">
       <ParticleField />
-      {/* Gradient orbs */}
       <div style={{
         position: 'absolute', top: '-20%', left: '-10%',
         width: 600, height: 600, borderRadius: '50%',
@@ -235,62 +252,278 @@ function HeroSection({ onRegister }) {
         filter: 'blur(60px)', pointerEvents: 'none',
       }} />
 
-      <div className="landing-hero-inner" style={{ opacity: isInView ? 1 : 0, transform: isInView ? 'translateY(0)' : 'translateY(30px)', transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-        {/* Left — Value prop */}
-        <div className="landing-hero-left">
-          <div className="landing-hero-badge">
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: C.green, display: 'inline-block' }} />
-            พร้อมให้บริการ · NSW Thailand Connected
+      <div className="landing-hero-inner-full" style={{ opacity: isInView ? 1 : 0, transform: isInView ? 'translateY(0)' : 'translateY(30px)', transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+        <div className="landing-hero-badge" style={{ margin: '0 auto' }}>
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: C.green, display: 'inline-block' }} />
+          พร้อมให้บริการ · NSW Thailand Connected
+        </div>
+
+        <h1 className="landing-hero-title" style={{ textAlign: 'center' }}>
+          ระบบใบขนสินค้า
+          <span className="landing-gradient-text"> อิเล็กทรอนิกส์ </span>
+          ครบวงจร
+        </h1>
+
+        <p className="landing-hero-desc" style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto' }}>
+          ยื่นใบขน กศก.101/1 ผ่าน National Single Window ด้วย AI
+          ที่ช่วยกรอกข้อมูล ค้นหา HS Code อัตโนมัติ และจัดการ
+          สิทธิประโยชน์ทางภาษี — ทั้งหมดในระบบเดียว
+        </p>
+
+        <div className="landing-hero-features" style={{ maxWidth: 520, margin: '0 auto' }}>
+          {[
+            { icon: '🤖', text: 'AI สกัดข้อมูลจากเอกสาร' },
+            { icon: '📋', text: 'HS Code 15,913+ รายการ' },
+            { icon: '🔗', text: 'เชื่อม NSW/ebXML อัตโนมัติ' },
+            { icon: '🛡️', text: 'รองรับ 7 สิทธิประโยชน์' },
+          ].map((f, i) => (
+            <div key={i} className="landing-hero-feature-item"
+              style={{ animationDelay: `${0.3 + i * 0.1}s` }}>
+              <span style={{ fontSize: 18 }}>{f.icon}</span>
+              <span style={{ fontSize: 14, color: C.textGray }}>{f.text}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="landing-hero-cta-row">
+          <button onClick={onRegister} className="landing-hero-btn-primary">
+            เริ่มต้นใช้งาน →
+          </button>
+          <button onClick={onOpenLogin} className="landing-hero-btn-secondary">
+            เข้าสู่ระบบ
+          </button>
+        </div>
+
+        <div className="landing-hero-trust" style={{ justifyContent: 'center' }}>
+          <span style={{ fontSize: 12, color: C.textGray, textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
+            มาตรฐาน
+          </span>
+          <div style={{ display: 'flex', gap: 12 }}>
+            {['XSD v4.00', 'ebXML v2.0', 'ISO 27001', 'PDPA'].map(t => (
+              <span key={t} style={{
+                fontSize: 11, fontWeight: 700, padding: '4px 10px',
+                borderRadius: 6, background: C.glassBg, border: `1px solid ${C.glassBorder}`,
+                color: C.textGray, fontFamily: C.mono, letterSpacing: '0.3px',
+              }}>{t}</span>
+            ))}
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
-          <h1 className="landing-hero-title">
-            ระบบใบขนสินค้า
-            <br />
-            <span className="landing-gradient-text">อิเล็กทรอนิกส์</span>
-            <br />
-            ครบวงจร
-          </h1>
+// ─── LIVE DATA STRIP (compact ticker below hero) ──────────────────
+function LiveDataStrip({ rates, loading, onScrollTo }) {
+  const highlighted = ['USD', 'EUR', 'JPY', 'CNY', 'GBP'];
+  const topRates = highlighted.map(code => rates.find(r => r.code === code)).filter(Boolean);
 
-          <p className="landing-hero-desc">
-            ยื่นใบขน กศก.101/1 ผ่าน National Single Window ด้วย AI
-            ที่ช่วยกรอกข้อมูล ค้นหา HS Code อัตโนมัติ และจัดการ
-            สิทธิประโยชน์ทางภาษี — ทั้งหมดในระบบเดียว
+  return (
+    <div className="landing-ticker-strip">
+      <div className="landing-ticker-inner">
+        <div className="landing-ticker-date">
+          {new Date().toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        </div>
+        <div className="landing-ticker-rates">
+          {loading ? (
+            <span style={{ color: C.textGray, fontSize: 13 }}>กำลังโหลดอัตราแลกเปลี่ยน...</span>
+          ) : topRates.length > 0 ? topRates.map(r => (
+            <span key={r.code} className="landing-ticker-pill">
+              <span style={{ fontWeight: 800, color: C.textWhite }}>{r.code}</span>
+              <span style={{ color: C.accent, fontFamily: C.mono, fontWeight: 600 }}>
+                {r.exportRate?.toFixed(4) || '—'}
+              </span>
+            </span>
+          )) : (
+            <span style={{ color: C.textGray, fontSize: 13 }}>ไม่สามารถโหลดข้อมูลได้</span>
+          )}
+        </div>
+        <button onClick={() => onScrollTo('exchange')} className="landing-ticker-link">
+          ดูทั้งหมด →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── EXCHANGE RATE SECTION ────────────────────────────────────────
+function ExchangeRateSection({ rates, fetchedAt, loading }) {
+  const [ref, isInView] = useInView();
+  const [search, setSearch] = useState('');
+  const [expanded, setExpanded] = useState(false);
+  const VISIBLE_COUNT = 10;
+
+  const highlighted = ['USD', 'EUR', 'JPY'];
+  const topRates = highlighted.map(code => rates.find(r => r.code === code)).filter(Boolean);
+
+  const filtered = rates.filter(r =>
+    r.currency.toLowerCase().includes(search.toLowerCase()) ||
+    r.code.toLowerCase().includes(search.toLowerCase()) ||
+    r.country.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <section id="exchange" className="landing-section landing-section-dark">
+      <div ref={ref} className="landing-container" style={{ opacity: isInView ? 1 : 0, transform: isInView ? 'translateY(0)' : 'translateY(40px)', transition: 'all 0.7s ease-out' }}>
+        <div className="landing-section-header">
+          <span className="landing-tag" style={{ background: `${C.accent}20`, color: C.accent, borderColor: `${C.accent}40` }}>
+            LIVE DATA
+          </span>
+          <h2 className="landing-section-title-dark">อัตราแลกเปลี่ยนวันนี้</h2>
+          <p className="landing-section-sub-dark">
+            ข้อมูลจากกรมศุลกากร · อัปเดตล่าสุด {fetchedAt ? new Date(fetchedAt).toLocaleTimeString('th-TH') : '—'}
           </p>
+        </div>
 
-          <div className="landing-hero-features">
-            {[
-              { icon: '🤖', text: 'AI สกัดข้อมูลจากเอกสาร' },
-              { icon: '📋', text: 'HS Code 15,913+ รายการ' },
-              { icon: '🔗', text: 'เชื่อม NSW/ebXML อัตโนมัติ' },
-              { icon: '🛡️', text: 'รองรับ 7 สิทธิประโยชน์' },
-            ].map((f, i) => (
-              <div key={i} className="landing-hero-feature-item"
-                style={{ animationDelay: `${0.3 + i * 0.1}s` }}>
-                <span style={{ fontSize: 18 }}>{f.icon}</span>
-                <span style={{ fontSize: 14, color: C.textGray }}>{f.text}</span>
+        {loading ? (
+          <div className="landing-rate-skeleton">
+            {[1,2,3].map(i => <div key={i} className="landing-skeleton-card" />)}
+          </div>
+        ) : (
+          <>
+            {/* Highlight cards */}
+            <div className="landing-rate-highlights">
+              {topRates.map(r => (
+                <div key={r.code} className="landing-rate-card">
+                  <div style={{ fontSize: 14, color: C.textGray, marginBottom: 4 }}>{r.currency}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: C.accent, fontFamily: C.mono, marginBottom: 8 }}>
+                    {r.code}/THB
+                  </div>
+                  <div style={{ display: 'flex', gap: 16 }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: C.textGray, marginBottom: 2 }}>ส่งออก</div>
+                      <div style={{ fontSize: 24, fontWeight: 900, color: C.textWhite, fontFamily: C.mono }}>
+                        {r.exportRate?.toFixed(4) || '—'}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, color: C.textGray, marginBottom: 2 }}>นำเข้า</div>
+                      <div style={{ fontSize: 24, fontWeight: 900, color: C.textWhite, fontFamily: C.mono }}>
+                        {r.importRate?.toFixed(4) || '—'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Search + Table */}
+            <div style={{ marginTop: 32 }}>
+              <input
+                type="text" value={search} onChange={e => setSearch(e.target.value)}
+                placeholder="ค้นหาสกุลเงิน... (เช่น USD, Dollar, สหรัฐ)"
+                className="landing-rate-search"
+              />
+
+              <div className="landing-rate-table-wrap">
+                <table className="landing-rate-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>ประเทศ</th>
+                      <th>สกุลเงิน</th>
+                      <th>รหัส</th>
+                      <th>อัตราส่งออก</th>
+                      <th>อัตรานำเข้า</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.length === 0 ? (
+                      <tr><td colSpan={6} style={{ textAlign: 'center', color: C.textGray, padding: 32 }}>
+                        {search ? 'ไม่พบสกุลเงินที่ค้นหา' : 'ไม่มีข้อมูล'}
+                      </td></tr>
+                    ) : (search ? filtered : filtered.slice(0, expanded ? filtered.length : VISIBLE_COUNT)).map((r, i) => (
+                      <tr key={r.code}>
+                        <td>{i + 1}</td>
+                        <td>{r.country}</td>
+                        <td>{r.currency}</td>
+                        <td style={{ fontFamily: C.mono, fontWeight: 700, color: C.accent }}>{r.code}</td>
+                        <td style={{ fontFamily: C.mono }}>{r.exportRate?.toFixed(4) || '—'}</td>
+                        <td style={{ fontFamily: C.mono }}>{r.importRate?.toFixed(4) || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {!search && filtered.length > VISIBLE_COUNT && (
+                <div style={{ textAlign: 'center', marginTop: 16 }}>
+                  <button onClick={() => setExpanded(e => !e)} className="landing-rate-toggle">
+                    {expanded ? 'แสดงน้อยลง ▲' : `ดูทั้งหมด ${filtered.length} สกุลเงิน ▼`}
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// ─── NEWS FEED SECTION ────────────────────────────────────────────
+function NewsFeedSection({ news, loading }) {
+  const [ref, isInView] = useInView();
+
+  const gradients = [
+    `linear-gradient(135deg, ${C.primary}, ${C.accent})`,
+    `linear-gradient(135deg, ${C.accent}, ${C.green})`,
+    `linear-gradient(135deg, #8B5CF6, ${C.primary})`,
+    `linear-gradient(135deg, ${C.gold}, ${C.red})`,
+    `linear-gradient(135deg, ${C.green}, ${C.accent})`,
+    `linear-gradient(135deg, ${C.primaryDark}, #8B5CF6)`,
+  ];
+
+  return (
+    <section id="news" className="landing-section landing-section-light">
+      <div ref={ref} className="landing-container" style={{ opacity: isInView ? 1 : 0, transform: isInView ? 'translateY(0)' : 'translateY(40px)', transition: 'all 0.7s ease-out' }}>
+        <div className="landing-section-header">
+          <span className="landing-tag" style={{ background: `${C.gold}15`, color: C.gold, borderColor: `${C.gold}40` }}>
+            ข่าวศุลกากร
+          </span>
+          <h2 className="landing-section-title-light">ข่าวสารจากกรมศุลกากร</h2>
+          <p className="landing-section-sub-light">อัปเดตล่าสุดจาก customs.go.th</p>
+        </div>
+
+        {loading ? (
+          <div className="landing-news-grid">
+            {[1,2,3,4,5,6].map(i => (
+              <div key={i} className="landing-news-card">
+                <div className="landing-news-thumb-skeleton" />
+                <div style={{ padding: 20 }}>
+                  <div className="landing-skeleton-line" style={{ width: '40%', marginBottom: 8 }} />
+                  <div className="landing-skeleton-line" style={{ width: '100%', marginBottom: 6 }} />
+                  <div className="landing-skeleton-line" style={{ width: '70%' }} />
+                </div>
               </div>
             ))}
           </div>
-
-          <div className="landing-hero-trust">
-            <span style={{ fontSize: 12, color: C.textGray, textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
-              มาตรฐาน
-            </span>
-            <div style={{ display: 'flex', gap: 12 }}>
-              {['XSD v4.00', 'ebXML v2.0', 'ISO 27001', 'PDPA'].map(t => (
-                <span key={t} style={{
-                  fontSize: 11, fontWeight: 700, padding: '4px 10px',
-                  borderRadius: 6, background: C.glassBg, border: `1px solid ${C.glassBorder}`,
-                  color: C.textGray, fontFamily: C.mono, letterSpacing: '0.3px',
-                }}>{t}</span>
-              ))}
-            </div>
+        ) : (
+          <div className="landing-news-grid">
+            {news.map((item, i) => (
+              <a key={item.id} href={item.url} target="_blank" rel="noopener noreferrer"
+                className="landing-news-card" style={{ animationDelay: `${i * 0.1}s`, textDecoration: 'none', color: 'inherit' }}>
+                <div className="landing-news-thumb" style={{ background: gradients[i % gradients.length] }}>
+                  <span style={{ fontSize: 32, opacity: 0.7 }}>📰</span>
+                </div>
+                <div style={{ padding: '16px 20px 20px' }}>
+                  <div className="landing-news-meta">
+                    <span>{item.date}</span>
+                    {item.views > 0 && <span>· {item.views.toLocaleString()} views</span>}
+                  </div>
+                  <h3 className="landing-news-title">{item.title}</h3>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: C.primary }}>อ่านต่อ →</span>
+                </div>
+              </a>
+            ))}
           </div>
-        </div>
+        )}
 
-        {/* Right — Login Card */}
-        <div className="landing-hero-right">
-          <LoginCard onRegister={onRegister} />
+        <div style={{ textAlign: 'center', marginTop: 32 }}>
+          <a href="https://www.customs.go.th" target="_blank" rel="noopener noreferrer"
+            style={{ fontSize: 14, color: C.primary, fontWeight: 700, textDecoration: 'none' }}>
+            ดูข่าวทั้งหมดที่ customs.go.th →
+          </a>
         </div>
       </div>
     </section>
@@ -301,21 +534,9 @@ function HeroSection({ onRegister }) {
 function PainPointsSection() {
   const [ref, isInView] = useInView();
   const cards = [
-    {
-      icon: '📝', color: '#EF4444',
-      title: 'กรอกข้อมูลซ้ำ',
-      desc: 'ข้อมูลเดิมๆ ต้องพิมพ์ใหม่ทุกครั้ง ใบขน Invoice Packing List — เสียเวลาหลายชั่วโมง',
-    },
-    {
-      icon: '❌', color: '#F59E0B',
-      title: 'เอกสารผิดพลาด',
-      desc: 'HS Code ผิด น้ำหนักไม่ตรง FOB คำนวณพลาด — ถูก Reject ต้องแก้ไขยื่นใหม่',
-    },
-    {
-      icon: '🔍', color: '#8B5CF6',
-      title: 'ติดตามสถานะยาก',
-      desc: 'ไม่รู้ว่าใบขนไปถึงไหนแล้ว ต้องโทรถามกรมศุลกากรเอง ไม่มี dashboard',
-    },
+    { icon: '📝', color: '#EF4444', title: 'กรอกข้อมูลซ้ำ', desc: 'ข้อมูลเดิมๆ ต้องพิมพ์ใหม่ทุกครั้ง ใบขน Invoice Packing List — เสียเวลาหลายชั่วโมง' },
+    { icon: '❌', color: '#F59E0B', title: 'เอกสารผิดพลาด', desc: 'HS Code ผิด น้ำหนักไม่ตรง FOB คำนวณพลาด — ถูก Reject ต้องแก้ไขยื่นใหม่' },
+    { icon: '🔍', color: '#8B5CF6', title: 'ติดตามสถานะยาก', desc: 'ไม่รู้ว่าใบขนไปถึงไหนแล้ว ต้องโทรถามกรมศุลกากรเอง ไม่มี dashboard' },
   ];
 
   return (
@@ -331,7 +552,7 @@ function PainPointsSection() {
 
         <div className="landing-pain-grid">
           {cards.map((card, i) => (
-            <div key={i} className="landing-pain-card" style={{ animationDelay: `${i * 0.15}s` }}>
+            <div key={i} className="landing-pain-card" style={{ animationDelay: `${i * 0.15}s`, borderLeft: `3px solid ${card.color}` }}>
               <div style={{
                 width: 52, height: 52, borderRadius: 14,
                 background: `${card.color}15`, border: `1px solid ${card.color}30`,
@@ -423,7 +644,6 @@ function HowItWorksSection() {
               }}>{step.icon}</div>
               <h3 style={{ fontSize: 17, fontWeight: 800, color: C.textWhite, marginBottom: 8 }}>{step.title}</h3>
               <p style={{ fontSize: 14, color: C.textGray, lineHeight: 1.7, margin: 0 }}>{step.desc}</p>
-              {i < steps.length - 1 && <div className="landing-step-connector" />}
             </div>
           ))}
         </div>
@@ -522,7 +742,7 @@ function TargetCustomersSection() {
 }
 
 // ─── CTA BANNER ────────────────────────────────────────────────────
-function CTABanner({ onScrollTo, onRegister }) {
+function CTABanner({ onOpenLogin, onRegister }) {
   const [ref, isInView] = useInView();
   return (
     <section className="landing-section landing-cta-section">
@@ -539,7 +759,7 @@ function CTABanner({ onScrollTo, onRegister }) {
             <button onClick={onRegister} className="landing-cta-btn-primary">
               สมัครใช้งานฟรี →
             </button>
-            <button onClick={() => onScrollTo('hero')} className="landing-cta-btn-secondary">
+            <button onClick={onOpenLogin} className="landing-cta-btn-secondary">
               เข้าสู่ระบบ
             </button>
           </div>
@@ -550,31 +770,18 @@ function CTABanner({ onScrollTo, onRegister }) {
 }
 
 // ─── FOOTER ────────────────────────────────────────────────────────
-function Footer() {
+function Footer({ onScrollTo }) {
   const cols = [
-    {
-      title: 'Product',
-      links: ['ฟีเจอร์', 'Pricing', 'Roadmap', 'Changelog'],
-    },
-    {
-      title: 'Resources',
-      links: ['Documentation', 'API Reference', 'HS Code Lookup', 'XSD v4.00 Guide'],
-    },
-    {
-      title: 'Legal',
-      links: ['Terms of Service', 'Privacy Policy (PDPA)', 'ISO 27001', 'Cookie Policy'],
-    },
-    {
-      title: 'Contact',
-      links: ['support@customs-edoc.th', '02-XXX-XXXX', 'Line: @customs-edoc', 'Bangkok, Thailand'],
-    },
+    { title: 'Product', links: ['ฟีเจอร์', 'Pricing', 'Roadmap', 'Changelog'] },
+    { title: 'Resources', links: ['Documentation', 'API Reference', 'HS Code Lookup', 'XSD v4.00 Guide'] },
+    { title: 'ข้อมูลศุลกากร', links: ['อัตราแลกเปลี่ยน', 'ข่าวกรมศุลกากร', 'สถิตินำเข้า-ส่งออก', 'customs.go.th'] },
+    { title: 'Contact', links: ['support@customs-edoc.th', '02-XXX-XXXX', 'Line: @customs-edoc', 'Bangkok, Thailand'] },
   ];
 
   return (
     <footer className="landing-footer">
       <div className="landing-container">
         <div className="landing-footer-grid">
-          {/* Brand column */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
               <div style={{
@@ -593,20 +800,32 @@ function Footer() {
             </p>
           </div>
 
-          {/* Link columns */}
           {cols.map((col, i) => (
             <div key={i}>
               <h4 style={{ fontSize: 13, fontWeight: 700, color: C.textWhite, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 14 }}>
                 {col.title}
               </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {col.links.map((link, j) => (
-                  <span key={j} style={{ fontSize: 13, color: C.textGray, cursor: 'pointer', transition: 'color 0.15s' }}
-                    onMouseEnter={e => e.currentTarget.style.color = C.textWhite}
-                    onMouseLeave={e => e.currentTarget.style.color = C.textGray}>
-                    {link}
-                  </span>
-                ))}
+                {col.links.map((link, j) => {
+                  const scrollIds = { 'อัตราแลกเปลี่ยน': 'exchange', 'ข่าวกรมศุลกากร': 'news' };
+                  const isScroll = scrollIds[link];
+                  const isExternal = link === 'customs.go.th';
+                  return isExternal ? (
+                    <a key={j} href="https://www.customs.go.th" target="_blank" rel="noopener noreferrer"
+                      style={{ fontSize: 13, color: C.textGray, cursor: 'pointer', textDecoration: 'none', transition: 'color 0.15s' }}
+                      onMouseEnter={e => e.currentTarget.style.color = C.textWhite}
+                      onMouseLeave={e => e.currentTarget.style.color = C.textGray}>
+                      {link}
+                    </a>
+                  ) : (
+                    <span key={j} style={{ fontSize: 13, color: C.textGray, cursor: 'pointer', transition: 'color 0.15s' }}
+                      onClick={isScroll ? () => onScrollTo(isScroll) : undefined}
+                      onMouseEnter={e => e.currentTarget.style.color = C.textWhite}
+                      onMouseLeave={e => e.currentTarget.style.color = C.textGray}>
+                      {link}
+                    </span>
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -632,22 +851,57 @@ function Footer() {
 // MAIN LANDING PAGE
 // ═══════════════════════════════════════════════════════════════════
 export default function LandingPage({ onRegister }) {
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [rates, setRates] = useState([]);
+  const [ratesFetchedAt, setRatesFetchedAt] = useState(null);
+  const [ratesLoading, setRatesLoading] = useState(true);
+  const [news, setNews] = useState([]);
+  const [newsLoading, setNewsLoading] = useState(true);
+
+  // Fetch exchange rates
+  useEffect(() => {
+    fetch('/api/customs/exchange-rates')
+      .then(r => r.json())
+      .then(data => {
+        setRates(data.rates || []);
+        setRatesFetchedAt(data.fetchedAt);
+      })
+      .catch(() => setRates([]))
+      .finally(() => setRatesLoading(false));
+  }, []);
+
+  // Fetch news
+  useEffect(() => {
+    fetch('/api/customs/news?limit=6')
+      .then(r => r.json())
+      .then(data => setNews(data.news || []))
+      .catch(() => setNews([]))
+      .finally(() => setNewsLoading(false));
+  }, []);
+
   const scrollTo = (id) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const openLogin = () => setLoginOpen(true);
+  const closeLogin = () => setLoginOpen(false);
+
   return (
     <div className="landing-root">
-      <Navbar onScrollTo={scrollTo} />
-      <HeroSection onRegister={onRegister} />
+      <Navbar onScrollTo={scrollTo} onOpenLogin={openLogin} />
+      <HeroSection onOpenLogin={openLogin} onRegister={onRegister} />
+      <LiveDataStrip rates={rates} loading={ratesLoading} onScrollTo={scrollTo} />
+      <ExchangeRateSection rates={rates} fetchedAt={ratesFetchedAt} loading={ratesLoading} />
+      <NewsFeedSection news={news} loading={newsLoading} />
       <PainPointsSection />
       <FeaturesSection />
       <HowItWorksSection />
       <StatisticsSection />
       <TargetCustomersSection />
-      <CTABanner onScrollTo={scrollTo} onRegister={onRegister} />
-      <Footer />
+      <CTABanner onOpenLogin={openLogin} onRegister={onRegister} />
+      <Footer onScrollTo={scrollTo} />
+      <LoginModal open={loginOpen} onClose={closeLogin} onRegister={onRegister} />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { notificationsApi } from '../api/notificationsApi';
+import { colors } from '../theme';
 
 const POLL_INTERVAL = 30_000; // 30 seconds
 
@@ -17,16 +18,16 @@ const TYPE_ICONS = {
 };
 
 const TYPE_COLORS = {
-  JOB_STATUS_CHANGED:  '#2563EB',
-  JOB_CREATED:         '#16A34A',
-  JOB_ASSIGNED:        '#7C3AED',
-  APPROVAL_REQUESTED:  '#D97706',
-  APPROVAL_APPROVED:   '#16A34A',
-  APPROVAL_REJECTED:   '#DC2626',
+  JOB_STATUS_CHANGED:  colors.primary,
+  JOB_CREATED:         colors.success,
+  JOB_ASSIGNED:        colors.purple,
+  APPROVAL_REQUESTED:  colors.warning,
+  APPROVAL_APPROVED:   colors.success,
+  APPROVAL_REJECTED:   colors.danger,
   DECLARATION_READY:   '#0284C7',
-  NSW_RESPONSE:        '#06B6D4',
+  NSW_RESPONSE:        colors.accent,
   BILLING_INVOICE:     '#EC4899',
-  SYSTEM:              '#64748B',
+  SYSTEM:              colors.textMuted,
 };
 
 function timeAgo(dateStr) {

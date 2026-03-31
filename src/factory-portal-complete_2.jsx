@@ -14,19 +14,10 @@ import SuperAdminConsole from "./super-admin-console.jsx";
 import { usePermissions } from "./hooks/usePermissions.js";
 import ManualDeclarationForm from "./components/ManualDeclarationForm.jsx";
 import NotificationBell from "./components/NotificationBell.jsx";
+import { STATUS_COLORS } from "./theme";
 
-// ─── Constants ────────────────────────────────────────────────────
-const STATUS = {
-  DRAFT:          { label:"Draft",           color:"#64748B", bg:"#F1F5F9", border:"#CBD5E1" },
-  PREPARING:      { label:"Preparing",       color:"#D97706", bg:"#FFFBEB", border:"#FDE68A" },
-  READY:          { label:"Ready",           color:"#2563EB", bg:"#EFF6FF", border:"#BFDBFE" },
-  SUBMITTED:      { label:"Submitted",       color:"#7C3AED", bg:"#F5F3FF", border:"#DDD6FE" },
-  NSW_PROCESSING: { label:"NSW Processing",  color:"#0284C7", bg:"#F0F9FF", border:"#BAE6FD" },
-  CUSTOMS_REVIEW: { label:"Customs Review",  color:"#EA580C", bg:"#FFF7ED", border:"#FED7AA" },
-  CLEARED:        { label:"Cleared",         color:"#16A34A", bg:"#F0FDF4", border:"#BBF7D0" },
-  COMPLETED:      { label:"Completed",       color:"#15803D", bg:"#DCFCE7", border:"#86EFAC" },
-  REJECTED:       { label:"Rejected",        color:"#DC2626", bg:"#FEF2F2", border:"#FECACA" },
-};
+// ─── Constants (from unified theme) ──────────────────────────────
+const STATUS = STATUS_COLORS;
 
 const SHIPMENTS = [
   { id:"SH-2026-0234", type:"Export", vessel:"MSC AURORA V.124",    container:"MSCU7823410", hs:"8542.31.10", fob:"USD 128,450", status:"CLEARED",         date:"2026-03-18", items:14, nsw:"NSW-TH-2026-039180", consignee:"Samsung Electronics Korea", pod:"Busan, KR" },

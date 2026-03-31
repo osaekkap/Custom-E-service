@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
+import { colors, fonts } from "./theme";
 
 const RESPONSIVE_CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
   *, *::before, *::after { box-sizing: border-box; }
-  body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 15px; }
+  body { font-family: var(--sans); font-size: 15px; }
   .rsp-grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
   .rsp-grid-2 { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
   .rsp-grid-2-eq { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -11,9 +11,9 @@ const RESPONSIVE_CSS = `
   .rsp-grid-form { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; }
   .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .sidebar-overlay { display: none; }
-  .nav-btn:hover { background: rgba(0,201,167,0.1) !important; color: #00C9A7 !important; }
-  .card-hover:hover { border-color: #2A4070 !important; box-shadow: 0 4px 24px rgba(0,0,0,0.25) !important; }
-  tr.row-hover:hover td { background: #172444; }
+  .nav-btn:hover { background: ${colors.accentBg} !important; color: ${colors.accent} !important; }
+  .card-hover:hover { border-color: ${colors.navyBorderHi} !important; box-shadow: 0 4px 24px rgba(0,0,0,0.25) !important; }
+  tr.row-hover:hover td { background: ${colors.navyMid}; }
   @media (max-width: 900px) {
     .rsp-grid-4 { grid-template-columns: repeat(2,1fr); }
     .rsp-grid-2, .rsp-grid-2-eq, .rsp-grid-form { grid-template-columns: 1fr; }
@@ -32,31 +32,31 @@ const RESPONSIVE_CSS = `
   .hamburger-btn { display: none; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; padding: 8px; }
 `;
 
-// ─── Design tokens ───────────────────────────────────────────────
+// ─── Design tokens (from unified theme) ──────────────────────────
 const C = {
-  bg0: "#060D1A",
-  bg1: "#0B1525",
-  bg2: "#0F1D30",
-  bg3: "#152238",
-  border: "#1A2B42",
-  borderHi: "#243D5C",
-  teal: "#00D4B0",
-  tealDim: "#00A88A",
-  tealBg: "rgba(0,212,176,0.09)",
-  amber: "#F59E0B",
-  amberBg: "rgba(245,158,11,0.1)",
-  blue: "#60A5FA",
-  blueBg: "rgba(96,165,250,0.1)",
-  red: "#F87171",
-  redBg: "rgba(248,113,113,0.09)",
-  green: "#34D399",
-  greenBg: "rgba(52,211,153,0.09)",
-  purple: "#C084FC",
-  purpleBg: "rgba(192,132,252,0.1)",
-  text: "#E2E8F0",
-  textMid: "#94A3B8",
-  textDim: "#4E6480",
-  mono: "'JetBrains Mono', 'Courier New', monospace",
+  bg0: colors.navyDeep,
+  bg1: colors.navy,
+  bg2: colors.navyCard,
+  bg3: colors.navyMid,
+  border: colors.navyBorder,
+  borderHi: colors.navyBorderHi,
+  teal: colors.accent,
+  tealDim: colors.accentHover,
+  tealBg: colors.accentBg,
+  amber: colors.gold,
+  amberBg: colors.warningBg,
+  blue: colors.primaryLight,
+  blueBg: colors.primaryBg,
+  red: colors.danger,
+  redBg: colors.dangerBg,
+  green: colors.success,
+  greenBg: colors.successBg,
+  purple: colors.purpleLight,
+  purpleBg: colors.purpleBg,
+  text: colors.textWhite,
+  textMid: colors.textGray,
+  textDim: colors.textDim,
+  mono: fonts.mono,
 };
 
 // ─── Mock data ────────────────────────────────────────────────────

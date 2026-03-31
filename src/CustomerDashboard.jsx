@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from './stores/AuthContext.jsx';
 import { jobsApi } from './api/jobsApi.js';
+import { cssVar, fonts } from './theme';
 
-const BLUE    = "var(--primary)";
-const BG      = "var(--bg-main)";
-const BORDER  = "var(--border-main)";
-const TEXT    = "var(--text-main)";
-const TEXT2   = "var(--text-muted)";
-const TEXT3   = "var(--text-light)";
-const GREEN   = "var(--success)";
-const RED     = "var(--danger)";
-const ORANGE  = "var(--warning)";
-const W       = "#fff";
-const MONO    = "'JetBrains Mono','Fira Code',monospace";
+const BLUE    = cssVar.primary;
+const BG      = cssVar.bgMain;
+const BORDER  = cssVar.borderMain;
+const TEXT    = cssVar.textMain;
+const TEXT2   = cssVar.textMuted;
+const TEXT3   = cssVar.textLight;
+const GREEN   = cssVar.success;
+const RED     = cssVar.danger;
+const ORANGE  = cssVar.warning;
+const W       = cssVar.white;
+const MONO    = fonts.mono;
 
 const STATUS_ORDER = ["DRAFT","PREPARING","READY","GENERATING","READY_TO_SUBMIT","SUBMITTING","SUBMITTED","NSW_PROCESSING","CUSTOMS_REVIEW","CLEARED","COMPLETED"];
 const PIPELINE_STEPS = ["สร้าง Job","เตรียมเอกสาร","ยื่น NSW","ศุลกากรตรวจ","Cleared"];

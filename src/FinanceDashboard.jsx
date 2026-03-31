@@ -1,15 +1,16 @@
 import React from 'react';
 import { AreaChart, Area, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie } from 'recharts';
+import { cssVar } from './theme';
 
-const BLUE    = "var(--primary)";
-const BG      = "var(--bg-main)";
-const BORDER  = "var(--border-main)";
-const TEXT    = "var(--text-main)";
-const TEXT2   = "var(--text-muted)";
-const TEXT3   = "var(--text-light)";
-const GREEN   = "var(--success)";
-const RED     = "var(--danger)";
-const ORANGE  = "var(--warning)";
+const BLUE    = cssVar.primary;
+const BG      = cssVar.bgMain;
+const BORDER  = cssVar.borderMain;
+const TEXT    = cssVar.textMain;
+const TEXT2   = cssVar.textMuted;
+const TEXT3   = cssVar.textLight;
+const GREEN   = cssVar.success;
+const RED     = cssVar.danger;
+const ORANGE  = cssVar.warning;
 
 // Mock Data for Charts
 const monthlyData = [

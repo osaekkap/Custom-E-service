@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import client from './api/client';
+import { colors, fonts } from './theme';
 
-const BLUE   = '#2563EB';
-const BLUE2  = '#1D4ED8';
-const TEXT   = '#111827';
-const TEXT2  = '#6B7280';
-const TEXT3  = '#9CA3AF';
-const BORDER = '#E5E7EB';
-const RED    = '#EF4444';
-const GREEN  = '#16A34A';
-const MONO   = "'JetBrains Mono','Fira Code',monospace";
+const BLUE   = colors.primary;
+const BLUE2  = colors.primaryHover;
+const TEXT   = colors.textMain;
+const TEXT2  = colors.textMuted;
+const TEXT3  = colors.textLight;
+const BORDER = colors.borderMain;
+const RED    = colors.danger;
+const GREEN  = colors.success;
+const MONO   = fonts.mono;
 
 const TC_VERSION = '2026-v1';
 const STEPS = ['ข้อมูลบริษัท', 'ผู้ดูแลระบบ', 'เงื่อนไขการใช้งาน'];

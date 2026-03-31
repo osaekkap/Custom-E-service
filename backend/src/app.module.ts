@@ -17,6 +17,7 @@ import { AiModule } from './ai/ai.module';
 import { ProductsModule } from './products/products.module';
 import { PrivilegeDocsModule } from './privilege-docs/privilege-docs.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { CustomsDataModule } from './customs-data/customs-data.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     ProductsModule,
     PrivilegeDocsModule,
     NotificationsModule,
+    CustomsDataModule,
   ],
   controllers: [AppController],
   providers: [
