@@ -475,14 +475,14 @@ function NewsFeedSection({ news, loading }) {
   ];
 
   return (
-    <section id="news" className="landing-section landing-section-light">
+    <section id="news" className="landing-section landing-section-dark">
       <div ref={ref} className="landing-container" style={{ opacity: isInView ? 1 : 0, transform: isInView ? 'translateY(0)' : 'translateY(40px)', transition: 'all 0.7s ease-out' }}>
         <div className="landing-section-header">
           <span className="landing-tag" style={{ background: `${C.gold}15`, color: C.gold, borderColor: `${C.gold}40` }}>
             ข่าวศุลกากร
           </span>
-          <h2 className="landing-section-title-light">ข่าวสารจากกรมศุลกากร</h2>
-          <p className="landing-section-sub-light">อัปเดตล่าสุดจาก customs.go.th</p>
+          <h2 className="landing-section-title-dark">ข่าวสารจากกรมศุลกากร</h2>
+          <p className="landing-section-sub-dark">อัปเดตล่าสุดจาก customs.go.th</p>
         </div>
 
         {loading ? (
@@ -582,14 +582,14 @@ function FeaturesSection() {
   ];
 
   return (
-    <section id="features" className="landing-section landing-section-light">
+    <section id="features" className="landing-section landing-section-dark">
       <div ref={ref} className="landing-container" style={{ opacity: isInView ? 1 : 0, transform: isInView ? 'translateY(0)' : 'translateY(40px)', transition: 'all 0.7s ease-out' }}>
         <div className="landing-section-header">
           <span className="landing-tag" style={{ background: `${C.primary}12`, color: C.primary, borderColor: `${C.primary}30` }}>
             ฟีเจอร์หลัก
           </span>
-          <h2 className="landing-section-title-light">ทุกเครื่องมือที่คุณต้องการ</h2>
-          <p className="landing-section-sub-light">ระบบครบวงจรตั้งแต่สร้าง Shipment จนถึงผ่านพิธีการศุลกากร</p>
+          <h2 className="landing-section-title-dark">ทุกเครื่องมือที่คุณต้องการ</h2>
+          <p className="landing-section-sub-dark">ระบบครบวงจรตั้งแต่สร้าง Shipment จนถึงผ่านพิธีการศุลกากร</p>
         </div>
 
         <div className="landing-features-grid">
@@ -601,8 +601,8 @@ function FeaturesSection() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 22, marginBottom: 16,
               }}>{f.icon}</div>
-              <h3 style={{ fontSize: 16, fontWeight: 800, color: C.textDark, marginBottom: 8, letterSpacing: '-0.2px' }}>{f.title}</h3>
-              <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.7, margin: 0 }}>{f.desc}</p>
+              <h3 style={{ fontSize: 16, fontWeight: 800, color: C.textWhite, marginBottom: 8, letterSpacing: '-0.2px' }}>{f.title}</h3>
+              <p style={{ fontSize: 14, color: C.textGray, lineHeight: 1.7, margin: 0 }}>{f.desc}</p>
             </div>
           ))}
         </div>
@@ -710,25 +710,25 @@ function TargetCustomersSection() {
   ];
 
   return (
-    <section id="customers" className="landing-section landing-section-light">
+    <section id="customers" className="landing-section landing-section-dark">
       <div ref={ref} className="landing-container" style={{ opacity: isInView ? 1 : 0, transform: isInView ? 'translateY(0)' : 'translateY(40px)', transition: 'all 0.7s ease-out' }}>
         <div className="landing-section-header">
           <span className="landing-tag" style={{ background: `${C.green}12`, color: C.green, borderColor: `${C.green}30` }}>
             กลุ่มเป้าหมาย
           </span>
-          <h2 className="landing-section-title-light">ออกแบบมาสำหรับธุรกิจส่งออก</h2>
-          <p className="landing-section-sub-light">ไม่ว่าจะเป็นตัวแทน โรงงาน หรือ logistics — เรามีโซลูชันให้</p>
+          <h2 className="landing-section-title-dark">ออกแบบมาสำหรับธุรกิจส่งออก</h2>
+          <p className="landing-section-sub-dark">ไม่ว่าจะเป็นตัวแทน โรงงาน หรือ logistics — เรามีโซลูชันให้</p>
         </div>
 
         <div className="landing-segments-grid">
           {segments.map((seg, i) => (
-            <div key={i} className="landing-segment-card" style={{ background: seg.gradient, borderColor: `${seg.borderColor}20` }}>
+            <div key={i} className="landing-segment-card" style={{ background: `linear-gradient(135deg, ${seg.borderColor}12, ${seg.borderColor}06)`, borderColor: `${seg.borderColor}25` }}>
               <div style={{ fontSize: 36, marginBottom: 16 }}>{seg.icon}</div>
-              <h3 style={{ fontSize: 18, fontWeight: 800, color: C.textDark, marginBottom: 10 }}>{seg.title}</h3>
-              <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.7, marginBottom: 16 }}>{seg.desc}</p>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: C.textWhite, marginBottom: 10 }}>{seg.title}</h3>
+              <p style={{ fontSize: 14, color: C.textGray, lineHeight: 1.7, marginBottom: 16 }}>{seg.desc}</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {seg.features.map((f, j) => (
-                  <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: C.textMuted }}>
+                  <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: C.textGray }}>
                     <span style={{ color: seg.borderColor, fontSize: 14 }}>✓</span> {f}
                   </div>
                 ))}

@@ -508,9 +508,7 @@ button {
 .landing-section-dark {
   background: #0B1929;
 }
-.landing-section-light {
-  background: #F8FAFC;
-}
+/* landing-section-light removed — full dark theme */
 .landing-section-gradient {
   background: linear-gradient(135deg, #2563EB, #0B1929 30%, #132F4C 70%, #06B6D4);
   padding: 64px 0;
@@ -547,19 +545,7 @@ button {
   color: #94A3B8;
   margin: 0;
 }
-.landing-section-title-light {
-  font-size: 32px;
-  font-weight: 900;
-  color: #1E293B;
-  margin: 0 0 12px;
-  letter-spacing: -0.5px;
-  line-height: 1.25;
-}
-.landing-section-sub-light {
-  font-size: 16px;
-  color: #64748B;
-  margin: 0;
-}
+/* landing-section-title-light / sub-light removed — full dark theme */
 
 /* ─── Pain Points ─────────────────────────────────────────────────── */
 .landing-pain-grid {
@@ -590,15 +576,15 @@ button {
 .landing-feature-card {
   padding: 28px 24px;
   border-radius: 16px;
-  background: #fff;
-  border: 1px solid #E2E8F0;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
   transition: all 0.3s ease;
   animation: fadeInUp 0.6s ease-out both;
 }
 .landing-feature-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.08);
-  border-color: #CBD5E1;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  border-color: rgba(255,255,255,0.15);
 }
 
 /* ─── How It Works (Steps) ────────────────────────────────────────── */
@@ -663,12 +649,13 @@ button {
 .landing-segment-card {
   padding: 32px 28px;
   border-radius: 16px;
-  border: 1px solid;
+  border: 1px solid rgba(255,255,255,0.08);
   transition: all 0.3s ease;
 }
 .landing-segment-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.06);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  border-color: rgba(255,255,255,0.15);
 }
 
 /* ─── CTA Banner ─────────────────────────────────────────────────── */
@@ -1123,7 +1110,7 @@ button {
 .landing-skeleton-line {
   height: 14px;
   border-radius: 4px;
-  background: linear-gradient(90deg, #E2E8F0 25%, #F1F5F9 50%, #E2E8F0 75%);
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
@@ -1131,7 +1118,7 @@ button {
   width: 100%;
   aspect-ratio: 16/9;
   border-radius: 16px 16px 0 0;
-  background: linear-gradient(90deg, #E2E8F0 25%, #F1F5F9 50%, #E2E8F0 75%);
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
@@ -1148,16 +1135,16 @@ button {
 }
 .landing-news-card {
   border-radius: 16px;
-  background: #fff;
-  border: 1px solid #E2E8F0;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
   overflow: hidden;
   transition: all 0.3s ease;
   animation: fadeInUp 0.6s ease-out both;
 }
 .landing-news-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
-  border-color: #CBD5E1;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255,255,255,0.15);
 }
 .landing-news-thumb {
   width: 100%;
@@ -1172,14 +1159,15 @@ button {
   display: flex;
   align-items: center;
   gap: 6px;
+
   font-size: 12px;
-  color: #64748B;
+  color: #94A3B8;
   margin-bottom: 8px;
 }
 .landing-news-title {
   font-size: 15px;
   font-weight: 800;
-  color: #1E293B;
+  color: #F8FAFC;
   margin: 0 0 12px;
   line-height: 1.5;
   display: -webkit-box;
