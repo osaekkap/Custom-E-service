@@ -18,6 +18,7 @@ import { ProductsModule } from './products/products.module';
 import { PrivilegeDocsModule } from './privilege-docs/privilege-docs.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { CustomsDataModule } from './customs-data/customs-data.module';
+import { CmsModule } from './cms/cms.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { CustomsDataModule } from './customs-data/customs-data.module';
     PrivilegeDocsModule,
     NotificationsModule,
     CustomsDataModule,
+    CmsModule,
   ],
   controllers: [AppController],
   providers: [

@@ -870,3 +870,71 @@ model Notification {
   @@index([entityType, entityId])
 }
 
+// ─── CMS: Landing Page Management ────────────────────────────────
+
+model CmsTheme {
+  id           String   @id @default(uuid())
+
+  // Brand colors
+  primary      String   @default("#2563EB")
+  primaryHover String   @default("#1D4ED8")
+  accent       String   @default("#06B6D4")
+
+  // Semantic
+  success      String   @default("#16A34A")
+  warning      String   @default("#D97706")
+  danger       String   @default("#DC2626")
+
+  // Dark palette
+  navy         String   @default("#0B1929")
+  navyMid      String   @default("#132F4C")
+
+  // Fonts
+  fontSans     String   @default("'DM Sans', 'Sarabun', system-ui, sans-serif")
+  fontMono     String   @default("'JetBrains Mono', 'Fira Code', monospace")
+
+  // Logo & Branding
+  logoText     String   @default("CUSTOMS-EDOC")
+  logoIcon     String   @default("⚓")
+  companyName  String   @default("NEXRA TECHNOLOGY CO., LTD.")
+
+  updatedAt    DateTime @updatedAt
+}
+
+model CmsSection {
+  id          String           @id @default(uuid())
+  slug        String           @unique
+  title       String
+  subtitle    String?
+  tagText     String?
+  tagColor    String?
+  isVisible   Boolean          @default(true)
+  sortOrder   Int              @default(0)
+  metadata    Json?
+
+  cards       CmsSectionCard[]
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model CmsSectionCard {
+  id          String     @id @default(uuid())
+  sectionId   String
+  section     CmsSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  icon        String?
+  title       String
+  description String?
+  color       String?
+  metadata    Json?
+
+  isVisible   Boolean    @default(true)
+  sortOrder   Int        @default(0)
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([sectionId, sortOrder])
+}
+

@@ -613,6 +613,172 @@ async function seedSampleJobs(customerIds: Record<string, string>, superAdminId:
   }
 }
 
+// ─── CMS SEED ─────────────────────────────────────────────────────
+async function seedCms() {
+  console.log('\n📄 Seeding CMS Landing Page...');
+
+  // Theme (upsert single row)
+  const existing = await prisma.cmsTheme.findFirst();
+  if (!existing) {
+    await prisma.cmsTheme.create({ data: {} }); // all defaults
+    console.log('  ✅ CMS Theme created (defaults)');
+  } else {
+    console.log('  ℹ️  CMS Theme already exists');
+  }
+
+  // Sections + Cards
+  const sections = [
+    {
+      slug: 'hero', sortOrder: 0,
+      title: 'ระบบใบขนสินค้า อิเล็กทรอนิกส์ ครบวงจร',
+      subtitle: 'ยื่นใบขน กศก.101/1 ผ่าน National Single Window ด้วย AI ที่ช่วยกรอกข้อมูล ค้นหา HS Code อัตโนมัติ และจัดการ สิทธิประโยชน์ทางภาษี — ทั้งหมดในระบบเดียว',
+      metadata: {
+        badge: 'พร้อมให้บริการ · NSW Thailand Connected',
+        ctaPrimary: 'เริ่มต้นใช้งาน →',
+        ctaSecondary: 'เข้าสู่ระบบ',
+        trustBadges: ['XSD v4.00', 'ebXML v2.0', 'ISO 27001', 'PDPA'],
+      },
+      cards: [
+        { icon: '🤖', title: 'AI สกัดข้อมูลจากเอกสาร', sortOrder: 0 },
+        { icon: '📋', title: 'HS Code 15,913+ รายการ', sortOrder: 1 },
+        { icon: '🔗', title: 'เชื่อม NSW/ebXML อัตโนมัติ', sortOrder: 2 },
+        { icon: '🛡️', title: 'รองรับ 7 สิทธิประโยชน์', sortOrder: 3 },
+      ],
+    },
+    {
+      slug: 'live-data', sortOrder: 1,
+      title: 'อัตราแลกเปลี่ยน',
+      metadata: { currencies: ['USD', 'EUR', 'JPY', 'CNY', 'GBP'] },
+      cards: [],
+    },
+    {
+      slug: 'exchange-rates', sortOrder: 2,
+      title: 'อัตราแลกเปลี่ยนวันนี้',
+      subtitle: 'ข้อมูลจากกรมศุลกากร',
+      tagText: 'LIVE DATA', tagColor: '#16A34A',
+      metadata: { highlightCurrencies: ['USD', 'EUR', 'JPY'], visibleCount: 10 },
+      cards: [],
+    },
+    {
+      slug: 'news', sortOrder: 3,
+      title: 'ข่าวสารจากกรมศุลกากร',
+      subtitle: 'อัปเดตล่าสุดจาก customs.go.th',
+      tagText: 'ข่าวศุลกากร', tagColor: '#F59E0B',
+      cards: [],
+    },
+    {
+      slug: 'pain-points', sortOrder: 4,
+      title: 'การทำใบขนแบบเดิม\nยุ่งยากเกินไป',
+      subtitle: 'หลายบริษัทยังเสียเวลากับกระบวนการที่ทำซ้ำได้',
+      tagText: 'ปัญหาที่พบบ่อย', tagColor: '#EF4444',
+      cards: [
+        { icon: '📝', title: 'กรอกข้อมูลซ้ำ', description: 'ข้อมูลเดิมๆ ต้องพิมพ์ใหม่ทุกครั้ง ใบขน Invoice Packing List — เสียเวลาหลายชั่วโมง', color: '#EF4444', sortOrder: 0 },
+        { icon: '❌', title: 'เอกสารผิดพลาด', description: 'HS Code ผิด น้ำหนักไม่ตรง FOB คำนวณพลาด — ถูก Reject ต้องแก้ไขยื่นใหม่', color: '#F59E0B', sortOrder: 1 },
+        { icon: '🔍', title: 'ติดตามสถานะยาก', description: 'ไม่รู้ว่าใบขนไปถึงไหนแล้ว ต้องโทรถามกรมศุลกากรเอง ไม่มี dashboard', color: '#8B5CF6', sortOrder: 2 },
+      ],
+    },
+    {
+      slug: 'features', sortOrder: 5,
+      title: 'ทุกเครื่องมือที่คุณต้องการ',
+      subtitle: 'ระบบครบวงจรตั้งแต่สร้าง Shipment จนถึงผ่านพิธีการศุลกากร',
+      tagText: 'ฟีเจอร์หลัก', tagColor: '#2563EB',
+      cards: [
+        { icon: '🤖', title: 'AI Document Extraction', description: 'อัปโหลด Invoice + Packing List → AI สกัดข้อมูลและกรอก กศก.101/1 ให้อัตโนมัติ', color: '#2563EB', sortOrder: 0 },
+        { icon: '🔎', title: 'HS Code Lookup', description: 'ค้นหาจาก 15,913+ รหัส HS ตาม AHTN Protocol 2022 พร้อม auto-fill สถิติ/หน่วย/อัตราภาษี', color: '#06B6D4', sortOrder: 1 },
+        { icon: '🔗', title: 'NSW Integration', description: 'ส่งข้อมูลผ่าน ebXML v2.0 ไปยัง National Single Window โดยตรง ไม่ต้องพิมพ์ซ้ำ', color: '#8B5CF6', sortOrder: 2 },
+        { icon: '🛡️', title: 'สิทธิประโยชน์ 7 ประเภท', description: 'รองรับ BOI, Bond, Section 19, Re-export, FZ, IEAT, Compensation พร้อมระบบแนบเอกสาร', color: '#F59E0B', sortOrder: 3 },
+        { icon: '📊', title: 'Real-time Dashboard', description: 'ติดตามสถานะทุก Shipment แบบ real-time พร้อม KPI charts และ billing summary', color: '#16A34A', sortOrder: 4 },
+        { icon: '💰', title: 'Billing & Invoice', description: 'ระบบออกบิลอัตโนมัติ per-job หรือแบบ Term พร้อม PDF invoice และ payment tracking', color: '#EC4899', sortOrder: 5 },
+      ],
+    },
+    {
+      slug: 'how-it-works', sortOrder: 6,
+      title: 'เริ่มได้ใน 4 ขั้นตอน',
+      subtitle: 'จากสมัครจนถึงผ่านพิธีการ — ง่ายกว่าที่คิด',
+      tagText: 'วิธีใช้งาน', tagColor: '#06B6D4',
+      cards: [
+        { icon: '📋', title: 'สมัครใช้งาน', description: 'ลงทะเบียนบริษัท เพิ่มข้อมูลผู้ส่งออก/ตัวแทน ใช้เวลาไม่เกิน 5 นาที', color: '#2563EB', sortOrder: 0, metadata: { step: '01' } },
+        { icon: '📦', title: 'สร้าง Shipment', description: 'กรอกข้อมูลใบขน หรือให้ AI สกัดจาก Invoice อัตโนมัติ เลือก HS Code จาก 15,913 รายการ', color: '#06B6D4', sortOrder: 1, metadata: { step: '02' } },
+        { icon: '🚀', title: 'ส่งผ่าน NSW', description: 'ระบบสร้าง XML ตาม XSD v4.00 และส่งผ่าน ebXML v2.0 ไปยัง กรมศุลกากร โดยอัตโนมัติ', color: '#8B5CF6', sortOrder: 2, metadata: { step: '03' } },
+        { icon: '✅', title: 'ติดตามสถานะ', description: 'ดู Real-time status ของทุก Shipment ได้ จาก Dashboard — ตั้งแต่ Draft จนถึง Cleared', color: '#16A34A', sortOrder: 3, metadata: { step: '04' } },
+      ],
+    },
+    {
+      slug: 'statistics', sortOrder: 7,
+      title: 'ตัวเลขที่พิสูจน์',
+      cards: [
+        { icon: '🔎', title: 'รหัส HS Code', metadata: { value: 15913, suffix: '+' }, description: 'จาก AHTN Protocol 2022', sortOrder: 0 },
+        { icon: '🛡️', title: 'สิทธิประโยชน์', metadata: { value: 7, suffix: '' }, description: 'BOI · Bond · FZ · IEAT …', sortOrder: 1 },
+        { icon: '📄', title: 'กศก.', metadata: { value: 101, suffix: '/1' }, description: 'ใบขนสินค้าขาออก', sortOrder: 2 },
+        { icon: '📐', title: 'XSD Version', metadata: { value: 4, suffix: '.00' }, description: 'Export Declaration Schema', sortOrder: 3 },
+      ],
+    },
+    {
+      slug: 'target-customers', sortOrder: 8,
+      title: 'ออกแบบมาสำหรับธุรกิจส่งออก',
+      subtitle: 'ไม่ว่าจะเป็นตัวแทน โรงงาน หรือ logistics — เรามีโซลูชันให้',
+      tagText: 'กลุ่มเป้าหมาย', tagColor: '#16A34A',
+      cards: [
+        { icon: '🚢', title: 'Freight Forwarder', description: 'ตัวแทนออกของ / ตัวแทนเรือ ที่ยื่นใบขนให้ลูกค้าหลายราย — ต้องการระบบ multi-tenant ที่แยกข้อมูลได้', color: '#2563EB', sortOrder: 0, metadata: { features: ['Multi-customer management', 'Batch declaration', 'NSW automation'] } },
+        { icon: '🏭', title: 'โรงงานผู้ผลิต', description: 'โรงงานที่ส่งออกเอง — ต้องการกรอกข้อมูลง่าย ค้นหา HS Code ได้เร็ว และจัดการสิทธิประโยชน์ BOI/FZ', color: '#16A34A', sortOrder: 1, metadata: { features: ['Manual declaration form', 'Product master catalog', 'Privilege document upload'] } },
+        { icon: '📦', title: 'Logistics Provider', description: 'ผู้ให้บริการโลจิสติกส์ที่มีลูกค้าหลายราย — ต้องการ dashboard รวม billing และ performance tracking', color: '#F59E0B', sortOrder: 2, metadata: { features: ['Unified dashboard', 'Auto billing', 'Performance reports'] } },
+      ],
+    },
+    {
+      slug: 'cta', sortOrder: 9,
+      title: 'พร้อมเปลี่ยนการทำใบขน\nให้เร็วขึ้น?',
+      subtitle: 'เริ่มต้นวันนี้ — สมัครฟรี ไม่มีค่าติดตั้ง ทดลองใช้ได้ทันที',
+      metadata: { ctaPrimary: 'สมัครใช้งานฟรี →', ctaSecondary: 'เข้าสู่ระบบ' },
+      cards: [],
+    },
+    {
+      slug: 'footer', sortOrder: 10,
+      title: 'CUSTOMS-EDOC',
+      subtitle: 'ระบบยื่นใบขนสินค้าขาออกอิเล็กทรอนิกส์ผ่าน NSW Thailand · มาตรฐาน ISO 27001',
+      metadata: {
+        columns: [
+          { title: 'Product', links: ['ฟีเจอร์', 'Pricing', 'Roadmap', 'Changelog'] },
+          { title: 'Resources', links: ['Documentation', 'API Reference', 'HS Code Lookup', 'XSD v4.00 Guide'] },
+          { title: 'ข้อมูลศุลกากร', links: ['อัตราแลกเปลี่ยน', 'ข่าวกรมศุลกากร', 'สถิตินำเข้า-ส่งออก', 'customs.go.th'] },
+          { title: 'Contact', links: ['support@customs-edoc.th', '02-XXX-XXXX', 'Line: @customs-edoc', 'Bangkok, Thailand'] },
+        ],
+        standards: ['ebXML v2.0', 'XSD v4.00', 'NSW Thailand'],
+      },
+      cards: [],
+    },
+    {
+      slug: 'navbar', sortOrder: -1,
+      title: 'CUSTOMS-EDOC',
+      metadata: {
+        links: [
+          { href: 'exchange', label: 'อัตราแลกเปลี่ยน' },
+          { href: 'news', label: 'ข่าวศุลกากร' },
+          { href: 'features', label: 'ฟีเจอร์' },
+          { href: 'how', label: 'วิธีใช้งาน' },
+          { href: 'customers', label: 'กลุ่มลูกค้า' },
+        ],
+      },
+      cards: [],
+    },
+  ];
+
+  for (const sec of sections) {
+    const { cards, ...sectionData } = sec;
+    const existing = await prisma.cmsSection.findUnique({ where: { slug: sec.slug } });
+    if (existing) {
+      console.log(`  ℹ️  Section "${sec.slug}" already exists`);
+      continue;
+    }
+    const created = await prisma.cmsSection.create({ data: sectionData });
+    for (const card of cards) {
+      await prisma.cmsSectionCard.create({ data: { ...card, sectionId: created.id } });
+    }
+    console.log(`  ✅ Section "${sec.slug}" + ${cards.length} cards`);
+  }
+
+  console.log('  ✅ CMS seed complete');
+}
+
 // ─── MAIN ───────────────────────────────────────────────────────
 async function main() {
   console.log('═══════════════════════════════════════════════════');
@@ -642,6 +808,9 @@ async function main() {
 
   // 8. Sample Jobs + Declarations
   await seedSampleJobs(customerIds, superAdminId);
+
+  // 9. CMS Landing Page
+  await seedCms();
 
   console.log('\n═══════════════════════════════════════════════════');
   console.log('  🎉 Full seed complete!');

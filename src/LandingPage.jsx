@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from './stores/AuthContext';
 import { colors, fonts } from './theme';
+import { cmsApi } from './api/cmsApi';
 
 // ─── Brand tokens (from unified theme) ─────────────────────────────
 const C = {
@@ -186,13 +187,15 @@ function LoginModal({ open, onClose, onRegister }) {
 }
 
 // ─── NAVBAR ────────────────────────────────────────────────────────
-function Navbar({ onScrollTo, onOpenLogin }) {
+function Navbar({ onScrollTo, onOpenLogin, cms, cmsTheme }) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+  const logoIcon = cmsTheme?.logoIcon || '⚓';
+  const logoText = cmsTheme?.logoText || 'CUSTOMS-EDOC';
 
   return (
     <nav className={`landing-nav ${scrolled ? 'scrolled' : ''}`}>
@@ -203,10 +206,10 @@ function Navbar({ onScrollTo, onOpenLogin }) {
             background: `linear-gradient(135deg, ${C.primary}, ${C.accent})`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 20, color: '#fff', boxShadow: `0 4px 16px ${C.accentGlow}`,
-          }}>⚓</div>
+          }}>{logoIcon}</div>
           <div>
             <div style={{ fontSize: 15, fontWeight: 800, letterSpacing: '1.5px', color: C.textWhite, fontFamily: C.mono }}>
-              CUSTOMS-EDOC
+              {logoText}
             </div>
             <div style={{ fontSize: 11, color: C.textGray, letterSpacing: '0.5px' }}>NSW Thailand · ebXML v2.0</div>
           </div>
@@ -233,8 +236,24 @@ function Navbar({ onScrollTo, onOpenLogin }) {
 }
 
 // ─── HERO SECTION (full-width, no login card) ─────────────────────
-function HeroSection({ onOpenLogin, onRegister }) {
+function HeroSection({ onOpenLogin, onRegister, cms }) {
   const [ref, isInView] = useInView();
+  const meta = cms?.metadata || {};
+  const title = cms?.title || 'ระบบใบขนสินค้า อิเล็กทรอนิกส์ ครบวงจร';
+  const subtitle = cms?.subtitle || 'ยื่นใบขน กศก.101/1 ผ่าน National Single Window ด้วย AI ที่ช่วยกรอกข้อมูล ค้นหา HS Code อัตโนมัติ และจัดการ สิทธิประโยชน์ทางภาษี — ทั้งหมดในระบบเดียว';
+  const badge = meta.badge || 'พร้อมให้บริการ · NSW Thailand Connected';
+  const ctaPrimary = meta.ctaPrimary || 'เริ่มต้นใช้งาน →';
+  const ctaSecondary = meta.ctaSecondary || 'เข้าสู่ระบบ';
+  const trustBadges = meta.trustBadges || ['XSD v4.00', 'ebXML v2.0', 'ISO 27001', 'PDPA'];
+  const heroCards = cms?.cards || [
+    { icon: '🤖', title: 'AI สกัดข้อมูลจากเอกสาร' },
+    { icon: '📋', title: 'HS Code 15,913+ รายการ' },
+    { icon: '🔗', title: 'เชื่อม NSW/ebXML อัตโนมัติ' },
+    { icon: '🛡️', title: 'รองรับ 7 สิทธิประโยชน์' },
+  ];
+  // Split title for gradient effect
+  const titleParts = title.split(/\s+/);
+  const mid = Math.ceil(titleParts.length / 3);
 
   return (
     <section id="hero" ref={ref} className="landing-hero">
@@ -255,42 +274,35 @@ function HeroSection({ onOpenLogin, onRegister }) {
       <div className="landing-hero-inner-full" style={{ opacity: isInView ? 1 : 0, transform: isInView ? 'translateY(0)' : 'translateY(30px)', transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)' }}>
         <div className="landing-hero-badge" style={{ margin: '0 auto' }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: C.green, display: 'inline-block' }} />
-          พร้อมให้บริการ · NSW Thailand Connected
+          {badge}
         </div>
 
         <h1 className="landing-hero-title" style={{ textAlign: 'center' }}>
-          ระบบใบขนสินค้า
-          <span className="landing-gradient-text"> อิเล็กทรอนิกส์ </span>
-          ครบวงจร
+          {titleParts.slice(0, mid).join(' ')}
+          <span className="landing-gradient-text"> {titleParts.slice(mid, mid * 2).join(' ')} </span>
+          {titleParts.slice(mid * 2).join(' ')}
         </h1>
 
         <p className="landing-hero-desc" style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto' }}>
-          ยื่นใบขน กศก.101/1 ผ่าน National Single Window ด้วย AI
-          ที่ช่วยกรอกข้อมูล ค้นหา HS Code อัตโนมัติ และจัดการ
-          สิทธิประโยชน์ทางภาษี — ทั้งหมดในระบบเดียว
+          {subtitle}
         </p>
 
         <div className="landing-hero-features" style={{ maxWidth: 520, margin: '0 auto' }}>
-          {[
-            { icon: '🤖', text: 'AI สกัดข้อมูลจากเอกสาร' },
-            { icon: '📋', text: 'HS Code 15,913+ รายการ' },
-            { icon: '🔗', text: 'เชื่อม NSW/ebXML อัตโนมัติ' },
-            { icon: '🛡️', text: 'รองรับ 7 สิทธิประโยชน์' },
-          ].map((f, i) => (
+          {heroCards.map((f, i) => (
             <div key={i} className="landing-hero-feature-item"
               style={{ animationDelay: `${0.3 + i * 0.1}s` }}>
               <span style={{ fontSize: 18 }}>{f.icon}</span>
-              <span style={{ fontSize: 14, color: C.textGray }}>{f.text}</span>
+              <span style={{ fontSize: 14, color: C.textGray }}>{f.title || f.text}</span>
             </div>
           ))}
         </div>
 
         <div className="landing-hero-cta-row">
           <button onClick={onRegister} className="landing-hero-btn-primary">
-            เริ่มต้นใช้งาน →
+            {ctaPrimary}
           </button>
           <button onClick={onOpenLogin} className="landing-hero-btn-secondary">
-            เข้าสู่ระบบ
+            {ctaSecondary}
           </button>
         </div>
 
@@ -299,7 +311,7 @@ function HeroSection({ onOpenLogin, onRegister }) {
             มาตรฐาน
           </span>
           <div style={{ display: 'flex', gap: 12 }}>
-            {['XSD v4.00', 'ebXML v2.0', 'ISO 27001', 'PDPA'].map(t => (
+            {trustBadges.map(t => (
               <span key={t} style={{
                 fontSize: 11, fontWeight: 700, padding: '4px 10px',
                 borderRadius: 6, background: C.glassBg, border: `1px solid ${C.glassBorder}`,
@@ -531,23 +543,27 @@ function NewsFeedSection({ news, loading }) {
 }
 
 // ─── PAIN POINTS ───────────────────────────────────────────────────
-function PainPointsSection() {
+function PainPointsSection({ cms }) {
   const [ref, isInView] = useInView();
-  const cards = [
+  const cards = cms?.cards?.map(c => ({ icon: c.icon, color: c.color, title: c.title, desc: c.description })) || [
     { icon: '📝', color: '#EF4444', title: 'กรอกข้อมูลซ้ำ', desc: 'ข้อมูลเดิมๆ ต้องพิมพ์ใหม่ทุกครั้ง ใบขน Invoice Packing List — เสียเวลาหลายชั่วโมง' },
     { icon: '❌', color: '#F59E0B', title: 'เอกสารผิดพลาด', desc: 'HS Code ผิด น้ำหนักไม่ตรง FOB คำนวณพลาด — ถูก Reject ต้องแก้ไขยื่นใหม่' },
     { icon: '🔍', color: '#8B5CF6', title: 'ติดตามสถานะยาก', desc: 'ไม่รู้ว่าใบขนไปถึงไหนแล้ว ต้องโทรถามกรมศุลกากรเอง ไม่มี dashboard' },
   ];
+  const tagText = cms?.tagText || 'ปัญหาที่พบบ่อย';
+  const tagColor = cms?.tagColor || C.red;
+  const title = cms?.title || 'การทำใบขนแบบเดิม ยุ่งยากเกินไป';
+  const subtitle = cms?.subtitle || 'หลายบริษัทยังเสียเวลากับกระบวนการที่ทำซ้ำได้';
 
   return (
     <section className="landing-section landing-section-dark">
       <div ref={ref} className="landing-container" style={{ opacity: isInView ? 1 : 0, transform: isInView ? 'translateY(0)' : 'translateY(40px)', transition: 'all 0.7s ease-out' }}>
         <div className="landing-section-header">
-          <span className="landing-tag" style={{ background: `${C.red}20`, color: C.red, borderColor: `${C.red}40` }}>
-            ปัญหาที่พบบ่อย
+          <span className="landing-tag" style={{ background: `${tagColor}20`, color: tagColor, borderColor: `${tagColor}40` }}>
+            {tagText}
           </span>
-          <h2 className="landing-section-title-dark">การทำใบขนแบบเดิม<br />ยุ่งยากเกินไป</h2>
-          <p className="landing-section-sub-dark">หลายบริษัทยังเสียเวลากับกระบวนการที่ทำซ้ำได้</p>
+          <h2 className="landing-section-title-dark">{title}</h2>
+          <p className="landing-section-sub-dark">{subtitle}</p>
         </div>
 
         <div className="landing-pain-grid">
@@ -570,9 +586,9 @@ function PainPointsSection() {
 }
 
 // ─── FEATURES ──────────────────────────────────────────────────────
-function FeaturesSection() {
+function FeaturesSection({ cms }) {
   const [ref, isInView] = useInView();
-  const features = [
+  const features = cms?.cards?.map(c => ({ icon: c.icon, title: c.title, desc: c.description, color: c.color || C.primary })) || [
     { icon: '🤖', title: 'AI Document Extraction', desc: 'อัปโหลด Invoice + Packing List → AI สกัดข้อมูลและกรอก กศก.101/1 ให้อัตโนมัติ', color: C.primary },
     { icon: '🔎', title: 'HS Code Lookup', desc: 'ค้นหาจาก 15,913+ รหัส HS ตาม AHTN Protocol 2022 พร้อม auto-fill สถิติ/หน่วย/อัตราภาษี', color: C.accent },
     { icon: '🔗', title: 'NSW Integration', desc: 'ส่งข้อมูลผ่าน ebXML v2.0 ไปยัง National Single Window โดยตรง ไม่ต้องพิมพ์ซ้ำ', color: '#8B5CF6' },
@@ -580,16 +596,20 @@ function FeaturesSection() {
     { icon: '📊', title: 'Real-time Dashboard', desc: 'ติดตามสถานะทุก Shipment แบบ real-time พร้อม KPI charts และ billing summary', color: C.green },
     { icon: '💰', title: 'Billing & Invoice', desc: 'ระบบออกบิลอัตโนมัติ per-job หรือแบบ Term พร้อม PDF invoice และ payment tracking', color: '#EC4899' },
   ];
+  const tagText = cms?.tagText || 'ฟีเจอร์หลัก';
+  const tagColor = cms?.tagColor || C.primary;
+  const title = cms?.title || 'ทุกเครื่องมือที่คุณต้องการ';
+  const subtitle = cms?.subtitle || 'ระบบครบวงจรตั้งแต่สร้าง Shipment จนถึงผ่านพิธีการศุลกากร';
 
   return (
     <section id="features" className="landing-section landing-section-dark">
       <div ref={ref} className="landing-container" style={{ opacity: isInView ? 1 : 0, transform: isInView ? 'translateY(0)' : 'translateY(40px)', transition: 'all 0.7s ease-out' }}>
         <div className="landing-section-header">
-          <span className="landing-tag" style={{ background: `${C.primary}12`, color: C.primary, borderColor: `${C.primary}30` }}>
-            ฟีเจอร์หลัก
+          <span className="landing-tag" style={{ background: `${tagColor}12`, color: tagColor, borderColor: `${tagColor}30` }}>
+            {tagText}
           </span>
-          <h2 className="landing-section-title-dark">ทุกเครื่องมือที่คุณต้องการ</h2>
-          <p className="landing-section-sub-dark">ระบบครบวงจรตั้งแต่สร้าง Shipment จนถึงผ่านพิธีการศุลกากร</p>
+          <h2 className="landing-section-title-dark">{title}</h2>
+          <p className="landing-section-sub-dark">{subtitle}</p>
         </div>
 
         <div className="landing-features-grid">
@@ -612,24 +632,28 @@ function FeaturesSection() {
 }
 
 // ─── HOW IT WORKS ──────────────────────────────────────────────────
-function HowItWorksSection() {
+function HowItWorksSection({ cms }) {
   const [ref, isInView] = useInView();
-  const steps = [
+  const steps = cms?.cards?.map((c, i) => ({ num: String(i + 1).padStart(2, '0'), title: c.title, desc: c.description, icon: c.icon, color: c.color || C.primary })) || [
     { num: '01', title: 'สมัครใช้งาน', desc: 'สมัครบัญชีองค์กร ยืนยันตัวตนด้วยเลขภาษี 13 หลัก และอัปโหลดหนังสือรับรอง', icon: '📋', color: C.primary },
     { num: '02', title: 'สร้าง Shipment', desc: 'อัปโหลดเอกสาร หรือกรอกข้อมูลเอง — AI ช่วย extract ข้อมูลและค้นหา HS Code', icon: '📦', color: C.accent },
     { num: '03', title: 'ส่งผ่าน NSW', desc: 'ระบบสร้าง กศก.101/1 ตาม XSD v4.00 และส่งผ่าน ebXML ไปยัง NSW Thailand', icon: '🚀', color: '#8B5CF6' },
     { num: '04', title: 'ติดตามสถานะ', desc: 'Monitor real-time ตั้งแต่ submitted → NSW processing → customs review → cleared', icon: '✅', color: C.green },
   ];
+  const tagText = cms?.tagText || 'วิธีใช้งาน';
+  const tagColor = cms?.tagColor || C.accent;
+  const title = cms?.title || 'เริ่มได้ใน 4 ขั้นตอน';
+  const subtitle = cms?.subtitle || 'จากสมัครจนถึงผ่านพิธีการ — ง่ายกว่าที่คิด';
 
   return (
     <section id="how" className="landing-section landing-section-dark">
       <div ref={ref} className="landing-container" style={{ opacity: isInView ? 1 : 0, transform: isInView ? 'translateY(0)' : 'translateY(40px)', transition: 'all 0.7s ease-out' }}>
         <div className="landing-section-header">
-          <span className="landing-tag" style={{ background: `${C.accent}20`, color: C.accent, borderColor: `${C.accent}40` }}>
-            วิธีใช้งาน
+          <span className="landing-tag" style={{ background: `${tagColor}20`, color: tagColor, borderColor: `${tagColor}40` }}>
+            {tagText}
           </span>
-          <h2 className="landing-section-title-dark">เริ่มได้ใน 4 ขั้นตอน</h2>
-          <p className="landing-section-sub-dark">จากสมัครจนถึงผ่านพิธีการ — ง่ายกว่าที่คิด</p>
+          <h2 className="landing-section-title-dark">{title}</h2>
+          <p className="landing-section-sub-dark">{subtitle}</p>
         </div>
 
         <div className="landing-steps-grid">
@@ -653,9 +677,12 @@ function HowItWorksSection() {
 }
 
 // ─── STATISTICS ────────────────────────────────────────────────────
-function StatisticsSection() {
+function StatisticsSection({ cms }) {
   const [ref, isInView] = useInView();
-  const stats = [
+  const stats = cms?.cards?.map(c => ({
+    value: c.metadata?.value ?? 0, suffix: c.metadata?.suffix || '',
+    label: c.title, icon: c.icon, desc: c.description,
+  })) || [
     { value: 15913, suffix: '+', label: 'รหัส HS Code', icon: '🔎', desc: 'จาก AHTN Protocol 2022' },
     { value: 7, suffix: '', label: 'สิทธิประโยชน์', icon: '🛡️', desc: 'BOI · Bond · FZ · IEAT …' },
     { value: 101, suffix: '/1', label: 'กศก.', icon: '📄', desc: 'ใบขนสินค้าขาออก' },
@@ -683,41 +710,46 @@ function StatisticsSection() {
 }
 
 // ─── TARGET CUSTOMERS ──────────────────────────────────────────────
-function TargetCustomersSection() {
+function TargetCustomersSection({ cms }) {
   const [ref, isInView] = useInView();
-  const segments = [
+  const segments = cms?.cards?.map(c => ({
+    icon: c.icon, title: c.title, desc: c.description,
+    features: c.metadata?.features || [],
+    borderColor: c.color || C.primary,
+  })) || [
     {
       icon: '🚢', title: 'Freight Forwarder',
       desc: 'ตัวแทนออกของ / ตัวแทนเรือ ที่ยื่นใบขนให้ลูกค้าหลายราย — ต้องการระบบ multi-tenant ที่แยกข้อมูลได้',
       features: ['Multi-customer management', 'Batch declaration', 'NSW automation'],
-      gradient: `linear-gradient(135deg, ${C.primary}08, ${C.accent}08)`,
       borderColor: C.primary,
     },
     {
       icon: '🏭', title: 'โรงงานผู้ผลิต',
       desc: 'โรงงานที่ส่งออกสินค้าเอง — ต้องการกรอกข้อมูลง่าย HS Code ถูกต้อง และจัดการสิทธิประโยชน์ BOI/FZ',
       features: ['Manual declaration form', 'Product master catalog', 'Privilege document upload'],
-      gradient: `linear-gradient(135deg, ${C.green}08, ${C.gold}08)`,
       borderColor: C.green,
     },
     {
       icon: '📦', title: 'Logistics Provider',
       desc: 'ผู้ให้บริการโลจิสติกส์ที่มีลูกค้าหลายราย — ต้องการ dashboard รวม billing และ performance tracking',
       features: ['Unified dashboard', 'Auto billing', 'Performance reports'],
-      gradient: `linear-gradient(135deg, ${C.gold}08, #EC489908)`,
       borderColor: C.gold,
     },
   ];
+  const tagText = cms?.tagText || 'กลุ่มเป้าหมาย';
+  const tagColor = cms?.tagColor || C.green;
+  const title = cms?.title || 'ออกแบบมาสำหรับธุรกิจส่งออก';
+  const subtitle = cms?.subtitle || 'ไม่ว่าจะเป็นตัวแทน โรงงาน หรือ logistics — เรามีโซลูชันให้';
 
   return (
     <section id="customers" className="landing-section landing-section-dark">
       <div ref={ref} className="landing-container" style={{ opacity: isInView ? 1 : 0, transform: isInView ? 'translateY(0)' : 'translateY(40px)', transition: 'all 0.7s ease-out' }}>
         <div className="landing-section-header">
-          <span className="landing-tag" style={{ background: `${C.green}12`, color: C.green, borderColor: `${C.green}30` }}>
-            กลุ่มเป้าหมาย
+          <span className="landing-tag" style={{ background: `${tagColor}12`, color: tagColor, borderColor: `${tagColor}30` }}>
+            {tagText}
           </span>
-          <h2 className="landing-section-title-dark">ออกแบบมาสำหรับธุรกิจส่งออก</h2>
-          <p className="landing-section-sub-dark">ไม่ว่าจะเป็นตัวแทน โรงงาน หรือ logistics — เรามีโซลูชันให้</p>
+          <h2 className="landing-section-title-dark">{title}</h2>
+          <p className="landing-section-sub-dark">{subtitle}</p>
         </div>
 
         <div className="landing-segments-grid">
@@ -742,25 +774,30 @@ function TargetCustomersSection() {
 }
 
 // ─── CTA BANNER ────────────────────────────────────────────────────
-function CTABanner({ onOpenLogin, onRegister }) {
+function CTABanner({ onOpenLogin, onRegister, cms }) {
   const [ref, isInView] = useInView();
+  const meta = cms?.metadata || {};
+  const title = cms?.title || 'พร้อมเปลี่ยนการทำใบขน ให้เร็วขึ้น?';
+  const subtitle = cms?.subtitle || 'เริ่มต้นวันนี้ — สมัครฟรี ไม่มีค่าติดตั้ง ทดลองใช้ได้ทันที';
+  const ctaPrimary = meta.ctaPrimary || 'สมัครใช้งานฟรี →';
+  const ctaSecondary = meta.ctaSecondary || 'เข้าสู่ระบบ';
   return (
     <section className="landing-section landing-cta-section">
       <div ref={ref} className="landing-container landing-cta-inner"
         style={{ opacity: isInView ? 1 : 0, transform: isInView ? 'translateY(0)' : 'translateY(40px)', transition: 'all 0.7s ease-out' }}>
         <div className="landing-cta-card">
           <h2 style={{ fontSize: 28, fontWeight: 900, color: '#fff', marginBottom: 12, lineHeight: 1.3 }}>
-            พร้อมเปลี่ยนการทำใบขน<br />ให้เร็วขึ้น?
+            {title}
           </h2>
           <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.7)', marginBottom: 28, maxWidth: 500 }}>
-            เริ่มต้นวันนี้ — สมัครฟรี ไม่มีค่าติดตั้ง ทดลองใช้ได้ทันที
+            {subtitle}
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
             <button onClick={onRegister} className="landing-cta-btn-primary">
-              สมัครใช้งานฟรี →
+              {ctaPrimary}
             </button>
             <button onClick={onOpenLogin} className="landing-cta-btn-secondary">
-              เข้าสู่ระบบ
+              {ctaSecondary}
             </button>
           </div>
         </div>
@@ -770,13 +807,17 @@ function CTABanner({ onOpenLogin, onRegister }) {
 }
 
 // ─── FOOTER ────────────────────────────────────────────────────────
-function Footer({ onScrollTo }) {
-  const cols = [
+function Footer({ onScrollTo, cms, cmsTheme }) {
+  const meta = cms?.metadata || {};
+  const cols = meta.columns || [
     { title: 'Product', links: ['ฟีเจอร์', 'Pricing', 'Roadmap', 'Changelog'] },
     { title: 'Resources', links: ['Documentation', 'API Reference', 'HS Code Lookup', 'XSD v4.00 Guide'] },
     { title: 'ข้อมูลศุลกากร', links: ['อัตราแลกเปลี่ยน', 'ข่าวกรมศุลกากร', 'สถิตินำเข้า-ส่งออก', 'customs.go.th'] },
     { title: 'Contact', links: ['support@customs-edoc.th', '02-XXX-XXXX', 'Line: @customs-edoc', 'Bangkok, Thailand'] },
   ];
+  const logoIcon = cmsTheme?.logoIcon || '⚓';
+  const logoText = cmsTheme?.logoText || 'CUSTOMS-EDOC';
+  const companyName = cmsTheme?.companyName || 'NEXRA TECHNOLOGY CO., LTD.';
 
   return (
     <footer className="landing-footer">
@@ -789,9 +830,9 @@ function Footer({ onScrollTo }) {
                 background: `linear-gradient(135deg, ${C.primary}, ${C.accent})`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 18, color: '#fff',
-              }}>⚓</div>
+              }}>{logoIcon}</div>
               <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: '1.5px', color: C.textWhite, fontFamily: C.mono }}>
-                CUSTOMS-EDOC
+                {logoText}
               </div>
             </div>
             <p style={{ fontSize: 13, color: C.textGray, lineHeight: 1.7, maxWidth: 260, margin: 0 }}>
@@ -833,7 +874,7 @@ function Footer({ onScrollTo }) {
 
         <div className="landing-footer-bottom">
           <div style={{ fontSize: 13, color: C.textGray }}>
-            © 2026 NKTech Co., Ltd. · Customs-Edoc · All rights reserved.
+            © 2026 {companyName} · {logoText} · All rights reserved.
           </div>
           <div style={{ display: 'flex', gap: 16 }}>
             {['ebXML v2.0', 'XSD v4.00', 'NSW Thailand'].map(t => (
@@ -857,6 +898,35 @@ export default function LandingPage({ onRegister }) {
   const [ratesLoading, setRatesLoading] = useState(true);
   const [news, setNews] = useState([]);
   const [newsLoading, setNewsLoading] = useState(true);
+  const [cmsData, setCmsData] = useState(null);
+
+  // Fetch CMS data (theme + sections)
+  useEffect(() => {
+    cmsApi.getLandingPage()
+      .then(setCmsData)
+      .catch(() => {}); // fallback to defaults
+  }, []);
+
+  // Apply CMS theme as CSS variables
+  useEffect(() => {
+    if (!cmsData?.theme) return;
+    const t = cmsData.theme;
+    const root = document.documentElement;
+    if (t.primary) root.style.setProperty('--primary', t.primary);
+    if (t.accent) root.style.setProperty('--accent', t.accent);
+    if (t.navy) root.style.setProperty('--navy', t.navy);
+    if (t.navyMid) root.style.setProperty('--navy-mid', t.navyMid);
+    if (t.success) root.style.setProperty('--success', t.success);
+    if (t.warning) root.style.setProperty('--warning', t.warning);
+    if (t.danger) root.style.setProperty('--danger', t.danger);
+    return () => {
+      // cleanup: remove overrides
+      ['--primary','--accent','--navy','--navy-mid','--success','--warning','--danger']
+        .forEach(v => root.style.removeProperty(v));
+    };
+  }, [cmsData?.theme]);
+
+  const getSection = (slug) => cmsData?.sections?.find(s => s.slug === slug);
 
   // Fetch exchange rates
   useEffect(() => {
@@ -887,20 +957,38 @@ export default function LandingPage({ onRegister }) {
   const openLogin = () => setLoginOpen(true);
   const closeLogin = () => setLoginOpen(false);
 
+  // Build visible sections list
+  const sectionOrder = useMemo(() => {
+    if (!cmsData?.sections) return null;
+    return cmsData.sections.map(s => s.slug);
+  }, [cmsData]);
+
+  // Section renderers keyed by slug
+  const sectionRenderers = {
+    hero: () => <HeroSection key="hero" onOpenLogin={openLogin} onRegister={onRegister} cms={getSection('hero')} />,
+    'live-data': () => <LiveDataStrip key="live-data" rates={rates} loading={ratesLoading} onScrollTo={scrollTo} />,
+    'exchange-rates': () => <ExchangeRateSection key="exchange-rates" rates={rates} fetchedAt={ratesFetchedAt} loading={ratesLoading} />,
+    news: () => <NewsFeedSection key="news" news={news} loading={newsLoading} />,
+    'pain-points': () => <PainPointsSection key="pain-points" cms={getSection('pain-points')} />,
+    features: () => <FeaturesSection key="features" cms={getSection('features')} />,
+    'how-it-works': () => <HowItWorksSection key="how-it-works" cms={getSection('how-it-works')} />,
+    statistics: () => <StatisticsSection key="statistics" cms={getSection('statistics')} />,
+    'target-customers': () => <TargetCustomersSection key="target-customers" cms={getSection('target-customers')} />,
+    cta: () => <CTABanner key="cta" onOpenLogin={openLogin} onRegister={onRegister} cms={getSection('cta')} />,
+    footer: () => <Footer key="footer" onScrollTo={scrollTo} cms={getSection('footer')} cmsTheme={cmsData?.theme} />,
+  };
+
+  // Default order (fallback when CMS not loaded)
+  const defaultOrder = ['hero', 'live-data', 'exchange-rates', 'news', 'pain-points', 'features', 'how-it-works', 'statistics', 'target-customers', 'cta', 'footer'];
+  const renderOrder = sectionOrder || defaultOrder;
+
   return (
     <div className="landing-root">
-      <Navbar onScrollTo={scrollTo} onOpenLogin={openLogin} />
-      <HeroSection onOpenLogin={openLogin} onRegister={onRegister} />
-      <LiveDataStrip rates={rates} loading={ratesLoading} onScrollTo={scrollTo} />
-      <ExchangeRateSection rates={rates} fetchedAt={ratesFetchedAt} loading={ratesLoading} />
-      <NewsFeedSection news={news} loading={newsLoading} />
-      <PainPointsSection />
-      <FeaturesSection />
-      <HowItWorksSection />
-      <StatisticsSection />
-      <TargetCustomersSection />
-      <CTABanner onOpenLogin={openLogin} onRegister={onRegister} />
-      <Footer onScrollTo={scrollTo} />
+      <Navbar onScrollTo={scrollTo} onOpenLogin={openLogin} cms={getSection('navbar')} cmsTheme={cmsData?.theme} />
+      {renderOrder.filter(slug => slug !== 'navbar').map(slug => {
+        const renderer = sectionRenderers[slug];
+        return renderer ? renderer() : null;
+      })}
       <LoginModal open={loginOpen} onClose={closeLogin} onRegister={onRegister} />
     </div>
   );
