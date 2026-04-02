@@ -240,14 +240,14 @@ Phase D (Polish):
 | M7 | Swagger documentation | ✅ | `@nestjs/swagger` — available at `/api/docs` |
 | L6 | Health check endpoint | ✅ | `GET /api/health` — DB connectivity check + timestamp |
 
-### Phase 4: Technical Debt — Partial ✅
+### Phase 4: Technical Debt — ✅ เสร็จ (2026-04-03)
 
 | # | Item | สถานะ | รายละเอียด |
 |---|------|-------|-----------|
 | L1 | 401 interceptor redirect | ✅ | มีอยู่แล้วใน `client.js` — auto-logout + reload |
+| L3 | Component decomposition | ✅ | **3158→91 lines** — แยก 20+ modules (ui/, dashboard/, shipments/, settings/, lib/) |
 | L5 | NSW ebXML auto-retry | ✅ | Exponential backoff (1s→2s→4s), configurable `NSW_MAX_RETRIES`, `POST /nsw/retry-failed` endpoint |
 | H8 | CI/CD Pipeline | ✅ | GitHub Actions — backend tsc, frontend vite build, Docker build check |
-| L3 | Component decomposition (3158 lines JSX) | ⬜ | ต้องทำ separate PR — risk regression |
 | L4 | TypeScript migration (frontend) | ⬜ | ต้องทำ separate PR — risk regression |
 | L6 | Health check endpoint | ⬜ |
 | L7 | Structured logging (pino/winston) | ⬜ |
