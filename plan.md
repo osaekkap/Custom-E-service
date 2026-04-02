@@ -1,6 +1,6 @@
 # Custom-E-service — Master Plan
 
-> อัปเดต: 2026-04-02 | **Phase 6 เสร็จ + Pre-Deploy Audit Phase 1-3 เสร็จ**
+> อัปเดต: 2026-04-02 | **Phase 6 เสร็จ + Pre-Deploy Audit Phase 1-3 เสร็จ + Phase 4 Tech Debt (partial)**
 
 ---
 
@@ -240,14 +240,15 @@ Phase D (Polish):
 | M7 | Swagger documentation | ✅ | `@nestjs/swagger` — available at `/api/docs` |
 | L6 | Health check endpoint | ✅ | `GET /api/health` — DB connectivity check + timestamp |
 
-### Phase 4: Technical Debt — ⬜
+### Phase 4: Technical Debt — Partial ✅
 
-| # | Item | สถานะ |
-|---|------|-------|
-| L1 | 401 interceptor redirect | ⬜ |
-| L3 | Component decomposition (188KB JSX) | ⬜ |
-| L4 | TypeScript migration (frontend) | ⬜ |
-| L5 | NSW ebXML auto-retry | ⬜ |
+| # | Item | สถานะ | รายละเอียด |
+|---|------|-------|-----------|
+| L1 | 401 interceptor redirect | ✅ | มีอยู่แล้วใน `client.js` — auto-logout + reload |
+| L5 | NSW ebXML auto-retry | ✅ | Exponential backoff (1s→2s→4s), configurable `NSW_MAX_RETRIES`, `POST /nsw/retry-failed` endpoint |
+| H8 | CI/CD Pipeline | ✅ | GitHub Actions — backend tsc, frontend vite build, Docker build check |
+| L3 | Component decomposition (3158 lines JSX) | ⬜ | ต้องทำ separate PR — risk regression |
+| L4 | TypeScript migration (frontend) | ⬜ | ต้องทำ separate PR — risk regression |
 | L6 | Health check endpoint | ⬜ |
 | L7 | Structured logging (pino/winston) | ⬜ |
 | L8 | Code splitting (React.lazy) | ⬜ |

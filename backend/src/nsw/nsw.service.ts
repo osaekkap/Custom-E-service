@@ -90,40 +90,11 @@ export class NswService {
       },
     });
 
-    // POST to NSW endpoint
-    let ackStatus: EbxmlAckStatus;
-    let nswStatus: NswMessageStatus;
-    let rawResponse: string | undefined;
-
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'text/xml; charset=utf-8',
-          'SOAPAction': '"CustomsExportDeclaration"',
-        },
-        body: envelopeXml,
-        signal: AbortSignal.timeout(30_000),
-      });
-
-      rawResponse = await response.text();
-      this.logger.log(`NSW response [${response.status}] for declaration ${declarationId}`);
-
-      if (response.ok) {
-        ackStatus = EbxmlAckStatus.RECEIVED;
-        nswStatus = this.parseNswStatus(rawResponse);
-      } else {
-        ackStatus = EbxmlAckStatus.FAILED;
-        nswStatus = NswMessageStatus.NOT_RECOGNIZED;
-        this.logger.warn(`NSW returned ${response.status}: ${rawResponse.substring(0, 200)}`);
-      }
-    } catch (err: any) {
-      // Network error or timeout — mark for retry
-      this.logger.error(`NSW connection error for ${declarationId}: ${err.message}`);
-      ackStatus = EbxmlAckStatus.TIMEOUT;
-      nswStatus = NswMessageStatus.NOT_SENT;
-      rawResponse = `Connection error: ${err.message}`;
-    }
+    // POST to NSW endpoint with automatic retry (up to 3 attempts)
+    const maxRetries = this.config.get<number>('NSW_MAX_RETRIES', 3);
+    const { ackStatus, nswStatus, rawResponse } = await this.postToNsw(
+      endpoint, envelopeXml, declarationId, maxRetries,
+    );
 
     // Update submission log with response
     await this.prisma.nswSubmission.update({
@@ -198,7 +169,101 @@ export class NswService {
     };
   }
 
+  // ─── Retry Failed Submissions ──────────────────────────────────────
+
+  /** Re-submit all FAILED/TIMEOUT declarations (called manually or via cron) */
+  async retryFailed(user: RequestUser) {
+    const maxRetryCount = this.config.get<number>('NSW_MAX_RETRY_COUNT', 5);
+    const failedDecls = await this.prisma.exportDeclaration.findMany({
+      where: {
+        submissionStatus: SubmissionStatus.FAILED,
+        ebxmlAckStatus: { in: [EbxmlAckStatus.TIMEOUT, EbxmlAckStatus.FAILED] },
+        ebxmlRetryCount: { lt: maxRetryCount },
+      },
+      select: { id: true, customerId: true },
+      take: 10,
+    });
+
+    const results: { declarationId: string; status: string }[] = [];
+    for (const decl of failedDecls) {
+      try {
+        const result = await this.submit(decl.id, user);
+        results.push({ declarationId: decl.id, status: result.submissionStatus });
+      } catch (err: any) {
+        this.logger.error(`Retry failed for declaration ${decl.id}: ${err.message}`);
+        results.push({ declarationId: decl.id, status: `ERROR: ${err.message}` });
+      }
+    }
+
+    return { retried: results.length, results };
+  }
+
   // ─── Helpers ──────────────────────────────────────────────────────
+
+  /** POST to NSW with exponential backoff retry on network errors */
+  private async postToNsw(
+    endpoint: string,
+    envelopeXml: string,
+    declarationId: string,
+    maxRetries: number,
+  ): Promise<{ ackStatus: EbxmlAckStatus; nswStatus: NswMessageStatus; rawResponse?: string }> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/xml; charset=utf-8',
+            'SOAPAction': '"CustomsExportDeclaration"',
+          },
+          body: envelopeXml,
+          signal: AbortSignal.timeout(30_000),
+        });
+
+        const rawResponse = await response.text();
+        this.logger.log(`NSW response [${response.status}] for declaration ${declarationId} (attempt ${attempt})`);
+
+        if (response.ok) {
+          return {
+            ackStatus: EbxmlAckStatus.RECEIVED,
+            nswStatus: this.parseNswStatus(rawResponse),
+            rawResponse,
+          };
+        }
+
+        // Non-retryable HTTP error (4xx)
+        if (response.status >= 400 && response.status < 500) {
+          this.logger.warn(`NSW returned ${response.status}: ${rawResponse.substring(0, 200)}`);
+          return {
+            ackStatus: EbxmlAckStatus.FAILED,
+            nswStatus: NswMessageStatus.NOT_RECOGNIZED,
+            rawResponse,
+          };
+        }
+
+        // Server error (5xx) — retry
+        this.logger.warn(`NSW returned ${response.status} (attempt ${attempt}/${maxRetries})`);
+      } catch (err: any) {
+        this.logger.error(`NSW connection error for ${declarationId} (attempt ${attempt}/${maxRetries}): ${err.message}`);
+        if (attempt === maxRetries) {
+          return {
+            ackStatus: EbxmlAckStatus.TIMEOUT,
+            nswStatus: NswMessageStatus.NOT_SENT,
+            rawResponse: `Connection error: ${err.message}`,
+          };
+        }
+      }
+
+      // Exponential backoff: 1s, 2s, 4s...
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+
+    return {
+      ackStatus: EbxmlAckStatus.TIMEOUT,
+      nswStatus: NswMessageStatus.NOT_SENT,
+      rawResponse: `All ${maxRetries} attempts failed`,
+    };
+  }
 
   /**
    * Parse NSW CustomsResponse MessageType from response XML.

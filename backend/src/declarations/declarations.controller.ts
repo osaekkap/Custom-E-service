@@ -98,6 +98,13 @@ export class DeclarationsController {
     return this.nswService.getNswStatus(id, req.user);
   }
 
+  /** POST /nsw/retry-failed — retry all failed/timeout submissions */
+  @Post('nsw/retry-failed')
+  @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER)
+  retryFailed(@Request() req: { user: RequestUser }) {
+    return this.nswService.retryFailed(req.user);
+  }
+
   // ─── Items ─────────────────────────────────────────────────────────
 
   /** POST /declarations/:id/items */
