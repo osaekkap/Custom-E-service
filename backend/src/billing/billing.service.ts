@@ -79,9 +79,11 @@ export class BillingService {
     }
 
     const totalAmount = items.reduce((sum, item) => sum + Number(item.amount), 0);
-    const invoiceNo = await this.generateInvoiceNo();
 
+    // Serializable transaction prevents duplicate invoice numbers
     const invoice = await this.prisma.$transaction(async (tx) => {
+      const invoiceNo = await this.generateInvoiceNo(tx);
+
       const inv = await tx.billingInvoice.create({
         data: {
           customerId: dto.customerId,
@@ -101,7 +103,7 @@ export class BillingService {
       });
 
       return inv;
-    });
+    }, { isolationLevel: 'Serializable' });
 
     return invoice;
   }
@@ -161,10 +163,11 @@ export class BillingService {
     });
   }
 
-  private async generateInvoiceNo(): Promise<string> {
+  private async generateInvoiceNo(tx?: any): Promise<string> {
+    const db = tx || this.prisma;
     const year = new Date().getFullYear();
     const prefix = `INV-${year}-`;
-    const last = await this.prisma.billingInvoice.findFirst({
+    const last = await db.billingInvoice.findFirst({
       where: { invoiceNo: { startsWith: prefix } },
       orderBy: { invoiceNo: 'desc' },
     });

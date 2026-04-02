@@ -423,6 +423,7 @@ model LogisticsJob {
   approvalNote    String?        @db.Text
 
   createdById   String
+  deletedAt     DateTime?                         // Soft delete — null = active
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

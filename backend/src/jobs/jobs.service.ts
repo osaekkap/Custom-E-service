@@ -44,49 +44,54 @@ export class JobsService {
       : user.customerId;
     if (!customerId) throw new ForbiddenException('No customer context');
 
-    const jobNo = await this.generateJobNo();
+    // Serializable transaction prevents duplicate job numbers under concurrent requests
+    const job = await this.prisma.$transaction(async (tx) => {
+      const jobNo = await this.generateJobNo(tx);
 
-    const job = await this.prisma.logisticsJob.create({
-      data: {
-        customerId,
-        jobNo,
-        type: dto.type,
-        transportMode: dto.transportMode,
-        vesselName: dto.vesselName,
-        voyageNo: dto.voyageNo,
-        etd: dto.etd ? new Date(dto.etd) : undefined,
-        eta: dto.eta ? new Date(dto.eta) : undefined,
-        portOfLoading: dto.portOfLoading,
-        portOfLoadingCode: dto.portOfLoadingCode,
-        portOfDischarge: dto.portOfDischarge,
-        portOfReleaseCode: dto.portOfReleaseCode,
-        containerNo: dto.containerNo,
-        sealNo: dto.sealNo,
-        consigneeId: dto.consigneeId,
-        consigneeNameEn: dto.consigneeNameEn,
-        consigneeAddr: dto.consigneeAddr,
-        totalFobUsd: dto.totalFobUsd,
-        currency: dto.currency ?? 'USD',
-        createdById: user.userId,
-      },
-    });
+      const created = await tx.logisticsJob.create({
+        data: {
+          customerId,
+          jobNo,
+          type: dto.type,
+          transportMode: dto.transportMode,
+          vesselName: dto.vesselName,
+          voyageNo: dto.voyageNo,
+          etd: dto.etd ? new Date(dto.etd) : undefined,
+          eta: dto.eta ? new Date(dto.eta) : undefined,
+          portOfLoading: dto.portOfLoading,
+          portOfLoadingCode: dto.portOfLoadingCode,
+          portOfDischarge: dto.portOfDischarge,
+          portOfReleaseCode: dto.portOfReleaseCode,
+          containerNo: dto.containerNo,
+          sealNo: dto.sealNo,
+          consigneeId: dto.consigneeId,
+          consigneeNameEn: dto.consigneeNameEn,
+          consigneeAddr: dto.consigneeAddr,
+          totalFobUsd: dto.totalFobUsd,
+          currency: dto.currency ?? 'USD',
+          createdById: user.userId,
+        },
+      });
 
-    await this.prisma.jobStatusHistory.create({
-      data: {
-        jobId: job.id,
-        toStatus: JobStatus.DRAFT,
-        changedBy: user.userId,
-        note: 'Job created',
-      },
-    });
+      await tx.jobStatusHistory.create({
+        data: {
+          jobId: created.id,
+          toStatus: JobStatus.DRAFT,
+          changedBy: user.userId,
+          note: 'Job created',
+        },
+      });
+
+      return created;
+    }, { isolationLevel: 'Serializable' });
 
     // C2: Notify internal staff when customer creates shipment
     const isCustomerSide = ([Role.CUSTOMER_ADMIN, Role.CUSTOMER] as string[]).includes(user.role);
     if (isCustomerSide) {
       this.notificationsService.notifyInternalStaff({
         type: NotificationType.JOB_CREATED,
-        title: `Shipment ใหม่: ${jobNo}`,
-        message: `ลูกค้าสร้าง shipment ใหม่ ${jobNo}`,
+        title: `Shipment ใหม่: ${job.jobNo}`,
+        message: `ลูกค้าสร้าง shipment ใหม่ ${job.jobNo}`,
         entityType: 'JOB',
         entityId: job.id,
       }).catch(() => null);
@@ -110,6 +115,7 @@ export class JobsService {
       : { customerId: user.customerId };
 
     const where: Prisma.LogisticsJobWhereInput = {
+      deletedAt: null,
       ...customerFilter,
       ...(status && { status }),
       ...(type && { type }),
@@ -412,7 +418,10 @@ export class JobsService {
     if (job.status !== JobStatus.DRAFT) {
       throw new BadRequestException('Only DRAFT jobs can be deleted');
     }
-    await this.prisma.logisticsJob.delete({ where: { id } });
+    await this.prisma.logisticsJob.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
     return { message: `Job ${job.jobNo} deleted` };
   }
 
@@ -427,10 +436,11 @@ export class JobsService {
 
   // ─── Helpers ────────────────────────────────────────────────────
 
-  private async generateJobNo(): Promise<string> {
+  private async generateJobNo(tx?: any): Promise<string> {
+    const db = tx || this.prisma;
     const year = new Date().getFullYear();
     const prefix = `JOB-${year}-`;
-    const last = await this.prisma.logisticsJob.findFirst({
+    const last = await db.logisticsJob.findFirst({
       where: { jobNo: { startsWith: prefix } },
       orderBy: { jobNo: 'desc' },
     });

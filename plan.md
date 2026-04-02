@@ -213,18 +213,17 @@ Phase D (Polish):
 | H9 | CORS fail-fast | ✅ | Throw error ถ้า production ไม่มี FRONTEND_URL |
 | M9 | forbidNonWhitelisted | ✅ | Reject unknown properties ใน request body |
 
-### Phase 2: Before Go-live — ⬜ ยังไม่เริ่ม
+### Phase 2: Before Go-live — ✅ เสร็จ (2026-04-02)
 
-| # | Item | สถานะ |
-|---|------|-------|
-| H1 | Soft delete (deletedAt) สำหรับ LogisticsJob | ⬜ |
-| H2 | Race condition fix — generateJobNo/generateInvoiceNo | ⬜ |
-| H3 | สร้าง /users endpoint สำหรับ staff listing | ⬜ |
-| H5 | สร้าง billingApi.js (FinanceDashboard ใช้ข้อมูลจริง) | ⬜ |
-| H6 | สร้าง productsApi.js, masterApi.js | ⬜ |
-| H7 | Docker configuration | ⬜ |
-| H8 | CI/CD Pipeline (GitHub Actions) | ⬜ |
-| M8 | Env var validation (Joi) | ⬜ |
+| # | Item | สถานะ | รายละเอียด |
+|---|------|-------|-----------|
+| H1 | Soft delete (deletedAt) | ✅ | `deletedAt` field + `update` แทน `delete` + filter `deletedAt: null` |
+| H2 | Race condition fix | ✅ | Serializable transaction ครอบ generateJobNo/generateInvoiceNo |
+| H3 | /users endpoint | ✅ | UsersModule — `GET /users?role=STAFF,MANAGER` |
+| H5 | billingApi.js + FinanceDashboard | ✅ | FinanceDashboard ดึงข้อมูลจริงจาก billing API |
+| H6 | productsApi.js, masterApi.js | ✅ | Frontend API clients ครบ |
+| H7 | Docker configuration | ✅ | Multi-stage Dockerfile (frontend + backend) + docker-compose + nginx |
+| M8 | Env var validation (Joi) | ✅ | ConfigModule + Joi schema (DATABASE_URL, JWT_SECRET, etc.) |
 
 ### Phase 3: Post-launch — ⬜ ยังไม่เริ่ม
 
