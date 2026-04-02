@@ -19,6 +19,7 @@ import * as path from 'path';
 
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
@@ -61,6 +62,16 @@ async function bootstrap() {
   );
 
   app.setGlobalPrefix('api');
+
+  // Swagger API documentation (available at /api/docs)
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Customs E-Service API')
+    .setDescription('NKTech Customs E-Service — Multi-tenant logistics & customs declaration platform')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api/docs', app, document);
 
   await app.listen(process.env.PORT ?? 3000);
 }

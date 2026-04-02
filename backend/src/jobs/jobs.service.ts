@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { BillingService } from '../billing/billing.service';
@@ -31,6 +32,8 @@ const STATUS_TRANSITIONS: Partial<Record<JobStatus, JobStatus[]>> = {
 
 @Injectable()
 export class JobsService {
+  private readonly logger = new Logger(JobsService.name);
+
   constructor(
     private prisma: PrismaService,
     private billingService: BillingService,
@@ -94,7 +97,7 @@ export class JobsService {
         message: `ลูกค้าสร้าง shipment ใหม่ ${job.jobNo}`,
         entityType: 'JOB',
         entityId: job.id,
-      }).catch(() => null);
+      }).catch(err => this.logger.error('Failed to notify staff on job creation', err));
     }
 
     return job;
@@ -244,7 +247,7 @@ export class JobsService {
 
     // Auto-create billing item when job reaches COMPLETED
     if (dto.status === JobStatus.COMPLETED) {
-      await this.billingService.createBillingItemForJob(id).catch(() => null);
+      await this.billingService.createBillingItemForJob(id).catch(err => this.logger.error(`Failed to create billing item for job ${id}`, err));
     }
 
     // C1: Notify customer when status changes
@@ -254,7 +257,7 @@ export class JobsService {
       message: `สถานะเปลี่ยนจาก ${job.status} เป็น ${dto.status}`,
       entityType: 'JOB',
       entityId: id,
-    }).catch(() => null);
+    }).catch(err => this.logger.error(`Failed to notify customer on status change for job ${id}`, err));
 
     return updated;
   }
@@ -282,7 +285,7 @@ export class JobsService {
       message: `คุณได้รับมอบหมายให้ดูแล shipment ${job.jobNo}`,
       entityType: 'JOB',
       entityId: id,
-    }).catch(() => null);
+    }).catch(err => this.logger.error(`Failed to notify assigned staff for job ${id}`, err));
 
     return updated;
   }
@@ -325,7 +328,7 @@ export class JobsService {
       message: `${job.jobNo} ขออนุมัติก่อนส่ง NSW${note ? ` — ${note}` : ''}`,
       entityType: 'JOB',
       entityId: id,
-    }).catch(() => null);
+    }).catch(err => this.logger.error(`Failed to notify managers on approval request for job ${id}`, err));
 
     return updated;
   }
@@ -366,7 +369,7 @@ export class JobsService {
       message: `${job.jobNo} ได้รับการอนุมัติ${note ? ` — ${note}` : ''}`,
       entityType: 'JOB',
       entityId: id,
-    }).catch(() => null);
+    }).catch(err => this.logger.error(`Failed to notify creator on job approval for job ${id}`, err));
 
     return updated;
   }
@@ -407,7 +410,7 @@ export class JobsService {
       message: `${job.jobNo} ไม่ผ่านการอนุมัติ${note ? ` — ${note}` : ''}`,
       entityType: 'JOB',
       entityId: id,
-    }).catch(() => null);
+    }).catch(err => this.logger.error(`Failed to notify creator on job rejection for job ${id}`, err));
 
     return updated;
   }

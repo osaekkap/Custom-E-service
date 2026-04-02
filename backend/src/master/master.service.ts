@@ -11,21 +11,24 @@ export class MasterService {
 
   // ─── HS Codes ──────────────────────────────────────────────────────
 
-  async listHsCodes(customerId: string, search?: string) {
-    return this.prisma.hsMasterItem.findMany({
-      where: {
-        customerId,
-        isActive: true,
-        ...(search && {
-          OR: [
-            { hsCode: { contains: search } },
-            { descriptionEn: { contains: search, mode: 'insensitive' } },
-            { descriptionTh: { contains: search } },
-          ],
-        }),
-      },
-      orderBy: { hsCode: 'asc' },
-    });
+  async listHsCodes(customerId: string, search?: string, page = 1, limit = 100) {
+    const skip = (page - 1) * limit;
+    const where = {
+      customerId,
+      isActive: true,
+      ...(search && {
+        OR: [
+          { hsCode: { contains: search } },
+          { descriptionEn: { contains: search, mode: 'insensitive' as const } },
+          { descriptionTh: { contains: search } },
+        ],
+      }),
+    };
+    const [data, total] = await Promise.all([
+      this.prisma.hsMasterItem.findMany({ where, skip, take: limit, orderBy: { hsCode: 'asc' } }),
+      this.prisma.hsMasterItem.count({ where }),
+    ]);
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
   }
 
   async createHsCode(customerId: string, dto: CreateHsCodeDto) {
@@ -102,21 +105,24 @@ export class MasterService {
 
   // ─── Consignees ────────────────────────────────────────────────────
 
-  async listConsignees(customerId: string, search?: string) {
-    return this.prisma.consignee.findMany({
-      where: {
-        customerId,
-        isActive: true,
-        ...(search && {
-          OR: [
-            { nameEn: { contains: search, mode: 'insensitive' } },
-            { nameTh: { contains: search } },
-            { country: { contains: search, mode: 'insensitive' } },
-          ],
-        }),
-      },
-      orderBy: { nameEn: 'asc' },
-    });
+  async listConsignees(customerId: string, search?: string, page = 1, limit = 100) {
+    const skip = (page - 1) * limit;
+    const where = {
+      customerId,
+      isActive: true,
+      ...(search && {
+        OR: [
+          { nameEn: { contains: search, mode: 'insensitive' as const } },
+          { nameTh: { contains: search } },
+          { country: { contains: search, mode: 'insensitive' as const } },
+        ],
+      }),
+    };
+    const [data, total] = await Promise.all([
+      this.prisma.consignee.findMany({ where, skip, take: limit, orderBy: { nameEn: 'asc' } }),
+      this.prisma.consignee.count({ where }),
+    ]);
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
   }
 
   async createConsignee(customerId: string, dto: CreateConsigneeDto) {

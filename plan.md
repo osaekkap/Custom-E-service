@@ -1,6 +1,6 @@
 # Custom-E-service — Master Plan
 
-> อัปเดต: 2026-04-02 | **Phase 6 เสร็จ + Pre-Deploy Audit Phase 1 เสร็จ**
+> อัปเดต: 2026-04-02 | **Phase 6 เสร็จ + Pre-Deploy Audit Phase 1-3 เสร็จ**
 
 ---
 
@@ -28,6 +28,8 @@
 | **6D** | **Customer Portal Dashboard (D2) — ดึงข้อมูลจริง** | ✅ เสร็จ |
 | **CMS** | **Landing Page CMS (Theme/Section/Card management)** | ✅ เสร็จ |
 | **Audit P1** | **Pre-Deploy Security Audit — Phase 1 (Critical fixes)** | ✅ เสร็จ |
+| **Audit P2** | **Pre-Deploy Audit — Phase 2 (Go-live readiness)** | ✅ เสร็จ |
+| **Audit P3** | **Pre-Deploy Audit — Phase 3 (Post-launch fixes)** | ✅ เสร็จ |
 
 ---
 
@@ -225,17 +227,18 @@ Phase D (Polish):
 | H7 | Docker configuration | ✅ | Multi-stage Dockerfile (frontend + backend) + docker-compose + nginx |
 | M8 | Env var validation (Joi) | ✅ | ConfigModule + Joi schema (DATABASE_URL, JWT_SECRET, etc.) |
 
-### Phase 3: Post-launch — ⬜ ยังไม่เริ่ม
+### Phase 3: Post-launch — ✅ เสร็จ (2026-04-02)
 
-| # | Item | สถานะ |
-|---|------|-------|
-| M1 | Error logging (replace `.catch(() => null)`) | ⬜ |
-| M2 | React Error Boundary | ⬜ |
-| M3 | authApi.me() revalidation | ⬜ |
-| M4 | Pagination (master/billing) | ⬜ |
-| M5 | Master controller SUPER_ADMIN fix | ⬜ |
-| M6 | NSW approval status check | ⬜ |
-| M7 | Swagger documentation | ⬜ |
+| # | Item | สถานะ | รายละเอียด |
+|---|------|-------|-----------|
+| M1 | Error logging | ✅ | Replace `.catch(() => null)` → `logger.error()` (9 instances in jobs.service + auth.service) |
+| M2 | React Error Boundary | ✅ | `ErrorBoundary.jsx` ครอบ App — fallback UI + refresh button |
+| M3 | authApi.me() revalidation | ✅ | AuthContext useEffect เรียก `authApi.me()` ตอน app load — ตรวจ deactivated users |
+| M4 | Pagination (master/billing) | ✅ | HS codes + consignees: `page/limit` query params + `{ data, meta }` response |
+| M5 | Master controller SUPER_ADMIN fix | ✅ | `resolveCustomerId()` — admin/internal ใช้ `?customerId=` query param |
+| M6 | NSW approval status check | ✅ | เช็ค `job.approvalStatus` ก่อน submit — block PENDING/REJECTED, warn NONE |
+| M7 | Swagger documentation | ✅ | `@nestjs/swagger` — available at `/api/docs` |
+| L6 | Health check endpoint | ✅ | `GET /api/health` — DB connectivity check + timestamp |
 
 ### Phase 4: Technical Debt — ⬜
 

@@ -4,6 +4,7 @@ import {
   ConflictException,
   NotFoundException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -17,6 +18,7 @@ import { Role } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   private supabase;
 
   constructor(
@@ -213,7 +215,7 @@ export class AuthService {
         );
       }
     } catch (uploadErr) {
-      await this.supabase.auth.admin.deleteUser(supabaseUser.id).catch(() => null);
+      await this.supabase.auth.admin.deleteUser(supabaseUser.id).catch(err => this.logger.error(`Failed to cleanup Supabase user ${supabaseUser.id} after upload failure`, err));
       throw new BadRequestException(`File upload failed: ${uploadErr.message}`);
     }
 
@@ -288,7 +290,7 @@ export class AuthService {
         status: 'TRIAL',
       };
     } catch (err) {
-      await this.supabase.auth.admin.deleteUser(supabaseUser.id).catch(() => null);
+      await this.supabase.auth.admin.deleteUser(supabaseUser.id).catch(delErr => this.logger.error(`Failed to cleanup Supabase user ${supabaseUser.id} after registration failure`, delErr));
       throw err;
     }
   }

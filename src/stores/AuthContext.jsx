@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { authApi } from '../api/authApi';
 
 export const AuthContext = createContext(null);
@@ -10,6 +10,21 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('access_token'));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Revalidate cached user on app load — detects deactivated accounts
+  useEffect(() => {
+    if (!token) return;
+    authApi.me().then((freshUser) => {
+      setUser(freshUser);
+      localStorage.setItem('user', JSON.stringify(freshUser));
+    }).catch(() => {
+      // Token invalid or user deactivated — force logout
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user');
+      setToken(null);
+      setUser(null);
+    });
+  }, [token]);
 
   const login = useCallback(async (email, password) => {
     setLoading(true);

@@ -6,7 +6,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { XmlBuilderService } from './xml-builder.service';
 import { EbxmlWrapperService } from './ebxml-wrapper.service';
 import { RequestUser } from '../auth/jwt.strategy';
-import { Role, EbxmlAckStatus, NswMessageStatus, SubmissionStatus } from '@prisma/client';
+import { Role, ApprovalStatus, EbxmlAckStatus, NswMessageStatus, SubmissionStatus } from '@prisma/client';
 
 @Injectable()
 export class NswService {
@@ -28,6 +28,15 @@ export class NswService {
     });
     if (!decl) throw new NotFoundException(`Declaration ${declarationId} not found`);
     this.assertAccess(decl.customerId, user);
+
+    // Ensure job has been approved before allowing NSW submission
+    const job = await this.prisma.logisticsJob.findUnique({ where: { id: decl.jobId } });
+    if (job && job.approvalStatus !== ApprovalStatus.APPROVED && job.approvalStatus !== ApprovalStatus.NONE) {
+      throw new BadRequestException(`Job must be approved before NSW submission (current: ${job.approvalStatus})`);
+    }
+    if (job && job.approvalStatus === ApprovalStatus.NONE) {
+      this.logger.warn(`Job ${decl.jobId} submitted to NSW without going through approval workflow`);
+    }
 
     if (decl.items.length === 0) {
       throw new BadRequestException('Cannot submit declaration with no items');
