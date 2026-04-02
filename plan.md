@@ -1,6 +1,6 @@
 # Custom-E-service — Master Plan
 
-> อัปเดต: 2026-03-30 | **Phase 6 เสร็จสมบูรณ์** (Landing Page + งาน 1-6)
+> อัปเดต: 2026-04-02 | **Phase 6 เสร็จ + Pre-Deploy Audit Phase 1 เสร็จ**
 
 ---
 
@@ -26,6 +26,8 @@
 | **6C** | **Customer Notifications (C1) + Staff Alert (C2)** | ✅ เสร็จ |
 | **6D** | **Read-only Mode Badge (D1)** | ✅ เสร็จ |
 | **6D** | **Customer Portal Dashboard (D2) — ดึงข้อมูลจริง** | ✅ เสร็จ |
+| **CMS** | **Landing Page CMS (Theme/Section/Card management)** | ✅ เสร็จ |
+| **Audit P1** | **Pre-Deploy Security Audit — Phase 1 (Critical fixes)** | ✅ เสร็จ |
 
 ---
 
@@ -189,6 +191,64 @@ Phase D (Polish):
 | `backend/src/notifications/` | ใหม่ — NotificationsModule (service + controller) |
 | `backend/src/jobs/jobs.service.ts` | เพิ่ม assignJob, requestApproval, approveJob, rejectJob + notification triggers |
 | `backend/src/jobs/jobs.controller.ts` | เพิ่ม PATCH endpoints (assign, request-approval, approve, reject) |
+
+---
+
+## Pre-Deployment Security Audit
+
+> ตรวจสอบ workflow ทั้งหมด + ความสัมพันธ์ข้อมูลทั้งระบบก่อน deploy production
+
+### Phase 1: Critical Fixes — ✅ เสร็จ (2026-04-02)
+
+| # | Item | สถานะ | รายละเอียด |
+|---|------|-------|-----------|
+| C1 | API Keys & Secrets | ✅ | `.gitignore` เพิ่ม `backend/.env`, สร้าง `.env.example` |
+| C2 | Rate Limiting | ✅ | `@nestjs/throttler` — 60 req/min global, 5 req/min login/register |
+| C3 | helmet.js | ✅ | Security headers (X-Frame-Options, CSP, etc.) |
+| C4 | CustomsData Auth | ✅ | ตั้งใจ public (Landing Page) + rate limit 30 req/min |
+| C5 | **Role Guards ทุก controller** | ✅ | **7 controllers, 55+ endpoints** — `@UseGuards(JwtAuthGuard, RolesGuard)` + `@Roles()` |
+| C6 | NSW assertAccess | ✅ | เพิ่ม `!user.customerId` สำหรับ NKTech internal staff |
+| C7 | onDelete Relations | ✅ | Cascade/SetNull ครบ 10 relations ที่ขาด |
+| H4 | documentsApi method | ✅ | POST → PATCH + แก้ URL path |
+| H9 | CORS fail-fast | ✅ | Throw error ถ้า production ไม่มี FRONTEND_URL |
+| M9 | forbidNonWhitelisted | ✅ | Reject unknown properties ใน request body |
+
+### Phase 2: Before Go-live — ⬜ ยังไม่เริ่ม
+
+| # | Item | สถานะ |
+|---|------|-------|
+| H1 | Soft delete (deletedAt) สำหรับ LogisticsJob | ⬜ |
+| H2 | Race condition fix — generateJobNo/generateInvoiceNo | ⬜ |
+| H3 | สร้าง /users endpoint สำหรับ staff listing | ⬜ |
+| H5 | สร้าง billingApi.js (FinanceDashboard ใช้ข้อมูลจริง) | ⬜ |
+| H6 | สร้าง productsApi.js, masterApi.js | ⬜ |
+| H7 | Docker configuration | ⬜ |
+| H8 | CI/CD Pipeline (GitHub Actions) | ⬜ |
+| M8 | Env var validation (Joi) | ⬜ |
+
+### Phase 3: Post-launch — ⬜ ยังไม่เริ่ม
+
+| # | Item | สถานะ |
+|---|------|-------|
+| M1 | Error logging (replace `.catch(() => null)`) | ⬜ |
+| M2 | React Error Boundary | ⬜ |
+| M3 | authApi.me() revalidation | ⬜ |
+| M4 | Pagination (master/billing) | ⬜ |
+| M5 | Master controller SUPER_ADMIN fix | ⬜ |
+| M6 | NSW approval status check | ⬜ |
+| M7 | Swagger documentation | ⬜ |
+
+### Phase 4: Technical Debt — ⬜
+
+| # | Item | สถานะ |
+|---|------|-------|
+| L1 | 401 interceptor redirect | ⬜ |
+| L3 | Component decomposition (188KB JSX) | ⬜ |
+| L4 | TypeScript migration (frontend) | ⬜ |
+| L5 | NSW ebXML auto-retry | ⬜ |
+| L6 | Health check endpoint | ⬜ |
+| L7 | Structured logging (pino/winston) | ⬜ |
+| L8 | Code splitting (React.lazy) | ⬜ |
 
 ---
 

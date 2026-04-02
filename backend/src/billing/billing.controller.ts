@@ -5,15 +5,19 @@ import {
 import { BillingService } from './billing.service';
 import { CreateInvoiceDto, UpdateInvoiceStatusDto } from './dto/billing.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '@prisma/client';
 import { RequestUser } from '../auth/jwt.strategy';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('billing')
 export class BillingController {
   constructor(private readonly billingService: BillingService) {}
 
   /** GET /billing/items?invoiced=false */
   @Get('items')
+  @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER, Role.CUSTOMER_ADMIN, Role.CUSTOMER)
   listItems(
     @Request() req: { user: RequestUser },
     @Query('invoiced') invoiced?: string,
@@ -21,8 +25,9 @@ export class BillingController {
     return this.billingService.listItems(req.user, invoiced);
   }
 
-  /** POST /billing/invoices — สร้าง invoice (SUPER_ADMIN only) */
+  /** POST /billing/invoices — สร้าง invoice */
   @Post('invoices')
+  @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER)
   createInvoice(
     @Body() dto: CreateInvoiceDto,
     @Request() req: { user: RequestUser },
@@ -32,6 +37,7 @@ export class BillingController {
 
   /** GET /billing/invoices?customerId= */
   @Get('invoices')
+  @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER, Role.CUSTOMER_ADMIN, Role.CUSTOMER)
   listInvoices(
     @Request() req: { user: RequestUser },
     @Query('customerId') customerId?: string,
@@ -41,6 +47,7 @@ export class BillingController {
 
   /** GET /billing/invoices/:id */
   @Get('invoices/:id')
+  @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER, Role.CUSTOMER_ADMIN, Role.CUSTOMER)
   findInvoice(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: { user: RequestUser },
@@ -50,6 +57,7 @@ export class BillingController {
 
   /** PATCH /billing/invoices/:id/status */
   @Patch('invoices/:id/status')
+  @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER, Role.CUSTOMER_ADMIN)
   updateInvoiceStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateInvoiceStatusDto,

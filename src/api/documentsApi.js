@@ -17,5 +17,5 @@ export const documentsApi = {
     client.delete(`/jobs/${jobId}/documents/${docId}`).then((r) => r.data),
 
   refreshUrl: (jobId, docId) =>
-    client.post(`/jobs/${jobId}/documents/${docId}/refresh-url`).then((r) => r.data),
+    client.patch(`/jobs/${jobId}/documents/${docId}/refresh`).then((r) => r.data),
 };

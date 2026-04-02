@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -23,6 +24,7 @@ import { CmsModule } from './cms/cms.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
     PrismaModule,
     AuthModule,
     CustomerModule,
@@ -42,6 +44,8 @@ import { CmsModule } from './cms/cms.module';
   controllers: [AppController],
   providers: [
     AppService,
+    // Global rate limiting — 60 req/min default (overridable per endpoint with @Throttle)
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     // Register AuditInterceptor globally — logs every POST/PATCH/PUT/DELETE
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],

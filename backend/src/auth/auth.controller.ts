@@ -1,4 +1,5 @@
 import { Controller, Post, Get, Body, UseGuards, Request, Req, Ip, Headers, UseInterceptors, UploadedFiles } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -11,8 +12,9 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  /** POST /api/auth/login */
+  /** POST /api/auth/login — 5 attempts/min to prevent brute-force */
   @Post('login')
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   login(
     @Body() dto: LoginDto,
     @Ip() ip: string,
@@ -28,8 +30,9 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
-  /** POST /api/auth/register/b2b — สมัครใช้งานระบบสำหรับบริษัท (B2B) */
+  /** POST /api/auth/register/b2b — สมัครใช้งานระบบสำหรับบริษัท (B2B) — 5 attempts/min */
   @Post('register/b2b')
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'companyCert', maxCount: 1 },
     { name: 'pp20', maxCount: 1 },

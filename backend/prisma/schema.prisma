@@ -426,8 +426,8 @@ model LogisticsJob {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  customer        Customer            @relation(fields: [customerId], references: [id])
-  consignee       Consignee?          @relation(fields: [consigneeId], references: [id])
+  customer        Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  consignee       Consignee?          @relation(fields: [consigneeId], references: [id], onDelete: SetNull)
   documents       JobDocument[]
   declarations    ExportDeclaration[]
   statusHistory   JobStatusHistory[]
@@ -627,7 +627,7 @@ model ExportDeclaration {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  job        LogisticsJob      @relation(fields: [jobId], references: [id])
+  job        LogisticsJob      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   items      DeclarationItem[]
   nswSubmissions NswSubmission[]
 
@@ -684,9 +684,9 @@ model NswSubmission {
 
   createdAt DateTime @default(now())
 
-  customer    Customer            @relation(fields: [customerId], references: [id])
-  job         LogisticsJob      @relation(fields: [jobId], references: [id])
-  declaration ExportDeclaration @relation(fields: [declarationId], references: [id])
+  customer    Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  job         LogisticsJob      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  declaration ExportDeclaration @relation(fields: [declarationId], references: [id], onDelete: Cascade)
 
   @@unique([declarationId, attemptNo])
   @@index([customerId])
@@ -775,9 +775,9 @@ model BillingItem {
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
-  customer  Customer          @relation(fields: [customerId], references: [id])
-  job     LogisticsJob    @relation(fields: [jobId], references: [id])
-  invoice BillingInvoice? @relation(fields: [invoiceId], references: [id])
+  customer  Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  job     LogisticsJob    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  invoice BillingInvoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
 
   @@index([customerId])
   @@index([customerId, isInvoiced])
@@ -803,7 +803,7 @@ model BillingInvoice {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  customer  Customer        @relation(fields: [customerId], references: [id])
+  customer  Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
   items   BillingItem[]
 
   @@index([customerId])
@@ -825,7 +825,7 @@ model AuditLog {
   detail     Json?
   createdAt  DateTime @default(now())
 
-  actor Profile? @relation(fields: [actorId], references: [id])
+  actor Profile? @relation(fields: [actorId], references: [id], onDelete: SetNull)
 
   @@index([customerId])
   @@index([actorId])

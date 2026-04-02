@@ -17,17 +17,21 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentsService } from './documents.service';
 import { UploadDocumentDto } from './dto/upload-document.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '@prisma/client';
 import { RequestUser } from '../auth/jwt.strategy';
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('jobs/:jobId/documents')
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
   /** POST /jobs/:jobId/documents — multipart/form-data */
   @Post()
+  @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER, Role.STAFF, Role.USER, Role.CUSTOMER_ADMIN, Role.CUSTOMER)
   @UseInterceptors(
     FileInterceptor('file', {
       limits: { fileSize: MAX_FILE_SIZE },
@@ -79,6 +83,7 @@ export class DocumentsController {
 
   /** DELETE /jobs/:jobId/documents/:docId */
   @Delete(':docId')
+  @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER, Role.STAFF, Role.USER)
   remove(
     @Param('jobId', ParseUUIDPipe) jobId: string,
     @Param('docId', ParseUUIDPipe) docId: string,

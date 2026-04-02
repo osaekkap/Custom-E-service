@@ -205,6 +205,7 @@ export class NswService {
 
   private assertAccess(customerId: string, user: RequestUser) {
     if (user.role === Role.SUPER_ADMIN) return;
+    if (!user.customerId) return; // NKTech internal staff (no customerId)
     if (user.customerId !== customerId) {
       throw new BadRequestException('Access denied');
     }

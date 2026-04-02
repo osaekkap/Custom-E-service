@@ -1,7 +1,10 @@
 import { Controller, Get, Query } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { CustomsDataService } from './customs-data.service';
 
+// Public endpoints (no auth) — used by Landing Page
 @Controller('customs')
+@Throttle({ default: { ttl: 60000, limit: 30 } })
 export class CustomsDataController {
   constructor(private readonly customsDataService: CustomsDataService) {}
 

@@ -19,15 +19,24 @@ import * as path from 'path';
 
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Security headers (X-Frame-Options, CSP, X-Content-Type-Options, etc.)
+  app.use(helmet());
+
+  // Fail fast: production MUST have FRONTEND_URL
+  const isDev = process.env.NODE_ENV !== 'production';
+  if (!isDev && !process.env.FRONTEND_URL) {
+    throw new Error('FRONTEND_URL env var is required in production');
+  }
+
   // Support comma-separated origins e.g. "https://app.example.com,http://localhost:5173"
   const rawOrigins = process.env.FRONTEND_URL ?? 'http://localhost:5173';
   const allowedOrigins = rawOrigins.split(',').map((o) => o.trim());
-  const isDev = process.env.NODE_ENV !== 'production';
   app.enableCors({
     origin: (origin, cb) => {
       // Allow non-browser clients (Postman, server-to-server)
@@ -45,9 +54,9 @@ async function bootstrap() {
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,      // strip unknown properties
-      forbidNonWhitelisted: false,
-      transform: true,      // auto-transform query params to correct types
+      whitelist: true,           // strip unknown properties
+      forbidNonWhitelisted: true, // reject requests with unknown properties
+      transform: true,           // auto-transform query params to correct types
     }),
   );
 
