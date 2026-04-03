@@ -1,6 +1,6 @@
 # Custom-E-service — Master Plan
 
-> อัปเดต: 2026-04-03 | **Phase 6 เสร็จ + Pre-Deploy Audit Phase 1-4 เสร็จ + Phase 5A Mock Data Elimination เสร็จ**
+> อัปเดต: 2026-04-03 | **Phase 6 เสร็จ + Pre-Deploy Audit Phase 1-4 เสร็จ + Phase 5A-5B เสร็จ**
 
 ---
 
@@ -262,13 +262,13 @@ Phase D (Polish):
 | 5A.4 | ShipmentList + Declarations mock removal | ✅ | `useState([])` แทน `useState(SHIPMENTS)` + error display |
 | 5A.5 | สร้าง nswApi.js + privilegeDocsApi.js | ✅ | API clients ใหม่สำหรับ NSW retry + privilege document CRUD |
 
-### Phase 5B: Frontend UX + Reports — 🔄 กำลังทำ
+### Phase 5B: Frontend UX + Reports — ✅ เสร็จ (2026-04-03)
 
 | # | Item | สถานะ | รายละเอียด |
 |---|------|-------|-----------|
-| 5B.1 | Toast notification system | ⬜ | ToastContext + ToastContainer + client.js interceptor |
-| 5B.2 | Reports.jsx → API + Recharts | ⬜ | Backend reports module + frontend reportsApi + Recharts charts |
-| 5B.3 | Global exception filter | ⬜ | AllExceptionsFilter + Prisma error mapping + consistent JSON response |
+| 5B.1 | Toast notification system | ✅ | ToastContext + ToastContainer + client.js interceptor (400/403/422/429/500 → Thai error messages) |
+| 5B.2 | Reports.jsx → API + Recharts | ✅ | Backend ReportsModule (monthly-summary + top-destinations) + Recharts BarChart/PieChart + CSV export |
+| 5B.3 | Global exception filter | ✅ | AllExceptionsFilter — Prisma P2002→409, P2025→404, P2003→400 + 5xx stack trace logging |
 
 ### Phase 5C: Backend Security + Testing — ⬜ รอ
 

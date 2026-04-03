@@ -22,6 +22,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { CustomsDataModule } from './customs-data/customs-data.module';
 import { CmsModule } from './cms/cms.module';
 import { UsersModule } from './users/users.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { UsersModule } from './users/users.module';
     CustomsDataModule,
     CmsModule,
     UsersModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [
