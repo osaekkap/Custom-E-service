@@ -2,18 +2,20 @@ import { useState, useEffect } from "react";
 import { jobsApi } from "../../api/jobsApi.js";
 import { W, BG, BORDER, BORDER2, TEXT, TEXT2, TEXT3, BLUE, MONO, ROW_HOVER, Card, Btn, Badge, Tag, ApprovalBadge } from "../ui/index.jsx";
 import { mapJob } from "../dashboard/DefaultDashboard.jsx";
-import { SHIPMENTS } from "../../lib/mockData.js";
 
 function ShipmentList({ onNew, onDetail }) {
   const [filter, setFilter] = useState("ALL");
-  const [jobs, setJobs] = useState(SHIPMENTS);
+  const [jobs, setJobs] = useState([]);
   const [apiLoading, setApiLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     jobsApi.list().then(data => {
-      if (data?.data?.length > 0) setJobs(data.data.map(mapJob));
-      else if (Array.isArray(data) && data.length > 0) setJobs(data.map(mapJob));
-    }).catch(() => {/* fallback to mock data */}).finally(() => setApiLoading(false));
+      const arr = data?.data ?? (Array.isArray(data) ? data : []);
+      setJobs(arr.map(mapJob));
+    }).catch(err => {
+      setError(err.message || "Failed to load shipments");
+    }).finally(() => setApiLoading(false));
   }, []);
 
   const tabs = ["ALL","Export","Import","CLEARED","NSW_PROCESSING","DRAFT"];
@@ -24,7 +26,7 @@ function ShipmentList({ onNew, onDetail }) {
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
         <div>
           <h1 style={{ margin:0, fontSize:22, fontWeight:800, color:TEXT }}>Shipments</h1>
-          <p style={{ margin:"3px 0 0", fontSize:14, color:TEXT3 }}>{apiLoading ? "Loading…" : `${shown.length} records`}</p>
+          <p style={{ margin:"3px 0 0", fontSize:14, color:error ? "#DC2626" : TEXT3 }}>{apiLoading ? "Loading…" : error ? error : `${shown.length} records`}</p>
         </div>
         <Btn onClick={onNew}>+ New shipment</Btn>
       </div>

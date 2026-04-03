@@ -1,42 +1,50 @@
 import { useState, useEffect } from "react";
 import { jobsApi } from "../api/jobsApi.js";
-import { W, BG, BORDER, BORDER2, TEXT, TEXT2, TEXT3, BLUE, MONO, ROW_HOVER, Card, SectionHeader, Btn, Badge, Tag } from "./ui/index.jsx";
+import { W, BG, BORDER, BORDER2, TEXT, TEXT2, TEXT3, BLUE, MONO, Card, SectionHeader, Btn, Badge, Tag } from "./ui/index.jsx";
 import { mapJob } from "./dashboard/DefaultDashboard.jsx";
-import { SHIPMENTS } from "../lib/mockData.js";
 
 function NSWTracking() {
   const [allJobs, setAllJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  useEffect(() => {
-    jobsApi.list().then(data => {
+  const fetchJobs = () => {
+    return jobsApi.list().then(data => {
       const arr = data?.data ?? (Array.isArray(data) ? data : []);
-      setAllJobs(arr.length > 0 ? arr.map(mapJob) : SHIPMENTS);
+      setAllJobs(arr.map(mapJob));
       setLastUpdated(new Date());
-    }).catch(() => setAllJobs(SHIPMENTS)).finally(() => setLoading(false));
+      setError(null);
+    }).catch(err => {
+      setError(err.message || "Failed to load jobs");
+    });
+  };
+
+  useEffect(() => {
+    fetchJobs().finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      jobsApi.list().then(data => {
-        const arr = data?.data ?? (Array.isArray(data) ? data : []);
-        if (arr.length > 0) setAllJobs(arr.map(mapJob));
-        setLastUpdated(new Date());
-      }).catch(() => {});
+      fetchJobs();
     }, 30000);
     return () => clearInterval(interval);
   }, []);
 
   const handleRefresh = () => {
-    jobsApi.list().then(data => {
-      const arr = data?.data ?? (Array.isArray(data) ? data : []);
-      if (arr.length > 0) setAllJobs(arr.map(mapJob));
-      setLastUpdated(new Date());
-    }).catch(() => {});
+    fetchJobs();
   };
 
   const active = allJobs.filter(s=>!["COMPLETED","DRAFT"].includes(s.status));
+
+  if (loading) {
+    return (
+      <div>
+        <h1 style={{ margin:0, fontSize:22, fontWeight:800, color:TEXT }}>NSW Tracking</h1>
+        <p style={{ margin:"3px 0 0", fontSize:14, color:TEXT3 }}>Loading…</p>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -45,9 +53,9 @@ function NSWTracking() {
           <h1 style={{ margin:0, fontSize:22, fontWeight:800, color:TEXT }}>NSW Tracking</h1>
           <p style={{ margin:"3px 0 0", fontSize:14, color:TEXT3 }}>
             NSW Thailand status · อัปเดตล่าสุด: {lastUpdated.toLocaleTimeString("th-TH", {hour:"2-digit",minute:"2-digit",second:"2-digit"})}
-            {loading && " · Loading…"}
-            {!loading && ` · ${active.length} jobs in progress`}
+            {` · ${active.length} jobs in progress`}
           </p>
+          {error && <p style={{ margin:"3px 0 0", fontSize:14, color:"#DC2626" }}>{error}</p>}
         </div>
         <Btn variant="secondary" onClick={handleRefresh} style={{ fontSize:14, flexShrink:0 }}>Refresh</Btn>
       </div>
@@ -66,6 +74,12 @@ function NSWTracking() {
         ))}
         <span style={{ marginLeft:"auto", fontSize:14, color:TEXT3 }}>Auto-refresh every 30s</span>
       </div>
+
+      {active.length === 0 && (
+        <div style={{ textAlign:"center", padding:"40px 20px", color:TEXT3, fontSize:15 }}>
+          ยังไม่มี NSW submission ที่กำลังดำเนินการ
+        </div>
+      )}
 
       <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
         {active.map((job,ji) => {

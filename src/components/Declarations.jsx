@@ -2,21 +2,24 @@ import { useState, useEffect } from "react";
 import { jobsApi } from "../api/jobsApi.js";
 import { W, BG, BORDER, BORDER2, TEXT, TEXT2, TEXT3, BLUE, MONO, ROW_HOVER, Card, SectionHeader, Btn, Badge, Tag, downloadCSV, printHTML } from "./ui/index.jsx";
 import { mapJob } from "./dashboard/DefaultDashboard.jsx";
-import { SHIPMENTS } from "../lib/mockData.js";
 
 function Declarations() {
   const [view, setView] = useState("list");
   const [jobs, setJobs] = useState(null);
   const [selected, setSelected] = useState(new Set());
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     jobsApi.list().then(data => {
       const arr = data?.data ?? (Array.isArray(data) ? data : []);
-      setJobs(arr.length > 0 ? arr.map(mapJob) : SHIPMENTS);
-    }).catch(() => setJobs(SHIPMENTS));
+      setJobs(arr.map(mapJob));
+    }).catch(err => {
+      setError(err.message || "Failed to load declarations");
+      setJobs([]);
+    });
   }, []);
 
-  const declList = (jobs || SHIPMENTS).filter(s => s.status !== "DRAFT");
+  const declList = (jobs || []).filter(s => s.status !== "DRAFT");
 
   const DECL_COLS = [
     { label:"Declaration No.", get: (_,i) => `DEC-2026-0${230+i}` },
@@ -95,7 +98,7 @@ function Declarations() {
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
         <div>
           <h1 style={{ margin:0, fontSize:22, fontWeight:800, color:TEXT }}>Declarations</h1>
-          <p style={{ margin:"3px 0 0", fontSize:14, color:TEXT3 }}>ใบขนสินค้าและเอกสารศุลกากร</p>
+          <p style={{ margin:"3px 0 0", fontSize:14, color:error ? "#DC2626" : TEXT3 }}>{error || "ใบขนสินค้าและเอกสารศุลกากร"}</p>
         </div>
         <div style={{ display:"flex", gap:8 }}>
           {["list","cards"].map(v => (

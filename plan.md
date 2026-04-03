@@ -1,6 +1,6 @@
 # Custom-E-service — Master Plan
 
-> อัปเดต: 2026-04-02 | **Phase 6 เสร็จ + Pre-Deploy Audit Phase 1-3 เสร็จ + Phase 4 Tech Debt (partial)**
+> อัปเดต: 2026-04-03 | **Phase 6 เสร็จ + Pre-Deploy Audit Phase 1-4 เสร็จ + Phase 5A Mock Data Elimination เสร็จ**
 
 ---
 
@@ -249,17 +249,42 @@ Phase D (Polish):
 | L5 | NSW ebXML auto-retry | ✅ | Exponential backoff (1s→2s→4s), configurable `NSW_MAX_RETRIES`, `POST /nsw/retry-failed` endpoint |
 | H8 | CI/CD Pipeline | ✅ | GitHub Actions — backend tsc, frontend vite build, Docker build check |
 | L4 | TypeScript migration (frontend) | ⬜ | ต้องทำ separate PR — risk regression |
-| L6 | Health check endpoint | ⬜ |
-| L7 | Structured logging (pino/winston) | ⬜ |
-| L8 | Code splitting (React.lazy) | ⬜ |
+| L7 | Structured logging (pino/winston) | ⬜ | Phase 5D |
+| L8 | Code splitting (React.lazy) | ⬜ | Phase 6+ (ต้องมี React Router ก่อน) |
 
----
+### Phase 5A: Mock Data Elimination — ✅ เสร็จ (2026-04-03)
 
-## งานอื่นๆ
+| # | Item | สถานะ | รายละเอียด |
+|---|------|-------|-----------|
+| 5A.1 | Billing.jsx → billingApi | ✅ | ลบ mock 100% → เรียก `listInvoices()` + `listItems()` + loading/error/empty states |
+| 5A.2 | MasterData.jsx → masterApi | ✅ | ทุก tab (HS/Exporters/Privileges/Consignees) CRUD ผ่าน API จริง, ข้อมูล persist |
+| 5A.3 | NSWTracking.jsx mock removal | ✅ | ลบ SHIPMENTS fallback → empty state + error handling |
+| 5A.4 | ShipmentList + Declarations mock removal | ✅ | `useState([])` แทน `useState(SHIPMENTS)` + error display |
+| 5A.5 | สร้าง nswApi.js + privilegeDocsApi.js | ✅ | API clients ใหม่สำหรับ NSW retry + privilege document CRUD |
 
-| ลำดับ | งาน | Priority |
-|-------|-----|----------|
-| 7 | ย้าย mock data → DB queries จริง | 🟢 ต่ำ |
+### Phase 5B: Frontend UX + Reports — 🔄 กำลังทำ
+
+| # | Item | สถานะ | รายละเอียด |
+|---|------|-------|-----------|
+| 5B.1 | Toast notification system | ⬜ | ToastContext + ToastContainer + client.js interceptor |
+| 5B.2 | Reports.jsx → API + Recharts | ⬜ | Backend reports module + frontend reportsApi + Recharts charts |
+| 5B.3 | Global exception filter | ⬜ | AllExceptionsFilter + Prisma error mapping + consistent JSON response |
+
+### Phase 5C: Backend Security + Testing — ⬜ รอ
+
+| # | Item | สถานะ | รายละเอียด |
+|---|------|-------|-----------|
+| 5C.1 | Refresh token implementation | ⬜ | RefreshToken model + rotate on use + 15min access / 7d refresh |
+| 5C.2 | customsPasswordEnc encryption | ⬜ | AES-256-GCM + ENCRYPTION_KEY env var |
+| 5C.3 | Backend test suite | ⬜ | auth/jobs/billing spec files + CI `npm test` step |
+
+### Phase 5D: Architecture Polish — ⬜ รอ
+
+| # | Item | สถานะ | รายละเอียด |
+|---|------|-------|-----------|
+| 5D.1 | Super-admin-console decomposition | ⬜ | 1,992 lines → ~100-150 lines + 5-6 modules |
+| 5D.2 | Swagger endpoint decorators | ⬜ | @ApiTags/@ApiOperation/@ApiResponse ทุก controller |
+| 5D.3 | Structured logging | ⬜ | JSON format + correlation ID middleware |
 
 ---
 
