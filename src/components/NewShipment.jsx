@@ -14,6 +14,7 @@ function NewShipment({ onBack, onCreated }) {
   const [extractErr, setExtractErr] = useState("");
   const [extracted, setExtracted] = useState(null); // AI result
   const [uploadedFiles, setUploadedFiles] = useState({ invoice: null, packingList: null, booking: null });
+  const [privilegeFlags, setPrivilegeFlags] = useState([]);
   const [form, setForm] = useState({
     type: "EXPORT",
     vesselName: "",
@@ -77,6 +78,7 @@ function NewShipment({ onBack, onCreated }) {
     try {
       const job = await jobsApi.create({
         type: form.type,
+        privilegeFlags: privilegeFlags.length > 0 ? privilegeFlags : undefined,
         vesselName: form.vesselName || undefined,
         containerNo: form.containerNo || undefined,
         portOfLoading: form.portOfLoading || undefined,
@@ -216,6 +218,71 @@ function NewShipment({ onBack, onCreated }) {
               );
             })}
           </div>
+
+          {/* Privilege Flags */}
+          {(() => {
+            const FLAGS = [
+              { key:"BOI",      label:"BOI",      desc:"คณะกรรมการส่งเสริมการลงทุน" },
+              { key:"IEAT",     label:"กนอ.",      desc:"การนิคมอุตสาหกรรม (IEAT)" },
+              { key:"FZ",       label:"FZ",        desc:"เขตปลอดอากร" },
+              { key:"29BIS",    label:"29BIS",     desc:"มาตรา 29 ทวิ" },
+              { key:"REEXPORT", label:"Re-Export", desc:"ส่งกลับออกไป" },
+              { key:"REIMPORT", label:"Re-Import", desc:"นำกลับเข้ามา" },
+            ];
+            const toggle = (key) =>
+              setPrivilegeFlags(prev =>
+                prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+              );
+            return (
+              <Card style={{ padding:"16px 18px", marginBottom:16, border:`1px solid ${privilegeFlags.length > 0 ? "#FCD34D" : BORDER}`, background: privilegeFlags.length > 0 ? "#FFFBEB" : BG }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
+                  <span style={{ fontSize:16 }}>🏷️</span>
+                  <div style={{ fontSize:14, fontWeight:700, color:TEXT }}>สิทธิประโยชน์ (Privilege Flags)</div>
+                  {privilegeFlags.length > 0 && (
+                    <span style={{ marginLeft:"auto", fontSize:12, fontWeight:600, color:"#92400E", background:"#FEF3C7", border:"1px solid #FCD34D", borderRadius:20, padding:"2px 10px" }}>
+                      เลือกแล้ว {privilegeFlags.length} รายการ
+                    </span>
+                  )}
+                </div>
+                <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                  {FLAGS.map(f => {
+                    const active = privilegeFlags.includes(f.key);
+                    return (
+                      <button
+                        key={f.key}
+                        type="button"
+                        onClick={() => toggle(f.key)}
+                        style={{
+                          display:"flex", flexDirection:"column", alignItems:"flex-start",
+                          padding:"8px 14px", borderRadius:9, cursor:"pointer",
+                          border:`1.5px solid ${active ? "#F59E0B" : BORDER}`,
+                          background: active ? "#FEF3C7" : W,
+                          transition:"all 0.15s",
+                          minWidth:120,
+                        }}
+                      >
+                        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
+                          <div style={{
+                            width:14, height:14, borderRadius:4, flexShrink:0,
+                            border:`1.5px solid ${active ? "#F59E0B" : BORDER}`,
+                            background: active ? "#F59E0B" : "transparent",
+                            display:"flex", alignItems:"center", justifyContent:"center",
+                          }}>
+                            {active && <span style={{ color:"#fff", fontSize:10, fontWeight:900, lineHeight:1 }}>✓</span>}
+                          </div>
+                          <span style={{ fontSize:13, fontWeight:700, color: active ? "#92400E" : TEXT }}>{f.label}</span>
+                        </div>
+                        <span style={{ fontSize:11, color: active ? "#B45309" : TEXT3, paddingLeft:20 }}>{f.desc}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {privilegeFlags.length === 0 && (
+                  <div style={{ marginTop:10, fontSize:12, color:TEXT3 }}>คลิกเลือกสิทธิประโยชน์ที่ใช้กับ shipment นี้ (ถ้าไม่มีสิทธิ์ ข้ามได้)</div>
+                )}
+              </Card>
+            );
+          })()}
 
           <Card style={{ padding:"14px 18px", marginBottom:16 }}>
             <div style={{ fontSize:14, fontWeight:600, color:TEXT, marginBottom:10 }}>AI extraction settings</div>
