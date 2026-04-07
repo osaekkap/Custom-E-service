@@ -779,6 +779,350 @@ async function seedCms() {
   console.log('  ✅ CMS seed complete');
 }
 
+// ─── 9. MOCKUP DATA — Jobs + Billing (HHA & DKSH) ───────────────
+async function seedMockupData(customerIds: Record<string, string>, superAdminId: string) {
+  console.log('\n🌱 9. Seeding Mockup Jobs + Billing...');
+
+  const hhaId  = customerIds['HHA'];
+  const dkshId = customerIds['DKSH'];
+
+  // ── Helper: upsert job ────────────────────────────────────────
+  async function upsertJob(data: Parameters<typeof prisma.logisticsJob.create>[0]['data']) {
+    const existing = await prisma.logisticsJob.findUnique({ where: { jobNo: data.jobNo as string } });
+    if (existing) { console.log(`  ℹ️  Job exists: ${data.jobNo}`); return existing; }
+    const job = await prisma.logisticsJob.create({ data });
+    console.log(`  ✅ Job: ${data.jobNo} (${data.status})`);
+    return job;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // HHA JOBS — Import from China (ผ่านแหลมฉบัง)
+  // ─────────────────────────────────────────────────────────────
+  const hhaCompletedJobs = await Promise.all([
+    // Dec 2025
+    upsertJob({ customerId: hhaId, jobNo: 'JOB-2025-0003', type: 'IMPORT', status: 'COMPLETED',
+      vesselName: 'SITC KEELUNG V.2311N', voyageNo: '2311N', transportMode: 'SEA',
+      etd: new Date('2025-12-01'), eta: new Date('2025-12-06'),
+      portOfLoading: 'Shanghai, China', portOfLoadingCode: 'CNSHA',
+      portOfDischarge: 'Laem Chabang, Thailand', portOfReleaseCode: 'THLCH',
+      containerNo: 'SITC4012311', sealNo: 'SH2311-4012',
+      consigneeNameEn: 'HHA (THAILAND) CO., LTD.',
+      totalFobUsd: 8200, currency: 'CNY', createdById: superAdminId }),
+
+    upsertJob({ customerId: hhaId, jobNo: 'JOB-2025-0007', type: 'IMPORT', status: 'COMPLETED',
+      vesselName: 'COSCO SHIPPING V.1198', voyageNo: '1198', transportMode: 'SEA',
+      etd: new Date('2025-12-15'), eta: new Date('2025-12-20'),
+      portOfLoading: 'Ningbo, China', portOfLoadingCode: 'CNNGB',
+      portOfDischarge: 'Laem Chabang, Thailand', portOfReleaseCode: 'THLCH',
+      containerNo: 'CSNU7810198', sealNo: 'NB1198-7810',
+      consigneeNameEn: 'HHA (THAILAND) CO., LTD.',
+      totalFobUsd: 12500, currency: 'CNY', createdById: superAdminId }),
+
+    // Jan 2026
+    upsertJob({ customerId: hhaId, jobNo: 'JOB-2026-0008', type: 'IMPORT', status: 'COMPLETED',
+      vesselName: 'TG671', voyageNo: 'TG671', transportMode: 'AIR',
+      etd: new Date('2026-01-08'),
+      portOfLoading: 'Shanghai Pudong Airport', portOfLoadingCode: 'CNPVG',
+      portOfDischarge: 'Suvarnabhumi Airport, Thailand', portOfReleaseCode: 'THBKK',
+      containerNo: 'AWB-0812345',
+      consigneeNameEn: 'HHA (THAILAND) CO., LTD.',
+      totalFobUsd: 6800, currency: 'CNY', createdById: superAdminId }),
+
+    upsertJob({ customerId: hhaId, jobNo: 'JOB-2026-0015', type: 'IMPORT', status: 'COMPLETED',
+      vesselName: 'OOCL NINGBO V.032N', voyageNo: '032N', transportMode: 'SEA',
+      etd: new Date('2026-01-20'), eta: new Date('2026-01-25'),
+      portOfLoading: 'Guangzhou, China', portOfLoadingCode: 'CNGZH',
+      portOfDischarge: 'Laem Chabang, Thailand', portOfReleaseCode: 'THLCH',
+      containerNo: 'OOLU3320156', sealNo: 'GZ032N-6015',
+      consigneeNameEn: 'HHA (THAILAND) CO., LTD.',
+      totalFobUsd: 9100, currency: 'CNY', createdById: superAdminId }),
+
+    // Feb 2026
+    upsertJob({ customerId: hhaId, jobNo: 'JOB-2026-0021', type: 'IMPORT', status: 'COMPLETED',
+      vesselName: 'SITC GUANGDONG V.2401N', voyageNo: '2401N', transportMode: 'SEA',
+      etd: new Date('2026-02-03'), eta: new Date('2026-02-08'),
+      portOfLoading: 'Shenzhen, China', portOfLoadingCode: 'CNSZX',
+      portOfDischarge: 'Laem Chabang, Thailand', portOfReleaseCode: 'THLCH',
+      containerNo: 'SITC5240021', sealNo: 'SZ2401-5240',
+      consigneeNameEn: 'HHA (THAILAND) CO., LTD.',
+      totalFobUsd: 11300, currency: 'CNY', createdById: superAdminId }),
+  ]);
+
+  // HHA in-progress jobs
+  await upsertJob({ customerId: hhaId, jobNo: 'JOB-2026-0045', type: 'IMPORT', status: 'READY_TO_SUBMIT',
+    vesselName: 'OOCL TIANJIN V.018N', voyageNo: '018N', transportMode: 'SEA',
+    etd: new Date('2026-03-28'), eta: new Date('2026-04-02'),
+    portOfLoading: 'Tianjin, China', portOfLoadingCode: 'CNTXG',
+    portOfDischarge: 'Laem Chabang, Thailand', portOfReleaseCode: 'THLCH',
+    containerNo: 'OOLU4180045', sealNo: 'TJ018N-0045',
+    consigneeNameEn: 'HHA (THAILAND) CO., LTD.',
+    totalFobUsd: 14200, currency: 'CNY', createdById: superAdminId });
+
+  await upsertJob({ customerId: hhaId, jobNo: 'JOB-2026-0046', type: 'IMPORT', status: 'DRAFT',
+    vesselName: 'TG682', voyageNo: 'TG682', transportMode: 'AIR',
+    etd: new Date('2026-04-10'),
+    portOfLoading: 'Guangzhou Baiyun Airport', portOfLoadingCode: 'CNCAI',
+    portOfDischarge: 'Suvarnabhumi Airport, Thailand', portOfReleaseCode: 'THBKK',
+    containerNo: 'AWB-0924601',
+    consigneeNameEn: 'HHA (THAILAND) CO., LTD.',
+    totalFobUsd: 5600, currency: 'CNY', createdById: superAdminId });
+
+  // ─────────────────────────────────────────────────────────────
+  // DKSH JOBS — Mixed Import/Export (Medical + Chemical)
+  // ─────────────────────────────────────────────────────────────
+  const dkshCompletedJobs = await Promise.all([
+    // Nov–Dec 2025
+    upsertJob({ customerId: dkshId, jobNo: 'JOB-2025-0001', type: 'EXPORT', status: 'COMPLETED',
+      vesselName: 'TG922', voyageNo: 'TG922', transportMode: 'AIR',
+      etd: new Date('2025-11-28'),
+      portOfLoading: 'Suvarnabhumi Airport', portOfLoadingCode: 'THBKK',
+      portOfDischarge: 'Frankfurt Airport, Germany', portOfReleaseCode: 'DEFRA',
+      containerNo: 'AWB-0291001',
+      consigneeNameEn: 'Roche Diagnostics GmbH',
+      totalFobUsd: 89000, currency: 'USD', createdById: superAdminId }),
+
+    upsertJob({ customerId: dkshId, jobNo: 'JOB-2025-0005', type: 'IMPORT', status: 'COMPLETED',
+      vesselName: 'MSC GULSUN V.SB522E', voyageNo: 'SB522E', transportMode: 'SEA',
+      etd: new Date('2025-12-10'), eta: new Date('2025-12-20'),
+      portOfLoading: 'Hamburg, Germany', portOfLoadingCode: 'DEHAM',
+      portOfDischarge: 'Laem Chabang, Thailand', portOfReleaseCode: 'THLCH',
+      containerNo: 'MSCU8300522', sealNo: 'HH522E-8300',
+      consigneeNameEn: 'DKSH (Thailand) Limited',
+      totalFobUsd: 54000, currency: 'EUR', createdById: superAdminId }),
+
+    // Jan 2026
+    upsertJob({ customerId: dkshId, jobNo: 'JOB-2026-0010', type: 'EXPORT', status: 'COMPLETED',
+      vesselName: 'TG930', voyageNo: 'TG930', transportMode: 'AIR',
+      etd: new Date('2026-01-10'),
+      portOfLoading: 'Suvarnabhumi Airport', portOfLoadingCode: 'THBKK',
+      portOfDischarge: 'Zurich Airport, Switzerland', portOfReleaseCode: 'CHZRH',
+      containerNo: 'AWB-0101026',
+      consigneeNameEn: 'Sika AG',
+      totalFobUsd: 112000, currency: 'USD', createdById: superAdminId }),
+
+    upsertJob({ customerId: dkshId, jobNo: 'JOB-2026-0017', type: 'IMPORT', status: 'COMPLETED',
+      vesselName: 'EVER GIVEN V.EG171A', voyageNo: 'EG171A', transportMode: 'SEA',
+      etd: new Date('2026-01-24'), eta: new Date('2026-02-03'),
+      portOfLoading: 'Rotterdam, Netherlands', portOfLoadingCode: 'NLRTM',
+      portOfDischarge: 'Laem Chabang, Thailand', portOfReleaseCode: 'THLCH',
+      containerNo: 'EITU6170017', sealNo: 'RT171A-6017',
+      consigneeNameEn: 'DKSH (Thailand) Limited',
+      totalFobUsd: 67000, currency: 'EUR', createdById: superAdminId }),
+
+    // Feb 2026
+    upsertJob({ customerId: dkshId, jobNo: 'JOB-2026-0023', type: 'EXPORT', status: 'COMPLETED',
+      vesselName: 'TG948', voyageNo: 'TG948', transportMode: 'AIR',
+      etd: new Date('2026-02-18'),
+      portOfLoading: 'Suvarnabhumi Airport', portOfLoadingCode: 'THBKK',
+      portOfDischarge: 'Malpensa Airport, Italy', portOfReleaseCode: 'ITMXP',
+      containerNo: 'AWB-0231803',
+      consigneeNameEn: 'Clariant International Ltd',
+      totalFobUsd: 98000, currency: 'USD', createdById: superAdminId }),
+  ]);
+
+  // DKSH in-progress jobs
+  await upsertJob({ customerId: dkshId, jobNo: 'JOB-2026-0047', type: 'EXPORT', status: 'SUBMITTED',
+    vesselName: 'TG960', voyageNo: 'TG960', transportMode: 'AIR',
+    etd: new Date('2026-04-05'),
+    portOfLoading: 'Suvarnabhumi Airport', portOfLoadingCode: 'THBKK',
+    portOfDischarge: 'Frankfurt Airport, Germany', portOfReleaseCode: 'DEFRA',
+    containerNo: 'AWB-0471236',
+    consigneeNameEn: 'Roche Diagnostics GmbH',
+    nswRefNo: 'NSW-TH-2026-0042817',
+    totalFobUsd: 134000, currency: 'USD', createdById: superAdminId });
+
+  await upsertJob({ customerId: dkshId, jobNo: 'JOB-2026-0048', type: 'IMPORT', status: 'READY_TO_SUBMIT',
+    vesselName: 'CMA CGM MARCO POLO V.0FM1MA1', voyageNo: '0FM1MA1', transportMode: 'SEA',
+    etd: new Date('2026-03-30'), eta: new Date('2026-04-09'),
+    portOfLoading: 'Antwerp, Belgium', portOfLoadingCode: 'BEANR',
+    portOfDischarge: 'Laem Chabang, Thailand', portOfReleaseCode: 'THLCH',
+    containerNo: 'CMAU9480016', sealNo: 'ANT0FM-9480',
+    consigneeNameEn: 'DKSH (Thailand) Limited',
+    totalFobUsd: 78500, currency: 'EUR', createdById: superAdminId });
+
+  // ─────────────────────────────────────────────────────────────
+  // BILLING ITEMS — create for all completed jobs
+  // ─────────────────────────────────────────────────────────────
+  console.log('\n  💰 Creating billing items...');
+
+  async function upsertBillingItem(jobId: string, customerId: string, amount: number) {
+    const existing = await prisma.billingItem.findUnique({ where: { jobId } });
+    if (existing) return existing;
+    return prisma.billingItem.create({
+      data: { customerId, jobId, type: 'DECLARATION_FEE', amount, currency: 'THB', isInvoiced: false },
+    });
+  }
+
+  // Get IDs of existing completed jobs
+  const existingHhaCompleted = await prisma.logisticsJob.findMany({
+    where: { customerId: hhaId, status: 'COMPLETED' },
+    select: { id: true, jobNo: true },
+  });
+  const existingDkshCompleted = await prisma.logisticsJob.findMany({
+    where: { customerId: dkshId, status: 'COMPLETED' },
+    select: { id: true, jobNo: true },
+  });
+
+  const hhaBillingItems: Record<string, Awaited<ReturnType<typeof upsertBillingItem>>> = {};
+  const dkshBillingItems: Record<string, Awaited<ReturnType<typeof upsertBillingItem>>> = {};
+
+  for (const j of existingHhaCompleted) {
+    hhaBillingItems[j.jobNo] = await upsertBillingItem(j.id, hhaId, 450);
+    console.log(`    ✅ BillingItem: ${j.jobNo} ฿450`);
+  }
+  for (const j of existingDkshCompleted) {
+    dkshBillingItems[j.jobNo] = await upsertBillingItem(j.id, dkshId, 480);
+    console.log(`    ✅ BillingItem: ${j.jobNo} ฿480`);
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // BILLING INVOICES
+  // Strategy:
+  //   HHA  (PER_JOB ฿450): 3 invoices + 2 unbilled items
+  //   DKSH (TERM ฿480):    3 invoices + 2 unbilled items
+  // ─────────────────────────────────────────────────────────────
+  console.log('\n  🧾 Creating billing invoices...');
+
+  async function upsertInvoice(invoiceNo: string, data: {
+    customerId: string;
+    status: 'DRAFT' | 'SENT' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+    totalAmount: number;
+    currency?: string;
+    issuedAt: Date;
+    dueDate?: Date;
+    paidAt?: Date;
+    note?: string;
+    itemIds: string[];    // BillingItem IDs to link
+  }) {
+    const existing = await prisma.billingInvoice.findUnique({ where: { invoiceNo } });
+    if (existing) { console.log(`    ℹ️  Invoice exists: ${invoiceNo}`); return existing; }
+
+    const invoice = await prisma.billingInvoice.create({
+      data: {
+        invoiceNo,
+        customerId: data.customerId,
+        status: data.status,
+        totalAmount: data.totalAmount,
+        currency: data.currency ?? 'THB',
+        issuedAt: data.issuedAt,
+        dueDate: data.dueDate,
+        paidAt: data.paidAt,
+        note: data.note,
+      },
+    });
+
+    // Link billing items → invoice
+    await prisma.billingItem.updateMany({
+      where: { id: { in: data.itemIds } },
+      data: { invoiceId: invoice.id, isInvoiced: true },
+    });
+
+    console.log(`    ✅ Invoice: ${invoiceNo} (${data.status}) ฿${data.totalAmount} — ${data.itemIds.length} items`);
+    return invoice;
+  }
+
+  // ── HHA Invoices ──────────────────────────────────────────────
+  // INV-HHA-2025-001 PAID — Dec 2025 (jobs: 0003, 0007)
+  const hhaItems2025 = ['JOB-2025-0003', 'JOB-2025-0007']
+    .map(n => hhaBillingItems[n]?.id).filter(Boolean) as string[];
+  if (hhaItems2025.length) {
+    await upsertInvoice('INV-HHA-2025-001', {
+      customerId: hhaId,
+      status: 'PAID',
+      totalAmount: hhaItems2025.length * 450,
+      issuedAt: new Date('2025-12-31'),
+      dueDate:  new Date('2026-01-31'),
+      paidAt:   new Date('2026-01-15'),
+      note:     'ชำระผ่านโอนธนาคาร ธ.กสิกรไทย',
+      itemIds:  hhaItems2025,
+    });
+  }
+
+  // INV-HHA-2026-001 PAID — Jan 2026 (jobs: 0008, 0015)
+  const hhaItemsJan = ['JOB-2026-0008', 'JOB-2026-0015']
+    .map(n => hhaBillingItems[n]?.id).filter(Boolean) as string[];
+  if (hhaItemsJan.length) {
+    await upsertInvoice('INV-HHA-2026-001', {
+      customerId: hhaId,
+      status: 'PAID',
+      totalAmount: hhaItemsJan.length * 450,
+      issuedAt: new Date('2026-02-01'),
+      dueDate:  new Date('2026-03-03'),
+      paidAt:   new Date('2026-02-20'),
+      note:     'ชำระผ่านโอนธนาคาร ธ.กสิกรไทย',
+      itemIds:  hhaItemsJan,
+    });
+  }
+
+  // INV-HHA-2026-002 SENT — Mar 2026 (jobs: 0021) — Outstanding
+  const hhaItemsMar = ['JOB-2026-0021']
+    .map(n => hhaBillingItems[n]?.id).filter(Boolean) as string[];
+  if (hhaItemsMar.length) {
+    await upsertInvoice('INV-HHA-2026-002', {
+      customerId: hhaId,
+      status: 'SENT',
+      totalAmount: hhaItemsMar.length * 450,
+      issuedAt: new Date('2026-03-15'),
+      dueDate:  new Date('2026-04-15'),
+      note:     'กรุณาชำระภายใน 30 วัน',
+      itemIds:  hhaItemsMar,
+    });
+  }
+  // Unbilled: JOB-2026-0042 (existing) stays isInvoiced=false
+
+  // ── DKSH Invoices ─────────────────────────────────────────────
+  // INV-DKSH-2025-001 PAID — Dec 2025 (jobs: 0001, 0005)
+  const dkshItems2025 = ['JOB-2025-0001', 'JOB-2025-0005']
+    .map(n => dkshBillingItems[n]?.id).filter(Boolean) as string[];
+  if (dkshItems2025.length) {
+    await upsertInvoice('INV-DKSH-2025-001', {
+      customerId: dkshId,
+      status: 'PAID',
+      totalAmount: dkshItems2025.length * 480,
+      issuedAt: new Date('2025-12-31'),
+      dueDate:  new Date('2026-01-30'),
+      paidAt:   new Date('2026-01-20'),
+      note:     'DKSH TERM30 — ชำระผ่านระบบ EFT',
+      itemIds:  dkshItems2025,
+    });
+  }
+
+  // INV-DKSH-2026-001 OVERDUE — Jan 2026 (jobs: 0010, 0017) — Outstanding + Overdue
+  const dkshItemsJan = ['JOB-2026-0010', 'JOB-2026-0017']
+    .map(n => dkshBillingItems[n]?.id).filter(Boolean) as string[];
+  if (dkshItemsJan.length) {
+    await upsertInvoice('INV-DKSH-2026-001', {
+      customerId: dkshId,
+      status: 'OVERDUE',
+      totalAmount: dkshItemsJan.length * 480,
+      issuedAt: new Date('2026-01-31'),
+      dueDate:  new Date('2026-03-02'),
+      note:     'เลยกำหนดชำระ — กรุณาติดต่อฝ่ายบัญชี',
+      itemIds:  dkshItemsJan,
+    });
+  }
+
+  // INV-DKSH-2026-002 SENT — Mar 2026 (jobs: 0023) — Outstanding
+  const dkshItemsFeb = ['JOB-2026-0023']
+    .map(n => dkshBillingItems[n]?.id).filter(Boolean) as string[];
+  if (dkshItemsFeb.length) {
+    await upsertInvoice('INV-DKSH-2026-002', {
+      customerId: dkshId,
+      status: 'SENT',
+      totalAmount: dkshItemsFeb.length * 480,
+      issuedAt: new Date('2026-03-01'),
+      dueDate:  new Date('2026-03-31'),
+      note:     'DKSH TERM30 — กรุณาชำระภายในกำหนด',
+      itemIds:  dkshItemsFeb,
+    });
+  }
+  // Unbilled: JOB-2026-0040 (existing) stays isInvoiced=false
+
+  console.log('\n  ✅ Mockup data seeded successfully');
+  console.log('     HHA  — completed jobs:', existingHhaCompleted.length, '| invoices: 3 (1 PAID ×2, 1 SENT)');
+  console.log('     DKSH — completed jobs:', existingDkshCompleted.length, '| invoices: 3 (1 PAID, 1 OVERDUE, 1 SENT)');
+}
+
 // ─── MAIN ───────────────────────────────────────────────────────
 async function main() {
   console.log('═══════════════════════════════════════════════════');
@@ -809,7 +1153,10 @@ async function main() {
   // 8. Sample Jobs + Declarations
   await seedSampleJobs(customerIds, superAdminId);
 
-  // 9. CMS Landing Page
+  // 9. Mockup Data — More Jobs + Billing (HHA & DKSH)
+  await seedMockupData(customerIds, superAdminId);
+
+  // 10. CMS Landing Page
   await seedCms();
 
   console.log('\n═══════════════════════════════════════════════════');
