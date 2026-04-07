@@ -4,6 +4,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { EncryptionService } from '../common/encryption.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { QueryCustomerDto } from './dto/query-customer.dto';
@@ -11,7 +12,10 @@ import { Prisma, CustomerStatus } from '@prisma/client';
 
 @Injectable()
 export class CustomerService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private encryption: EncryptionService,
+  ) {}
 
   async create(dto: CreateCustomerDto) {
     const exists = await this.prisma.customer.findFirst({
@@ -25,11 +29,12 @@ export class CustomerService {
       );
     }
 
-    const { pricePerJob, ...rest } = dto;
+    const { pricePerJob, customsPasswordEnc, ...rest } = dto;
     return this.prisma.customer.create({
       data: {
         ...rest,
         ...(pricePerJob !== undefined && { pricePerJob }),
+        ...(customsPasswordEnc && { customsPasswordEnc: this.encryption.encrypt(customsPasswordEnc) }),
       },
     });
   }
@@ -113,13 +118,14 @@ export class CustomerService {
       if (conflict) throw new ConflictException('code or taxId already in use');
     }
 
-    const { pricePerJob, status, ...rest } = dto as Partial<CreateCustomerDto> & { status?: CustomerStatus };
+    const { pricePerJob, status, customsPasswordEnc, ...rest } = dto as Partial<CreateCustomerDto> & { status?: CustomerStatus };
     return this.prisma.customer.update({
       where: { id },
       data: {
         ...rest,
         ...(status && { status }),
         ...(pricePerJob !== undefined && { pricePerJob }),
+        ...(customsPasswordEnc && { customsPasswordEnc: this.encryption.encrypt(customsPasswordEnc) }),
       },
     });
   }

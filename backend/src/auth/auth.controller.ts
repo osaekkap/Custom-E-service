@@ -52,6 +52,20 @@ export class AuthController {
     return this.authService.getMe(req.user.userId, req.user.customerId);
   }
 
+  /** POST /api/auth/refresh — exchange refresh token for new tokens */
+  @Post('refresh')
+  @Throttle({ default: { ttl: 60000, limit: 10 } })
+  refresh(@Body() dto: { refresh_token: string }) {
+    return this.authService.refresh(dto.refresh_token);
+  }
+
+  /** POST /api/auth/logout — revoke refresh token */
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  logout(@Body() dto: { refresh_token: string }) {
+    return this.authService.logout(dto.refresh_token);
+  }
+
   /** POST /api/auth/change-password */
   @UseGuards(JwtAuthGuard)
   @Post('change-password')

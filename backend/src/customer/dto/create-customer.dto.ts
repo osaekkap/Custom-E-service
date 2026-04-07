@@ -82,4 +82,8 @@ export class CreateCustomerDto {
   @IsString()
   @MaxLength(50)
   customsExporterId?: string;
+
+  @IsOptional()
+  @IsString()
+  customsPasswordEnc?: string;
 }

@@ -20,6 +20,7 @@ export function AuthProvider({ children }) {
     }).catch(() => {
       // Token invalid or user deactivated — force logout
       localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
       localStorage.removeItem('user');
       setToken(null);
       setUser(null);
@@ -32,6 +33,7 @@ export function AuthProvider({ children }) {
     try {
       const data = await authApi.login(email, password);
       localStorage.setItem('access_token', data.access_token);
+      if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token);
       localStorage.setItem('user', JSON.stringify(data.user));
       setToken(data.access_token);
       setUser(data.user);
@@ -46,6 +48,7 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
     setToken(null);
     setUser(null);

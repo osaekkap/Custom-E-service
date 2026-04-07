@@ -101,7 +101,6 @@ function NewShipment({ onBack, onCreated }) {
       <ManualDeclarationForm
         onBack={() => setManualMode(false)}
         onCreated={(jobId) => { if (onCreated) onCreated(jobId); }}
-        hsMaster={HS_MASTER}
       />
     );
   }

@@ -939,3 +939,15 @@ model CmsSectionCard {
   @@index([sectionId, sortOrder])
 }
 
+model RefreshToken {
+  id          String   @id @default(uuid())
+  userId      String
+  tokenHash   String   @unique
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([tokenHash])
+}
+

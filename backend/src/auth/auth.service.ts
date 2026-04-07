@@ -9,6 +9,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { createClient } from '@supabase/supabase-js';
+import { randomBytes, createHash } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { LoginDto } from './dto/login.dto';
@@ -31,6 +32,22 @@ export class AuthService {
       this.config.get<string>('SUPABASE_URL') ?? '',
       this.config.get<string>('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
+  }
+
+  private hashToken(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
+  }
+
+  private async createRefreshToken(userId: string): Promise<string> {
+    const token = randomBytes(40).toString('hex');
+    const tokenHash = this.hashToken(token);
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    await this.prisma.refreshToken.create({
+      data: { userId, tokenHash, expiresAt },
+    });
+
+    return token;
   }
 
   /** POST /auth/login */
@@ -83,6 +100,8 @@ export class AuthService {
     };
     const token = this.jwtService.sign(payload);
 
+    const refreshToken = await this.createRefreshToken(supabaseUser.id);
+
     // Log successful login
     this.auditService.log({
       actorId:    supabaseUser.id,
@@ -98,6 +117,7 @@ export class AuthService {
 
     return {
       access_token: token,
+      refresh_token: refreshToken,
       user: {
         id: supabaseUser.id,
         email: supabaseUser.email,
@@ -373,5 +393,71 @@ export class AuthService {
     });
 
     return { message: 'Password changed successfully' };
+  }
+
+  /** POST /auth/refresh — exchange refresh token for new access + refresh tokens */
+  async refresh(token: string) {
+    const tokenHash = this.hashToken(token);
+    const stored = await this.prisma.refreshToken.findUnique({ where: { tokenHash } });
+
+    if (!stored || stored.revokedAt || stored.expiresAt < new Date()) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
+    // Revoke old token (rotate)
+    await this.prisma.refreshToken.update({
+      where: { id: stored.id },
+      data: { revokedAt: new Date() },
+    });
+
+    // Look up user data
+    const profile = await this.prisma.profile.findUnique({ where: { id: stored.userId } });
+    if (!profile) throw new UnauthorizedException('User not found');
+
+    const customerUser = await this.prisma.customerUser.findFirst({
+      where: { profileId: stored.userId },
+      include: { customer: { select: { id: true, code: true, companyNameTh: true, status: true } } },
+    });
+
+    if (customerUser?.customer?.status === 'SUSPENDED') {
+      throw new UnauthorizedException('Account suspended');
+    }
+
+    const role = customerUser?.role ?? 'SUPER_ADMIN';
+    const customerId = customerUser?.customerId ?? null;
+
+    const payload = {
+      sub: stored.userId,
+      email: profile.email,
+      role,
+      customer_id: customerId,
+    };
+    const accessToken = this.jwtService.sign(payload);
+    const newRefreshToken = await this.createRefreshToken(stored.userId);
+
+    return {
+      access_token: accessToken,
+      refresh_token: newRefreshToken,
+      user: {
+        id: profile.id,
+        email: profile.email,
+        fullName: profile.fullName,
+        role,
+        customer: customerUser?.customer ?? null,
+      },
+    };
+  }
+
+  /** POST /auth/logout — revoke refresh token */
+  async logout(token: string) {
+    const tokenHash = this.hashToken(token);
+    const stored = await this.prisma.refreshToken.findUnique({ where: { tokenHash } });
+    if (stored && !stored.revokedAt) {
+      await this.prisma.refreshToken.update({
+        where: { id: stored.id },
+        data: { revokedAt: new Date() },
+      });
+    }
+    return { message: 'Logged out successfully' };
   }
 }

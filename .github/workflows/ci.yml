@@ -23,6 +23,8 @@ jobs:
       - run: npm ci
       - run: npx prisma generate
       - run: npx tsc --noEmit
+      - name: Run tests
+        run: npm test -- --passWithNoTests
 
   frontend:
     name: Frontend (Vite build)

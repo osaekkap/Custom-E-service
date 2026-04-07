@@ -23,6 +23,7 @@ import { CustomsDataModule } from './customs-data/customs-data.module';
 import { CmsModule } from './cms/cms.module';
 import { UsersModule } from './users/users.module';
 import { ReportsModule } from './reports/reports.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -36,9 +37,11 @@ import { ReportsModule } from './reports/reports.module';
         PORT: Joi.number().default(3000),
         NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
         FRONTEND_URL: Joi.string().when('NODE_ENV', { is: 'production', then: Joi.required() }),
+        ENCRYPTION_KEY: Joi.string().optional(),
       }),
     }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
+    CommonModule,
     PrismaModule,
     AuthModule,
     CustomerModule,
