@@ -15,6 +15,7 @@ function NewShipment({ onBack, onCreated }) {
   const [extracted, setExtracted] = useState(null); // AI result
   const [uploadedFiles, setUploadedFiles] = useState({ invoice: null, packingList: null, booking: null });
   const [privilegeFlags, setPrivilegeFlags] = useState([]);
+  const [privilegeFiles, setPrivilegeFiles] = useState({});
   const [form, setForm] = useState({
     type: "EXPORT",
     vesselName: "",
@@ -59,6 +60,9 @@ function NewShipment({ onBack, onCreated }) {
       fd.append("invoice", uploadedFiles.invoice);
       if (uploadedFiles.packingList) fd.append("packingList", uploadedFiles.packingList);
       if (uploadedFiles.booking) fd.append("booking", uploadedFiles.booking);
+      Object.entries(privilegeFiles).forEach(([key, file]) => {
+        if (file) fd.append(`privilege_${key}`, file);
+      });
       const resp = await client.post("/ai/extract-invoice", fd, { headers: { "Content-Type": "multipart/form-data" } });
       const data = resp.data;
       setExtracted(data);
@@ -222,28 +226,45 @@ function NewShipment({ onBack, onCreated }) {
           {/* Privilege Flags */}
           {(() => {
             const FLAGS = [
-              { key:"BOI",      label:"BOI",      desc:"คณะกรรมการส่งเสริมการลงทุน" },
-              { key:"IEAT",     label:"กนอ.",      desc:"การนิคมอุตสาหกรรม (IEAT)" },
-              { key:"FZ",       label:"FZ",        desc:"เขตปลอดอากร" },
-              { key:"29BIS",    label:"29BIS",     desc:"มาตรา 29 ทวิ" },
-              { key:"REEXPORT", label:"Re-Export", desc:"ส่งกลับออกไป" },
-              { key:"REIMPORT", label:"Re-Import", desc:"นำกลับเข้ามา" },
+              { key:"BOI",      label:"BOI",      desc:"คณะกรรมการส่งเสริมการลงทุน", docLabel:"หนังสือรับรอง BOI" },
+              { key:"IEAT",     label:"กนอ.",      desc:"การนิคมอุตสาหกรรม (IEAT)",   docLabel:"หนังสือรับรอง กนอ." },
+              { key:"FZ",       label:"FZ",        desc:"เขตปลอดอากร",               docLabel:"ใบอนุญาต FZ" },
+              { key:"29BIS",    label:"29BIS",     desc:"มาตรา 29 ทวิ",               docLabel:"หนังสืออนุมัติ 29BIS" },
+              { key:"REEXPORT", label:"Re-Export", desc:"ส่งกลับออกไป",              docLabel:"เอกสาร Re-Export" },
+              { key:"REIMPORT", label:"Re-Import", desc:"นำกลับเข้ามา",              docLabel:"เอกสาร Re-Import" },
             ];
-            const toggle = (key) =>
-              setPrivilegeFlags(prev =>
-                prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
-              );
+            const toggle = (key) => {
+              setPrivilegeFlags(prev => {
+                const next = prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key];
+                // clear file when deselecting
+                if (prev.includes(key)) setPrivilegeFiles(pf => { const cp={...pf}; delete cp[key]; return cp; });
+                return next;
+              });
+            };
+            const handlePrivFile = (key) => (e) => {
+              const file = e.target.files?.[0] || null;
+              setPrivilegeFiles(prev => ({ ...prev, [key]: file }));
+            };
+            const removePrivFile = (key) => {
+              setPrivilegeFiles(prev => { const cp={...prev}; delete cp[key]; return cp; });
+            };
+            const activeFlags = FLAGS.filter(f => privilegeFlags.includes(f.key));
+            const hasAnyFile = activeFlags.some(f => privilegeFiles[f.key]);
+
             return (
               <Card style={{ padding:"16px 18px", marginBottom:16, border:`1px solid ${privilegeFlags.length > 0 ? "#FCD34D" : BORDER}`, background: privilegeFlags.length > 0 ? "#FFFBEB" : BG }}>
+                {/* Header */}
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
                   <span style={{ fontSize:16 }}>🏷️</span>
                   <div style={{ fontSize:14, fontWeight:700, color:TEXT }}>สิทธิประโยชน์ (Privilege Flags)</div>
                   {privilegeFlags.length > 0 && (
                     <span style={{ marginLeft:"auto", fontSize:12, fontWeight:600, color:"#92400E", background:"#FEF3C7", border:"1px solid #FCD34D", borderRadius:20, padding:"2px 10px" }}>
-                      เลือกแล้ว {privilegeFlags.length} รายการ
+                      เลือกแล้ว {privilegeFlags.length} รายการ{hasAnyFile ? ` · ${activeFlags.filter(f=>privilegeFiles[f.key]).length} ไฟล์` : ""}
                     </span>
                   )}
                 </div>
+
+                {/* Toggle buttons */}
                 <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
                   {FLAGS.map(f => {
                     const active = privilegeFlags.includes(f.key);
@@ -277,8 +298,69 @@ function NewShipment({ onBack, onCreated }) {
                     );
                   })}
                 </div>
+
                 {privilegeFlags.length === 0 && (
                   <div style={{ marginTop:10, fontSize:12, color:TEXT3 }}>คลิกเลือกสิทธิประโยชน์ที่ใช้กับ shipment นี้ (ถ้าไม่มีสิทธิ์ ข้ามได้)</div>
+                )}
+
+                {/* File upload zone — appears for each selected flag */}
+                {activeFlags.length > 0 && (
+                  <div style={{ marginTop:16, paddingTop:14, borderTop:`1px dashed #FCD34D` }}>
+                    <div style={{ fontSize:12, fontWeight:600, color:"#92400E", marginBottom:10 }}>
+                      📎 แนบเอกสารประกอบสิทธิประโยชน์ (ไม่บังคับ)
+                    </div>
+                    <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(200px, 1fr))", gap:10 }}>
+                      {activeFlags.map(f => {
+                        const file = privilegeFiles[f.key];
+                        return (
+                          <div key={f.key}>
+                            <label htmlFor={`priv-file-${f.key}`} style={{ cursor:"pointer", display:"block" }}>
+                              <input
+                                id={`priv-file-${f.key}`}
+                                type="file"
+                                accept=".pdf,.jpg,.jpeg,.png"
+                                style={{ display:"none" }}
+                                onChange={handlePrivFile(f.key)}
+                              />
+                              <div style={{
+                                padding:"12px 14px", borderRadius:9, textAlign:"center",
+                                border:`1.5px dashed ${file ? "#F59E0B" : "#FCD34D"}`,
+                                background: file ? "#FEF9E7" : "#FFFDF5",
+                                transition:"all 0.15s",
+                              }}>
+                                <div style={{ fontSize:20, marginBottom:4 }}>{file ? "📋" : "📤"}</div>
+                                <div style={{ fontSize:12, fontWeight:700, color:"#92400E", marginBottom:2 }}>{f.label}</div>
+                                <div style={{ fontSize:11, color:"#B45309", marginBottom:6 }}>{f.docLabel}</div>
+                                {file ? (
+                                  <div>
+                                    <div style={{ fontSize:11, color:"#78350F", fontWeight:600, wordBreak:"break-all", marginBottom:4 }}>
+                                      {file.name}
+                                    </div>
+                                    <div style={{ fontSize:11, color:TEXT3 }}>({(file.size/1024).toFixed(0)} KB)</div>
+                                  </div>
+                                ) : (
+                                  <div style={{ fontSize:11, color:"#B45309" }}>PDF, JPG, PNG · Max 10 MB</div>
+                                )}
+                              </div>
+                            </label>
+                            {file && (
+                              <button
+                                type="button"
+                                onClick={() => removePrivFile(f.key)}
+                                style={{
+                                  marginTop:4, width:"100%", padding:"3px 0", borderRadius:6,
+                                  border:"1px solid #FECACA", background:"#FEF2F2",
+                                  fontSize:11, color:"#DC2626", cursor:"pointer", fontWeight:600,
+                                }}
+                              >
+                                ✕ ลบไฟล์
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
               </Card>
             );
