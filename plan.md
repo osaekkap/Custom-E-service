@@ -1,6 +1,6 @@
 # Custom-E-service — Master Plan
 
-> อัปเดต: 2026-04-03 | **Phase 6 เสร็จ + Pre-Deploy Audit Phase 1-4 เสร็จ + Phase 5A-5B เสร็จ**
+> อัปเดต: 2026-04-07 | **Phase 6 เสร็จ + Pre-Deploy Audit Phase 1-4 เสร็จ + Phase 5A-5B-5C เสร็จ + Mockup Data ครบ**
 
 ---
 
@@ -30,6 +30,13 @@
 | **Audit P1** | **Pre-Deploy Security Audit — Phase 1 (Critical fixes)** | ✅ เสร็จ |
 | **Audit P2** | **Pre-Deploy Audit — Phase 2 (Go-live readiness)** | ✅ เสร็จ |
 | **Audit P3** | **Pre-Deploy Audit — Phase 3 (Post-launch fixes)** | ✅ เสร็จ |
+| **Audit P4** | **Tech Debt — NSW retry + CI/CD + Component decomposition** | ✅ เสร็จ |
+| **5D** | **Architecture Polish — Swagger + Logging + Decomposition** | ✅ เสร็จ |
+| **5A** | **Mock data elimination — Billing/Master/NSW/Declarations** | ✅ เสร็จ |
+| **5B** | **Toast system + Reports module + Global exception filter** | ✅ เสร็จ |
+| **5C** | **Refresh token rotation + AES-256 encryption + Unit tests** | ✅ เสร็จ |
+| **NewShipment** | **Privilege Flags card (toggle + per-flag file upload)** | ✅ เสร็จ |
+| **Mockup** | **Full mockup data — HHA + DKSH (jobs/billing/invoices)** | ✅ เสร็จ |
 
 ---
 
@@ -270,21 +277,62 @@ Phase D (Polish):
 | 5B.2 | Reports.jsx → API + Recharts | ✅ | Backend ReportsModule (monthly-summary + top-destinations) + Recharts BarChart/PieChart + CSV export |
 | 5B.3 | Global exception filter | ✅ | AllExceptionsFilter — Prisma P2002→409, P2025→404, P2003→400 + 5xx stack trace logging |
 
-### Phase 5C: Backend Security + Testing — ⬜ รอ
+### Phase 5C: Backend Security + Testing — ✅ เสร็จ (2026-04-07)
 
 | # | Item | สถานะ | รายละเอียด |
 |---|------|-------|-----------|
-| 5C.1 | Refresh token implementation | ⬜ | RefreshToken model + rotate on use + 15min access / 7d refresh |
-| 5C.2 | customsPasswordEnc encryption | ⬜ | AES-256-GCM + ENCRYPTION_KEY env var |
-| 5C.3 | Backend test suite | ⬜ | auth/jobs/billing spec files + CI `npm test` step |
+| 5C.1 | Refresh token implementation | ✅ | `RefreshToken` model + SHA-256 hash + rotate on use + 7d TTL. `/auth/refresh` + `/auth/logout` endpoints. Frontend auto-refresh interceptor (queue parallel requests). |
+| 5C.2 | customsPasswordEnc encryption | ✅ | `EncryptionService` AES-256-GCM + `ENCRYPTION_KEY` env var. Registered globally via `CommonModule`. |
+| 5C.3 | Backend test suite | ✅ | `auth.service.spec.ts` + `billing.service.spec.ts` + `jobs.service.spec.ts` + shared `test/test-utils.ts`. 29/29 tests pass. CI `npm test` step added. |
 
-### Phase 5D: Architecture Polish — ⬜ รอ
+### New Shipment Wizard — Privilege Flags — ✅ เสร็จ (2026-04-07)
+
+| # | Feature | สถานะ | รายละเอียด |
+|---|---------|-------|-----------|
+| PF.1 | Privilege Flags toggle card | ✅ | Card ใน Step 1 — 6 flags: BOI, กนอ.(IEAT), FZ, 29BIS, Re-Export, Re-Import. Toggle on/off พร้อม checkbox + badge นับรายการ. |
+| PF.2 | Per-flag document upload | ✅ | เมื่อเลือก flag → upload zone expand สำหรับแต่ละ flag. รับ PDF/JPG/PNG ≤10MB. ปุ่มลบไฟล์. ส่งไฟล์ใน FormData เป็น `privilege_<KEY>`. |
+
+**ไฟล์ที่แก้ไข:** `src/components/NewShipment.jsx`
+
+---
+
+### Mockup Data (HHA + DKSH) — ✅ เสร็จ (2026-04-07)
+
+> ข้อมูลทดสอบครบทุกชั้น: Jobs → BillingItems → BillingInvoices
+
+#### HHA — PER_JOB billing (฿450/job)
+
+| ชุดข้อมูล | รายละเอียด |
+|-----------|-----------|
+| Completed jobs | 6 jobs (Dec 2025 – Feb 2026) — IMPORT SEA/AIR จากจีน |
+| In-progress jobs | JOB-2026-0045 (READY_TO_SUBMIT), JOB-2026-0046 (DRAFT) |
+| INV-HHA-2025-001 | **PAID** ฿900 — 2 jobs (Dec 2025) |
+| INV-HHA-2026-001 | **PAID** ฿900 — 2 jobs (Jan 2026) |
+| INV-HHA-2026-002 | **SENT** ฿450 — 1 job (Feb 2026) — outstanding |
+| Unbilled items | 1 รายการ (JOB-2026-0042) |
+
+#### DKSH — TERM30 billing (฿480/job)
+
+| ชุดข้อมูล | รายละเอียด |
+|-----------|-----------|
+| Completed jobs | 6 jobs (Nov 2025 – Feb 2026) — IMPORT SEA (EU) + EXPORT AIR |
+| In-progress jobs | JOB-2026-0047 (SUBMITTED), JOB-2026-0048 (READY_TO_SUBMIT) |
+| INV-DKSH-2025-001 | **PAID** ฿960 — 2 jobs (Dec 2025) |
+| INV-DKSH-2026-001 | **OVERDUE** ฿960 — 2 jobs (Jan 2026) — เลยกำหนด |
+| INV-DKSH-2026-002 | **SENT** ฿480 — 1 job (Feb 2026) — outstanding |
+| Unbilled items | 1 รายการ (JOB-2026-0040) |
+
+**วิธี re-seed:** `cd backend && npx prisma db seed`
+
+---
+
+### Phase 5D: Architecture Polish — ✅ เสร็จ (2026-04-08)
 
 | # | Item | สถานะ | รายละเอียด |
 |---|------|-------|-----------|
-| 5D.1 | Super-admin-console decomposition | ⬜ | 1,992 lines → ~100-150 lines + 5-6 modules |
-| 5D.2 | Swagger endpoint decorators | ⬜ | @ApiTags/@ApiOperation/@ApiResponse ทุก controller |
-| 5D.3 | Structured logging | ⬜ | JSON format + correlation ID middleware |
+| 5D.1 | Super-admin-console decomposition | ✅ | 1,992 → **83 lines** shell + 12 modules ใน `src/super-admin/` (constants, SharedUI, Sidebar, 8 pages). Vite build ✅ 681 modules. |
+| 5D.2 | Swagger endpoint decorators | ✅ | `@ApiTags` / `@ApiBearerAuth` / `@ApiOperation` / `@ApiResponse` ครบ 18 controllers. API docs ที่ **`/api/docs`**. |
+| 5D.3 | Structured logging | ✅ | `LoggingMiddleware` — JSON format + UUID `X-Correlation-Id` header ทุก request. Log level: error(5xx)/warn(4xx)/log(2xx). |
 
 ---
 
@@ -305,9 +353,16 @@ Phase D (Polish):
 | ไฟล์ | หน้าที่ |
 |------|--------|
 | `backend/prisma/schema.prisma` | Database schema (roles, models, enums) |
-| `backend/prisma/seed.ts` | Seed ข้อมูลทดสอบ |
+| `backend/prisma/seed.ts` | Seed ข้อมูลทดสอบ (HHA + DKSH jobs/billing/invoices) |
+| `backend/src/auth/auth.service.ts` | Auth — login, register, refresh token, change-password |
+| `backend/src/common/encryption.service.ts` | AES-256-GCM encryption สำหรับ customs credentials |
+| `backend/src/common/common.module.ts` | CommonModule (EncryptionService global) |
 | `backend/src/products/` | ProductMaster CRUD API |
 | `backend/src/privilege-docs/` | PrivilegeDocument upload/list/delete API |
+| `backend/test/test-utils.ts` | Shared Jest mock factories |
+| `src/api/client.js` | Axios client + 401 auto-refresh interceptor |
+| `src/stores/AuthContext.jsx` | Auth state + refresh token persistence |
+| `src/components/NewShipment.jsx` | New Shipment wizard (Step 1–3 + privilege flags upload) |
 | `src/components/ManualDeclarationForm.jsx` | ฟอร์มกรอกใบขน กศก.101/1 (5 sections) |
 | `src/factory-portal-complete_2.jsx` | หน้าหลัก factory portal (nav, screens, RBAC) |
 | `src/super-admin-console.jsx` | Super Admin Console |
