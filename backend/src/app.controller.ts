@@ -1,7 +1,9 @@
 import { Controller, Get } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AppService } from './app.service';
 import { PrismaService } from './prisma/prisma.service';
 
+@ApiTags('Health')
 @Controller()
 export class AppController {
   constructor(
@@ -9,11 +11,15 @@ export class AppController {
     private readonly prisma: PrismaService,
   ) {}
 
+  @ApiOperation({ summary: 'Root endpoint' })
+  @ApiResponse({ status: 200, description: 'Returns hello message' })
   @Get()
   getHello(): string {
     return this.appService.getHello();
   }
 
+  @ApiOperation({ summary: 'Health check — ตรวจสอบสถานะระบบและฐานข้อมูล' })
+  @ApiResponse({ status: 200, description: 'System health status' })
   @Get('health')
   async healthCheck() {
     let dbOk = false;

@@ -7,6 +7,7 @@ import {
   Request,
   BadRequestException,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import * as multer from 'multer';
 import { AiExtractionService } from './ai-extraction.service';
@@ -22,6 +23,8 @@ const ALLOWED_MIME = new Set([
 
 const MAX_SIZE = 20 * 1024 * 1024; // 20 MB
 
+@ApiTags('AI')
+@ApiBearerAuth()
 @Controller('ai')
 @UseGuards(JwtAuthGuard)
 export class AiExtractionController {
@@ -31,6 +34,10 @@ export class AiExtractionController {
    * POST /api/ai/extract-invoice
    * Body: multipart/form-data with fields: invoice, packingList (opt), booking (opt)
    */
+  @ApiOperation({ summary: 'สกัดข้อมูลจากเอกสาร invoice/packing list ด้วย AI' })
+  @ApiResponse({ status: 201, description: 'Extracted data from documents' })
+  @ApiResponse({ status: 400, description: 'Invalid file type or missing required files' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Post('extract-invoice')
   @UseInterceptors(
     FileFieldsInterceptor(

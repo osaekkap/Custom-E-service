@@ -1,6 +1,7 @@
 import {
   Controller, Get, Query, Request, UseGuards,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { AuditService } from './audit.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -18,6 +19,8 @@ class QueryAuditDto {
   skip?: number = 0;
 }
 
+@ApiTags('Audit')
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('audit-logs')
 export class AuditController {
@@ -28,6 +31,10 @@ export class AuditController {
    * TENANT_ADMIN → ดู log ของบริษัทตัวเอง
    * SUPER_ADMIN   → ดู log ทั้งหมด
    */
+  @ApiOperation({ summary: 'ดู audit logs — TENANT_ADMIN เห็นของบริษัทตัวเอง, SUPER_ADMIN เห็นทั้งหมด' })
+  @ApiResponse({ status: 200, description: 'Audit log entries' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   @Roles(
     Role.SUPER_ADMIN,
     Role.TENANT_ADMIN,

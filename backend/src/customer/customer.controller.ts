@@ -3,6 +3,7 @@ import {
   Body, Param, Query, Request, UseGuards, ParseUUIDPipe,
   HttpCode, HttpStatus,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { CustomerService } from './customer.service';
 import { CustomerUserService } from './customer-user.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
@@ -15,6 +16,8 @@ import { Roles } from '../auth/roles.decorator';
 import { Role } from '@prisma/client';
 import { RequestUser } from '../auth/jwt.strategy';
 
+@ApiTags('Customers')
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('customers')
 export class CustomerController {
@@ -26,6 +29,9 @@ export class CustomerController {
   // ─── Self-service routes (TENANT_ADMIN) ────────────────────────
 
   /** GET /customers/my — ดูข้อมูลบริษัทตัวเอง */
+  @ApiOperation({ summary: 'ดูข้อมูลบริษัทของตัวเอง (TENANT_ADMIN)' })
+  @ApiResponse({ status: 200, description: 'Customer profile' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Roles(Role.TENANT_ADMIN, Role.SUPER_ADMIN)
   @Get('my')
   findMy(@Request() req: { user: RequestUser }) {
@@ -33,6 +39,9 @@ export class CustomerController {
   }
 
   /** PATCH /customers/my — แก้ไขข้อมูลบริษัทตัวเอง */
+  @ApiOperation({ summary: 'แก้ไขข้อมูลบริษัทของตัวเอง (TENANT_ADMIN)' })
+  @ApiResponse({ status: 200, description: 'Customer updated successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Roles(Role.TENANT_ADMIN, Role.SUPER_ADMIN)
   @Patch('my')
   updateMy(
@@ -43,6 +52,9 @@ export class CustomerController {
   }
 
   /** GET /customers/my/users — รายชื่อผู้ใช้ในองค์กร */
+  @ApiOperation({ summary: 'รายชื่อผู้ใช้ในองค์กรตัวเอง' })
+  @ApiResponse({ status: 200, description: 'List of users in organization' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Roles(Role.TENANT_ADMIN, Role.SUPER_ADMIN)
   @Get('my/users')
   listMyUsers(@Request() req: { user: RequestUser }) {
@@ -50,6 +62,10 @@ export class CustomerController {
   }
 
   /** POST /customers/my/users — เชิญผู้ใช้ใหม่ */
+  @ApiOperation({ summary: 'เชิญผู้ใช้ใหม่เข้าองค์กร' })
+  @ApiResponse({ status: 201, description: 'User invited successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   @Roles(Role.TENANT_ADMIN, Role.SUPER_ADMIN)
   @Post('my/users')
   inviteMyUser(
@@ -60,6 +76,10 @@ export class CustomerController {
   }
 
   /** PATCH /customers/my/users/:profileId — เปลี่ยน role ผู้ใช้ */
+  @ApiOperation({ summary: 'เปลี่ยน role ของผู้ใช้ในองค์กร' })
+  @ApiResponse({ status: 200, description: 'User role updated' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'User not found' })
   @Roles(Role.TENANT_ADMIN, Role.SUPER_ADMIN)
   @Patch('my/users/:profileId')
   updateMyUserRole(
@@ -71,6 +91,10 @@ export class CustomerController {
   }
 
   /** DELETE /customers/my/users/:profileId — ลบผู้ใช้ออกจากองค์กร */
+  @ApiOperation({ summary: 'ลบผู้ใช้ออกจากองค์กร' })
+  @ApiResponse({ status: 200, description: 'User removed from organization' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'User not found' })
   @Roles(Role.TENANT_ADMIN, Role.SUPER_ADMIN)
   @Delete('my/users/:profileId')
   @HttpCode(HttpStatus.OK)
@@ -84,6 +108,10 @@ export class CustomerController {
   // ─── SUPER_ADMIN routes ─────────────────────────────────────────
 
   /** POST /customers — สร้างลูกค้าใหม่ (SUPER_ADMIN only) */
+  @ApiOperation({ summary: 'สร้างลูกค้าใหม่ (SUPER_ADMIN เท่านั้น)' })
+  @ApiResponse({ status: 201, description: 'Customer created successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   @Roles(Role.SUPER_ADMIN)
   @Post()
   create(@Body() dto: CreateCustomerDto) {
@@ -91,6 +119,10 @@ export class CustomerController {
   }
 
   /** GET /customers — รายการลูกค้าทั้งหมด (SUPER_ADMIN only) */
+  @ApiOperation({ summary: 'รายการลูกค้าทั้งหมด (SUPER_ADMIN เท่านั้น)' })
+  @ApiResponse({ status: 200, description: 'List of all customers' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   @Roles(Role.SUPER_ADMIN)
   @Get()
   findAll(@Query() query: QueryCustomerDto) {
@@ -98,6 +130,10 @@ export class CustomerController {
   }
 
   /** GET /customers/:id — ดูรายละเอียดลูกค้า (SUPER_ADMIN only) */
+  @ApiOperation({ summary: 'ดูรายละเอียดลูกค้าตาม ID (SUPER_ADMIN เท่านั้น)' })
+  @ApiResponse({ status: 200, description: 'Customer details' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Customer not found' })
   @Roles(Role.SUPER_ADMIN)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
@@ -105,6 +141,10 @@ export class CustomerController {
   }
 
   /** PATCH /customers/:id — แก้ไขข้อมูลลูกค้า (SUPER_ADMIN only) */
+  @ApiOperation({ summary: 'แก้ไขข้อมูลลูกค้า (SUPER_ADMIN เท่านั้น)' })
+  @ApiResponse({ status: 200, description: 'Customer updated successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Customer not found' })
   @Roles(Role.SUPER_ADMIN)
   @Patch(':id')
   update(
@@ -115,6 +155,10 @@ export class CustomerController {
   }
 
   /** DELETE /customers/:id — soft delete (SUPER_ADMIN only) */
+  @ApiOperation({ summary: 'ลบลูกค้า soft delete (SUPER_ADMIN เท่านั้น)' })
+  @ApiResponse({ status: 200, description: 'Customer deleted successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Customer not found' })
   @Roles(Role.SUPER_ADMIN)
   @Delete(':id')
   @HttpCode(HttpStatus.OK)

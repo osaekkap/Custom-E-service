@@ -3,6 +3,7 @@ import {
   Body, Param, Query, UseGuards, Request,
   ParseUUIDPipe, HttpCode, HttpStatus,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { JobsService } from './jobs.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
@@ -14,12 +15,18 @@ import { Roles } from '../auth/roles.decorator';
 import { Role } from '@prisma/client';
 import { RequestUser } from '../auth/jwt.strategy';
 
+@ApiTags('Jobs')
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('jobs')
 export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 
   /** POST /jobs — สร้าง job ใหม่ */
+  @ApiOperation({ summary: 'สร้าง job ใหม่' })
+  @ApiResponse({ status: 201, description: 'Job created successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   @Post()
   @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER, Role.STAFF, Role.USER, Role.CUSTOMER_ADMIN, Role.CUSTOMER)
   create(
@@ -30,6 +37,9 @@ export class JobsController {
   }
 
   /** GET /jobs — รายการ jobs (filter by customer/status/type) */
+  @ApiOperation({ summary: 'รายการ jobs ทั้งหมด (กรองตาม customer/status/type)' })
+  @ApiResponse({ status: 200, description: 'List of jobs' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get()
   findAll(
     @Query() query: QueryJobDto,
@@ -39,6 +49,10 @@ export class JobsController {
   }
 
   /** GET /jobs/:id — รายละเอียด job */
+  @ApiOperation({ summary: 'ดูรายละเอียด job' })
+  @ApiResponse({ status: 200, description: 'Job details' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Job not found' })
   @Get(':id')
   findOne(
     @Param('id', ParseUUIDPipe) id: string,
@@ -48,6 +62,11 @@ export class JobsController {
   }
 
   /** PATCH /jobs/:id — แก้ไข job (DRAFT/PREPARING เท่านั้น) */
+  @ApiOperation({ summary: 'แก้ไขข้อมูล job (เฉพาะสถานะ DRAFT/PREPARING)' })
+  @ApiResponse({ status: 200, description: 'Job updated successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Job not found' })
   @Patch(':id')
   @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER, Role.STAFF, Role.USER, Role.CUSTOMER_ADMIN, Role.CUSTOMER)
   update(
@@ -59,6 +78,10 @@ export class JobsController {
   }
 
   /** PATCH /jobs/:id/status — เปลี่ยน status */
+  @ApiOperation({ summary: 'เปลี่ยนสถานะ job' })
+  @ApiResponse({ status: 200, description: 'Job status updated' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   @Patch(':id/status')
   @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER, Role.STAFF, Role.USER)
   updateStatus(
@@ -72,6 +95,10 @@ export class JobsController {
   // ─── B1: Job Assignment ─────────────────────────────────────────
 
   /** PATCH /jobs/:id/assign — มอบหมายงาน */
+  @ApiOperation({ summary: 'มอบหมายงาน job ให้กับผู้ใช้' })
+  @ApiResponse({ status: 200, description: 'Job assigned successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   @Patch(':id/assign')
   @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER, Role.STAFF, Role.USER)
   assignJob(
@@ -85,6 +112,10 @@ export class JobsController {
   // ─── B2: Approval Workflow ──────────────────────────────────────
 
   /** PATCH /jobs/:id/request-approval — ขออนุมัติ */
+  @ApiOperation({ summary: 'ขออนุมัติ job' })
+  @ApiResponse({ status: 200, description: 'Approval requested' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   @Patch(':id/request-approval')
   @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER, Role.STAFF, Role.USER, Role.CUSTOMER_ADMIN)
   requestApproval(
@@ -96,6 +127,10 @@ export class JobsController {
   }
 
   /** PATCH /jobs/:id/approve — อนุมัติ */
+  @ApiOperation({ summary: 'อนุมัติ job' })
+  @ApiResponse({ status: 200, description: 'Job approved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden — requires MANAGER role or above' })
   @Patch(':id/approve')
   @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER)
   approveJob(
@@ -107,6 +142,10 @@ export class JobsController {
   }
 
   /** PATCH /jobs/:id/reject — ปฏิเสธ */
+  @ApiOperation({ summary: 'ปฏิเสธ job' })
+  @ApiResponse({ status: 200, description: 'Job rejected' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden — requires MANAGER role or above' })
   @Patch(':id/reject')
   @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER)
   rejectJob(
@@ -118,6 +157,10 @@ export class JobsController {
   }
 
   /** GET /jobs/:id/history — ดู status history */
+  @ApiOperation({ summary: 'ดูประวัติการเปลี่ยนสถานะของ job' })
+  @ApiResponse({ status: 200, description: 'Job status history' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Job not found' })
   @Get(':id/history')
   getHistory(
     @Param('id', ParseUUIDPipe) id: string,
@@ -127,6 +170,11 @@ export class JobsController {
   }
 
   /** DELETE /jobs/:id — ลบ job (DRAFT เท่านั้น) */
+  @ApiOperation({ summary: 'ลบ job (เฉพาะสถานะ DRAFT)' })
+  @ApiResponse({ status: 200, description: 'Job deleted successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Job not found' })
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER)

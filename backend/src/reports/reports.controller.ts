@@ -1,6 +1,7 @@
 import {
   Controller, Get, Query, Request, UseGuards,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { ReportsService } from './reports.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -26,12 +27,17 @@ function resolveCustomerId(
   return customerId;
 }
 
+@ApiTags('Reports')
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('reports')
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   /** GET /reports/monthly-summary?months=6&customerId= */
+  @ApiOperation({ summary: 'รายงานสรุปรายเดือน (Monthly Summary)' })
+  @ApiResponse({ status: 200, description: 'Monthly summary report data' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get('monthly-summary')
   @Roles(
     Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER, Role.STAFF,
@@ -48,6 +54,9 @@ export class ReportsController {
   }
 
   /** GET /reports/top-destinations?months=3&customerId= */
+  @ApiOperation({ summary: 'รายงานประเทศปลายทางยอดนิยม (Top Destinations)' })
+  @ApiResponse({ status: 200, description: 'Top export destinations report data' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get('top-destinations')
   @Roles(
     Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER, Role.STAFF,

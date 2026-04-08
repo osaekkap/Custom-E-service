@@ -2,6 +2,7 @@ import {
   Controller, Get, Post, Patch, Body, Param,
   Query, UseGuards, Request, ParseUUIDPipe,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { BillingService } from './billing.service';
 import { CreateInvoiceDto, UpdateInvoiceStatusDto } from './dto/billing.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -10,12 +11,17 @@ import { Roles } from '../auth/roles.decorator';
 import { Role } from '@prisma/client';
 import { RequestUser } from '../auth/jwt.strategy';
 
+@ApiTags('Billing')
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('billing')
 export class BillingController {
   constructor(private readonly billingService: BillingService) {}
 
   /** GET /billing/items?invoiced=false */
+  @ApiOperation({ summary: 'รายการ billing items (กรองด้วย invoiced status)' })
+  @ApiResponse({ status: 200, description: 'List of billing items' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get('items')
   @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER, Role.CUSTOMER_ADMIN, Role.CUSTOMER)
   listItems(
@@ -26,6 +32,10 @@ export class BillingController {
   }
 
   /** POST /billing/invoices — สร้าง invoice */
+  @ApiOperation({ summary: 'สร้าง invoice ใหม่' })
+  @ApiResponse({ status: 201, description: 'Invoice created successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   @Post('invoices')
   @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER)
   createInvoice(
@@ -36,6 +46,9 @@ export class BillingController {
   }
 
   /** GET /billing/invoices?customerId= */
+  @ApiOperation({ summary: 'รายการ invoices ทั้งหมด (กรองตาม customerId)' })
+  @ApiResponse({ status: 200, description: 'List of invoices' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get('invoices')
   @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER, Role.CUSTOMER_ADMIN, Role.CUSTOMER)
   listInvoices(
@@ -46,6 +59,10 @@ export class BillingController {
   }
 
   /** GET /billing/invoices/:id */
+  @ApiOperation({ summary: 'ดูรายละเอียด invoice' })
+  @ApiResponse({ status: 200, description: 'Invoice details' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Invoice not found' })
   @Get('invoices/:id')
   @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER, Role.CUSTOMER_ADMIN, Role.CUSTOMER)
   findInvoice(
@@ -56,6 +73,11 @@ export class BillingController {
   }
 
   /** PATCH /billing/invoices/:id/status */
+  @ApiOperation({ summary: 'อัปเดตสถานะ invoice' })
+  @ApiResponse({ status: 200, description: 'Invoice status updated' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Invoice not found' })
   @Patch('invoices/:id/status')
   @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER, Role.CUSTOMER_ADMIN)
   updateInvoiceStatus(
