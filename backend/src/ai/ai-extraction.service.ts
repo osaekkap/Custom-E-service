@@ -116,32 +116,23 @@ export class AiExtractionService {
       throw new BadRequestException('Commercial Invoice file is required');
     }
 
-    const model = this.genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-      systemInstruction: `You are an expert Thai Customs declaration specialist (กรมศุลกากร).
-Extract structured data from commercial invoices and packing lists for Thailand export customs declarations (กศก.101/1 / A008-1).
-Your output MUST be valid JSON only. Never include markdown code fences or prose.
-If a field is not found, use null. Always extract ALL line items listed.`,
-    });
+    // Model preference: try stable first, fallback if unavailable
+    const MODEL_CANDIDATES = ['gemini-2.0-flash', 'gemini-2.0-flash-001', 'gemini-2.5-flash'];
 
-    // Build prompt parts
-    const parts: any[] = [];
-
-    parts.push({ text: 'Extract Thailand Customs export declaration data from these documents:\n\n=== COMMERCIAL INVOICE ===' });
-    parts.push(this.fileToGeminiPart(files.invoice));
-
-    if (files.packingList) {
-      parts.push({ text: '\n=== PACKING LIST ===' });
-      parts.push(this.fileToGeminiPart(files.packingList));
-    }
-
-    if (files.booking) {
-      parts.push({ text: '\n=== BOOKING CONFIRMATION ===' });
-      parts.push(this.fileToGeminiPart(files.booking));
-    }
-
-    parts.push({
-      text: `Return ONLY a valid JSON object — no markdown fences, no explanation, just raw JSON:
+    const buildParts = (): any[] => {
+      const parts: any[] = [];
+      parts.push({ text: 'Extract Thailand Customs export declaration data from these documents:\n\n=== COMMERCIAL INVOICE ===' });
+      parts.push(this.fileToGeminiPart(files.invoice!));
+      if (files.packingList) {
+        parts.push({ text: '\n=== PACKING LIST ===' });
+        parts.push(this.fileToGeminiPart(files.packingList));
+      }
+      if (files.booking) {
+        parts.push({ text: '\n=== BOOKING CONFIRMATION ===' });
+        parts.push(this.fileToGeminiPart(files.booking));
+      }
+      parts.push({
+        text: `Return ONLY a valid JSON object — no markdown fences, no explanation, just raw JSON:
 {
   "shipper": "exporter company name",
   "consignee": "importer/buyer company name",
@@ -172,18 +163,60 @@ Rules:
 - fobForeign: unit price × quantity = total line FOB in foreign currency
 - quantityUnit: PCS, KGS, CTN, SET, EA, etc.
 - confidence: "high" if most fields found, "medium" if partial, "low" if many missing`,
-    });
+      });
+      return parts;
+    };
 
-    const result = await model.generateContent(parts);
-    const raw = result.response
-      .text()
+    const SYSTEM_INSTRUCTION = `You are an expert Thai Customs declaration specialist (กรมศุลกากร).
+Extract structured data from commercial invoices and packing lists for Thailand export customs declarations (กศก.101/1 / A008-1).
+Your output MUST be valid JSON only. Never include markdown code fences or prose.
+If a field is not found, use null. Always extract ALL line items listed.`;
+
+    /** Retry a single model up to maxRetries times on 503 */
+    const tryModel = async (modelName: string, maxRetries = 3): Promise<string> => {
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          const model = this.genAI.getGenerativeModel({ model: modelName, systemInstruction: SYSTEM_INSTRUCTION });
+          const result = await model.generateContent(buildParts());
+          return result.response.text();
+        } catch (err: any) {
+          const is503 = err?.message?.includes('503') || err?.status === 503;
+          const isLast = attempt === maxRetries - 1;
+          if (is503 && !isLast) {
+            // Exponential backoff: 1s, 2s, 4s
+            await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+            continue;
+          }
+          throw err;
+        }
+      }
+      throw new Error('Unreachable');
+    };
+
+    // Try each candidate model in order
+    let raw = '';
+    let lastError: any;
+    for (const candidate of MODEL_CANDIDATES) {
+      try {
+        raw = await tryModel(candidate);
+        break;
+      } catch (err: any) {
+        lastError = err;
+        // Continue to next candidate only on 503/404
+        const retryable = err?.message?.includes('503') || err?.message?.includes('404') || err?.status === 503;
+        if (!retryable) throw err;
+      }
+    }
+    if (!raw) throw new BadRequestException(`AI extraction failed: ${lastError?.message ?? 'all models unavailable'}`);
+
+    const cleaned = raw
       .replace(/^```json\s*/i, '')
       .replace(/^```\s*/i, '')
       .replace(/\s*```$/i, '')
       .trim();
 
     try {
-      const parsed = JSON.parse(raw) as ExtractedDeclaration;
+      const parsed = JSON.parse(cleaned) as ExtractedDeclaration;
       if (!Array.isArray(parsed.items)) parsed.items = [];
       parsed.items = parsed.items.map((item, idx) => ({
         ...item,
@@ -192,7 +225,7 @@ Rules:
       return parsed;
     } catch {
       throw new BadRequestException(
-        `AI response was not valid JSON. Raw: ${raw.substring(0, 200)}`,
+        `AI response was not valid JSON. Raw: ${cleaned.substring(0, 200)}`,
       );
     }
   }
