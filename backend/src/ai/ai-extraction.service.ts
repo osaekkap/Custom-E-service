@@ -117,7 +117,7 @@ export class AiExtractionService {
     }
 
     const model = this.genAI.getGenerativeModel({
-      model: 'gemini-1.5-pro',
+      model: 'gemini-2.5-flash',
       systemInstruction: `You are an expert Thai Customs declaration specialist (กรมศุลกากร).
 Extract structured data from commercial invoices and packing lists for Thailand export customs declarations (กศก.101/1 / A008-1).
 Your output MUST be valid JSON only. Never include markdown code fences or prose.
