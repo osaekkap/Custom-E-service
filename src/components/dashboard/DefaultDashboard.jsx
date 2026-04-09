@@ -14,7 +14,7 @@ function DefaultDashboard({ onNav }) {
   const companyName = auth?.user?.customer?.companyNameTh || auth?.user?.customer?.companyNameEn || "\u0e1a\u0e23\u0e34\u0e29\u0e31\u0e17";
 
   useEffect(() => {
-    jobsApi.list({ limit: 200 }).then(data => {
+    jobsApi.list({ limit: 100 }).then(data => {
       const arr = data?.data ?? (Array.isArray(data) ? data : []);
       setJobs(arr);
     }).catch(() => {});
@@ -173,7 +173,7 @@ function DefaultDashboard({ onNav }) {
             onMouseLeave={e=>e.currentTarget.style.background=W}>
               <div>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:2 }}>
-                  <span style={{ fontSize:14, fontWeight:700, color:TEXT, fontFamily:MONO }}>{s.id}</span>
+                  <span style={{ fontSize:14, fontWeight:700, color:TEXT, fontFamily:MONO, whiteSpace:"nowrap", flexShrink:0 }}>{s.id}</span>
                   <Tag label={s.type} color={s.type==="Export"?"#2563EB":"#D97706"} />
                 </div>
                 <div style={{ fontSize:14, color:TEXT3 }}>{s.vessel} \u00b7 {s.fob}</div>
@@ -190,7 +190,7 @@ function DefaultDashboard({ onNav }) {
             {pendingUi.slice(0,5).map((s,i) => (
               <div key={i} style={{ padding:"10px 18px", borderBottom:i<Math.min(pendingUi.length,5)-1?`1px solid ${BORDER2}`:"none" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-                  <span style={{ fontSize:14, fontWeight:700, color:TEXT, fontFamily:MONO }}>{s.id || s.jobNo}</span>
+                  <span style={{ fontSize:14, fontWeight:700, color:TEXT, fontFamily:MONO, whiteSpace:"nowrap" }}>{s.id || s.jobNo}</span>
                   <Badge status={s.status} />
                 </div>
                 <div style={{ fontSize:14, color:TEXT3 }}>{s.fob} \u00b7 {s.date || s.createdAt?.substring(0,10)}</div>

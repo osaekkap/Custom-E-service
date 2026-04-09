@@ -121,20 +121,19 @@ export default function CustomerDashboard() {
             const si = stepIndex(job.status);
             return (
               <div key={job.id} style={{ background: W, border: `1px solid ${BORDER}`, borderRadius: 10, overflow: "hidden" }}>
-                <div style={{ padding: "14px 20px", borderBottom: `1px solid ${BORDER}`, display: "flex", justifyContent: "space-between", alignItems: "center", background: "#F9FAFB" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <span style={{ fontFamily: MONO, fontWeight: 700, color: TEXT, fontSize: 15 }}>{job.jobNo}</span>
+                <div style={{ padding: "12px 16px", borderBottom: `1px solid ${BORDER}`, display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "4px 12px", background: "#F9FAFB" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", flex: 1, minWidth: 0 }}>
+                    <span style={{ fontFamily: MONO, fontWeight: 700, color: TEXT, fontSize: 15, whiteSpace: "nowrap", flexShrink: 0 }}>{job.jobNo}</span>
                     <span style={{
-                      display: "inline-block", padding: "2px 8px", borderRadius: 4, fontSize: 12, fontWeight: 700,
+                      display: "inline-block", padding: "2px 8px", borderRadius: 4, fontSize: 12, fontWeight: 700, flexShrink: 0,
                       background: job.type === "EXPORT" ? "#EFF6FF" : "#FFFBEB",
                       color: job.type === "EXPORT" ? BLUE : ORANGE,
                       border: `1px solid ${job.type === "EXPORT" ? "#BFDBFE" : "#FDE68A"}`,
                     }}>{job.type}</span>
-                    <span style={{ fontSize: 13, color: TEXT3 }}>{job.vesselName || "—"}</span>
+                    <span style={{ fontSize: 13, color: TEXT3, whiteSpace: "nowrap" }}>{job.vesselName || "—"}</span>
                   </div>
-                  <span style={{ fontSize: 13, color: TEXT3 }}>
+                  <span style={{ fontSize: 13, color: TEXT3, whiteSpace: "nowrap", flexShrink: 0 }}>
                     {job.totalFobUsd ? `USD ${Number(job.totalFobUsd).toLocaleString()}` : "—"}
-                    {job.assignedTo?.fullName && ` · ${job.assignedTo.fullName}`}
                   </span>
                 </div>
                 <div style={{ padding: "16px 24px", display: "flex", gap: 0 }}>
@@ -172,26 +171,28 @@ export default function CustomerDashboard() {
         <section>
           <h2 style={{ fontSize: 18, marginBottom: 16, fontWeight: 700, color: TEXT }}>เสร็จสมบูรณ์ล่าสุด</h2>
           <div style={{ background: W, border: `1px solid ${BORDER}`, borderRadius: 10, overflow: "hidden" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+            <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, minWidth: 460 }}>
               <thead>
                 <tr style={{ background: "#F9FAFB", borderBottom: `1px solid ${BORDER}` }}>
                   {["Job No.", "Type", "Vessel", "FOB", "วันที่"].map(h => (
-                    <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 13, fontWeight: 700, color: TEXT3, textTransform: "uppercase" }}>{h}</th>
+                    <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 13, fontWeight: 700, color: TEXT3, textTransform: "uppercase", whiteSpace: "nowrap" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {completedJobs.slice(0, 5).map((j, i) => (
                   <tr key={j.id} style={{ borderBottom: `1px solid #F1F5F9` }}>
-                    <td style={{ padding: "10px 16px", fontFamily: MONO, fontWeight: 700, color: TEXT }}>{j.jobNo}</td>
-                    <td style={{ padding: "10px 16px", color: TEXT2 }}>{j.type}</td>
-                    <td style={{ padding: "10px 16px", color: TEXT2 }}>{j.vesselName || "—"}</td>
-                    <td style={{ padding: "10px 16px", fontWeight: 600, color: TEXT }}>{j.totalFobUsd ? `USD ${Number(j.totalFobUsd).toLocaleString()}` : "—"}</td>
-                    <td style={{ padding: "10px 16px", color: TEXT3 }}>{j.createdAt?.substring(0, 10) || "—"}</td>
+                    <td style={{ padding: "10px 16px", fontFamily: MONO, fontWeight: 700, color: TEXT, whiteSpace: "nowrap" }}>{j.jobNo}</td>
+                    <td style={{ padding: "10px 16px", color: TEXT2, whiteSpace: "nowrap" }}>{j.type}</td>
+                    <td style={{ padding: "10px 16px", color: TEXT2, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{j.vesselName || "—"}</td>
+                    <td style={{ padding: "10px 16px", fontWeight: 600, color: TEXT, whiteSpace: "nowrap" }}>{j.totalFobUsd ? `USD ${Number(j.totalFobUsd).toLocaleString()}` : "—"}</td>
+                    <td style={{ padding: "10px 16px", color: TEXT3, whiteSpace: "nowrap" }}>{j.createdAt?.substring(0, 10) || "—"}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </section>
       )}

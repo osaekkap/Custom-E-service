@@ -5,7 +5,7 @@ import NotificationBell from "./NotificationBell.jsx";
 import { W, BORDER, TEXT, TEXT2, TEXT3, BLUE, MONO, RoleBadge } from "./ui/index.jsx";
 
 // ─── Sidebar ──────────────────────────────────────────────────────
-function Sidebar({ active, onNav }) {
+function Sidebar({ active, onNav, open = false, onClose }) {
   const auth = useContext(AuthContext);
   const perms = usePermissions();
   const email   = auth?.user?.email || "";
@@ -30,7 +30,7 @@ function Sidebar({ active, onNav }) {
   const NAV = ALL_NAV.filter(item => item.show !== false);
 
   return (
-    <div style={{
+    <div className={`sidebar-wrapper${open ? " open" : ""}`} style={{
       width:256, background:W, minHeight:"100vh",
       borderRight:`1px solid ${BORDER}`,
       boxShadow:"1px 0 0 #E5E7EB",
@@ -53,6 +53,11 @@ function Sidebar({ active, onNav }) {
           <div style={{ fontSize:13, color:TEXT3 }}>Factory Portal</div>
         </div>
         <NotificationBell />
+        {/* Close button — visible only on tablet/mobile via CSS */}
+        {onClose && (
+          <button className="hamburger-btn" style={{ marginLeft:4 }} onClick={onClose}
+            title="Close menu">✕</button>
+        )}
       </div>
 
       {/* Company info */}

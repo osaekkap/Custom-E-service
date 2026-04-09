@@ -160,7 +160,7 @@ function Declarations() {
                   </td>
                   <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:14, color:"#7C3AED", fontWeight:700 }}>DEC-2026-0{230+i}</td>
                   <td style={{ padding:"11px 16px" }}><Tag label={s.type} color={s.type==="Export"?"#2563EB":"#D97706"}/></td>
-                  <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:14, color:TEXT2 }}>{s.id}</td>
+                  <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:14, color:TEXT2, whiteSpace:"nowrap" }}>{s.id}</td>
                   <td style={{ padding:"11px 16px", color:TEXT2, maxWidth:130, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.vessel}</td>
                   <td style={{ padding:"11px 16px", fontWeight:700, color:TEXT }}>{s.fob}</td>
                   <td style={{ padding:"11px 16px", fontFamily:MONO, fontSize:14, color:"#2563EB" }}>{s.hs}</td>
@@ -194,7 +194,7 @@ function Declarations() {
               </div>
               <div style={{ padding:"14px 16px" }}>
                 <div style={{ display:"grid", gridTemplateColumns:"auto 1fr", gap:"5px 10px", fontSize:14 }}>
-                  <span style={{ color:TEXT3 }}>Job ref</span><span style={{ fontFamily:MONO, color:TEXT2 }}>{s.id}</span>
+                  <span style={{ color:TEXT3 }}>Job ref</span><span style={{ fontFamily:MONO, color:TEXT2, whiteSpace:"nowrap" }}>{s.id}</span>
                   <span style={{ color:TEXT3 }}>Vessel</span><span style={{ color:TEXT2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.vessel}</span>
                   <span style={{ color:TEXT3 }}>FOB</span><span style={{ fontWeight:700, color:TEXT }}>{s.fob}</span>
                   <span style={{ color:TEXT3 }}>HS Code</span><span style={{ fontFamily:MONO, color:"#2563EB" }}>{s.hs}</span>

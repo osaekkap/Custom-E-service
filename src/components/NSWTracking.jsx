@@ -93,11 +93,11 @@ function NSWTracking() {
           ];
           return (
             <Card key={ji}>
-              <div style={{ padding:"12px 20px", borderBottom:`1px solid ${BORDER2}`, display:"flex", justifyContent:"space-between", alignItems:"center", background:BG }}>
-                <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                  <span style={{ fontFamily:MONO, fontWeight:700, color:TEXT, fontSize:15 }}>{job.id}</span>
+              <div style={{ padding:"12px 20px", borderBottom:`1px solid ${BORDER2}`, display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:6, background:BG }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+                  <span style={{ fontFamily:MONO, fontWeight:700, color:TEXT, fontSize:15, whiteSpace:"nowrap", flexShrink:0 }}>{job.id}</span>
                   <Tag label={job.type} color={job.type==="Export"?"#2563EB":"#D97706"}/>
-                  <span style={{ fontSize:14, color:TEXT3 }}>{job.vessel} · {job.fob}</span>
+                  <span style={{ fontSize:14, color:TEXT3, whiteSpace:"nowrap" }}>{job.vessel} · {job.fob}</span>
                 </div>
                 <Badge status={job.status}/>
               </div>

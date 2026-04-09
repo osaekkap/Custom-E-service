@@ -31,7 +31,7 @@ function ShipmentList({ onNew, onDetail }) {
         <Btn onClick={onNew}>+ New shipment</Btn>
       </div>
 
-      <div style={{ display:"flex", gap:6, marginBottom:14 }}>
+      <div className="shipment-tabs" style={{ display:"flex", gap:6, marginBottom:14, flexWrap:"wrap" }}>
         {tabs.map(t => (
           <button key={t} onClick={() => setFilter(t)} style={{
             padding:"5px 13px", borderRadius:20, fontSize:14, fontWeight:600, cursor:"pointer",
@@ -43,11 +43,22 @@ function ShipmentList({ onNew, onDetail }) {
       </div>
 
       <Card>
-        <div className="table-wrapper"><table style={{ width:"100%", borderCollapse:"collapse", fontSize:14 }}>
+        <div className="table-wrapper"><table style={{ width:"100%", borderCollapse:"collapse", fontSize:14, minWidth:600 }}>
           <thead>
             <tr style={{ background:BG, borderBottom:`1px solid ${BORDER}` }}>
-              {["Job ID","Type","Vessel","FOB","Items","ผู้รับผิดชอบ","Approval","Status","Date",""].map(h => (
-                <th key={h} style={{ padding:"9px 16px", textAlign:"left", fontSize:13, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px", whiteSpace:"nowrap" }}>{h}</th>
+              {[
+                { label:"Job ID",       cls:"" },
+                { label:"Type",         cls:"" },
+                { label:"Vessel",       cls:"" },
+                { label:"FOB",          cls:"" },
+                { label:"Items",        cls:"col-hide-tablet" },
+                { label:"ผู้รับผิดชอบ", cls:"col-hide-tablet" },
+                { label:"Approval",     cls:"col-hide-tablet" },
+                { label:"Status",       cls:"" },
+                { label:"Date",         cls:"col-hide-tablet" },
+                { label:"",             cls:"" },
+              ].map(h => (
+                <th key={h.label} className={h.cls} style={{ padding:"9px 16px", textAlign:"left", fontSize:13, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px", whiteSpace:"nowrap" }}>{h.label}</th>
               ))}
             </tr>
           </thead>
@@ -57,20 +68,20 @@ function ShipmentList({ onNew, onDetail }) {
                 onMouseEnter={e=>e.currentTarget.style.background=ROW_HOVER}
                 onMouseLeave={e=>e.currentTarget.style.background=W}
                 onClick={() => onDetail(s)}>
-                <td style={{ padding:"12px 16px", fontFamily:MONO, fontSize:14, fontWeight:700, color:TEXT }}>{s.id}</td>
+                <td style={{ padding:"12px 16px", fontFamily:MONO, fontSize:14, fontWeight:700, color:TEXT, whiteSpace:"nowrap" }}>{s.id}</td>
                 <td style={{ padding:"12px 16px" }}><Tag label={s.type} color={s.type==="Export"?"#2563EB":"#D97706"}/></td>
                 <td style={{ padding:"12px 16px", color:TEXT2, maxWidth:140, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.vessel}</td>
-                <td style={{ padding:"12px 16px", fontWeight:700, color:TEXT }}>{s.fob}</td>
-                <td style={{ padding:"12px 16px", fontFamily:MONO, color:TEXT2 }}>{s.items||"—"}</td>
-                <td style={{ padding:"12px 16px" }}>
+                <td style={{ padding:"12px 16px", fontWeight:700, color:TEXT, whiteSpace:"nowrap" }}>{s.fob}</td>
+                <td className="col-hide-tablet" style={{ padding:"12px 16px", fontFamily:MONO, color:TEXT2 }}>{s.items||"—"}</td>
+                <td className="col-hide-tablet" style={{ padding:"12px 16px" }}>
                   {s.assignedToName
                     ? <span style={{ fontSize:13, color:TEXT, fontWeight:500 }}>{s.assignedToName}</span>
                     : <span style={{ fontSize:13, color:TEXT3 }}>—</span>
                   }
                 </td>
-                <td style={{ padding:"12px 16px" }}><ApprovalBadge status={s.approvalStatus}/></td>
+                <td className="col-hide-tablet" style={{ padding:"12px 16px" }}><ApprovalBadge status={s.approvalStatus}/></td>
                 <td style={{ padding:"12px 16px" }}><Badge status={s.status}/></td>
-                <td style={{ padding:"12px 16px", color:TEXT3, fontSize:14 }}>{s.date}</td>
+                <td className="col-hide-tablet" style={{ padding:"12px 16px", color:TEXT3, fontSize:14 }}>{s.date}</td>
                 <td style={{ padding:"12px 16px", color:BLUE, fontSize:14, fontWeight:600 }}>→</td>
               </tr>
             ))}

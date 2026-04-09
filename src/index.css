@@ -1253,3 +1253,76 @@ button {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE — TABLET / MOBILE (≤ 900px)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Overlay behind sidebar (hidden by default) */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 199;
+}
+
+/* Hamburger button (hidden on desktop) */
+.hamburger-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 8px;
+  font-size: 22px;
+  color: #1E293B;
+  border-radius: 6px;
+  line-height: 1;
+  transition: background 0.15s;
+}
+.hamburger-btn:hover {
+  background: #F1F5F9;
+}
+
+@media (max-width: 900px) {
+  /* Sidebar: slide-in drawer */
+  .sidebar-wrapper {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    position: fixed !important;
+    z-index: 200;
+    height: 100vh;
+    top: 0;
+    left: 0;
+  }
+  .sidebar-wrapper.open {
+    transform: translateX(0);
+  }
+
+  /* Show dark overlay when sidebar is open */
+  .sidebar-overlay.open {
+    display: block;
+  }
+
+  /* Show hamburger button on tablet/mobile */
+  .hamburger-btn {
+    display: flex !important;
+  }
+
+  /* Hide low-priority table columns */
+  .col-hide-tablet {
+    display: none;
+  }
+
+  /* Allow filter tabs to wrap */
+  .shipment-tabs {
+    flex-wrap: wrap;
+  }
+
+  /* Reduce portal main padding */
+  .portal-main {
+    padding: 16px 18px !important;
+  }
+}
+

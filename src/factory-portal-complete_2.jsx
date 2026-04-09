@@ -27,6 +27,7 @@ export default function App() {
   const [screen, setScreen] = useState("dashboard");
   const [detailJob, setDetailJob] = useState(null);
   const [showRegister, setShowRegister] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Show register / landing page if not authenticated
   if (!auth?.token) {
@@ -81,8 +82,28 @@ export default function App() {
 
   return (
     <div style={{ display:"flex", minHeight:"100vh", background:BG }}>
-      <Sidebar active={screen} onNav={handleNav}/>
-      <main style={{ flex:1, padding:"24px 32px", overflowY:"auto", minHeight:"100vh" }}>
+      {/* Dark overlay — closes sidebar when tapped on mobile */}
+      <div
+        className={`sidebar-overlay${sidebarOpen ? " open" : ""}`}
+        onClick={() => setSidebarOpen(false)}
+      />
+
+      <Sidebar
+        active={screen}
+        onNav={id => { handleNav(id); setSidebarOpen(false); }}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
+
+      <main className="portal-main" style={{ flex:1, padding:"24px 32px", overflowY:"auto", minHeight:"100vh" }}>
+        {/* Hamburger — visible only on tablet/mobile via CSS */}
+        <button
+          className="hamburger-btn"
+          style={{ marginBottom:12 }}
+          onClick={() => setSidebarOpen(true)}
+          title="Open menu"
+        >☰</button>
+
         {perms.isViewer && <ReadOnlyBanner />}
         {content()}
       </main>
