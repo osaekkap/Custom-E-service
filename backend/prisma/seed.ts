@@ -16,7 +16,7 @@ const supabase = createClient(
 // ─── Helper: Create or get Supabase Auth user ─────────────────────
 async function ensureSupabaseUser(email: string, password: string, fullName: string) {
   const { data: listData } = await supabase.auth.admin.listUsers();
-  let user = listData?.users?.find((u) => u.email === email);
+  let user = listData?.users?.find((u: any) => u.email === email);
 
   if (!user) {
     const { data, error } = await supabase.auth.admin.createUser({
