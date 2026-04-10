@@ -5,25 +5,25 @@ import { cmsApi } from './api/cmsApi';
 
 // ─── Brand tokens (from unified theme) ─────────────────────────────
 const C = {
-  navy:        colors.navy,
-  navyMid:     colors.navyMid,
-  primary:     colors.primary,
+  navy: colors.navy,
+  navyMid: colors.navyMid,
+  primary: colors.primary,
   primaryDark: colors.primaryHover,
-  primaryLight:colors.primaryLight,
-  accent:      colors.accent,
-  accentGlow:  colors.accentGlow,
-  gold:        colors.gold,
-  green:       colors.success,
-  red:         colors.danger,
-  textWhite:   colors.textWhite,
-  textGray:    colors.textGray,
-  textMuted:   colors.textDim,
-  textDark:    colors.textMain,
-  cardBg:      colors.cardBg,
-  cardBorder:  colors.cardBorder,
-  glassBg:     colors.glassBg,
+  primaryLight: colors.primaryLight,
+  accent: colors.accent,
+  accentGlow: colors.accentGlow,
+  gold: colors.gold,
+  green: colors.success,
+  red: colors.danger,
+  textWhite: colors.textWhite,
+  textGray: colors.textGray,
+  textMuted: colors.textDim,
+  textDark: colors.textMain,
+  cardBg: colors.cardBg,
+  cardBorder: colors.cardBorder,
+  glassBg: colors.glassBg,
   glassBorder: colors.glassBorder,
-  mono:        fonts.mono,
+  mono: fonts.mono,
 };
 
 // ─── Intersection Observer hook for scroll animations ──────────────
@@ -389,7 +389,7 @@ function ExchangeRateSection({ rates, fetchedAt, loading }) {
 
         {loading ? (
           <div className="landing-rate-skeleton">
-            {[1,2,3].map(i => <div key={i} className="landing-skeleton-card" />)}
+            {[1, 2, 3].map(i => <div key={i} className="landing-skeleton-card" />)}
           </div>
         ) : (
           <>
@@ -499,7 +499,7 @@ function NewsFeedSection({ news, loading }) {
 
         {loading ? (
           <div className="landing-news-grid">
-            {[1,2,3,4,5,6].map(i => (
+            {[1, 2, 3, 4, 5, 6].map(i => (
               <div key={i} className="landing-news-card">
                 <div className="landing-news-thumb-skeleton" />
                 <div style={{ padding: 20 }}>
@@ -683,11 +683,11 @@ function StatisticsSection({ cms }) {
     value: c.metadata?.value ?? 0, suffix: c.metadata?.suffix || '',
     label: c.title, icon: c.icon, desc: c.description,
   })) || [
-    { value: 15913, suffix: '+', label: 'รหัส HS Code', icon: '🔎', desc: 'จาก AHTN Protocol 2022' },
-    { value: 7, suffix: '', label: 'สิทธิประโยชน์', icon: '🛡️', desc: 'BOI · Bond · FZ · IEAT …' },
-    { value: 101, suffix: '/1', label: 'กศก.', icon: '📄', desc: 'ใบขนสินค้าขาออก' },
-    { value: 4, suffix: '.00', label: 'XSD Version', icon: '📐', desc: 'Export Declaration Schema' },
-  ];
+      { value: 15913, suffix: '+', label: 'รหัส HS Code', icon: '🔎', desc: 'จาก AHTN Protocol 2022' },
+      { value: 7, suffix: '', label: 'สิทธิประโยชน์', icon: '🛡️', desc: 'BOI · Bond · FZ · IEAT …' },
+      { value: 101, suffix: '/1', label: 'กศก.', icon: '📄', desc: 'ใบขนสินค้าขาออก' },
+      { value: 4, suffix: '.00', label: 'XSD Version', icon: '📐', desc: 'Export Declaration Schema' },
+    ];
 
   return (
     <section id="stats" className="landing-section landing-section-gradient">
@@ -717,25 +717,25 @@ function TargetCustomersSection({ cms }) {
     features: c.metadata?.features || [],
     borderColor: c.color || C.primary,
   })) || [
-    {
-      icon: '🚢', title: 'Freight Forwarder',
-      desc: 'ตัวแทนออกของ / ตัวแทนเรือ ที่ยื่นใบขนให้ลูกค้าหลายราย — ต้องการระบบ multi-tenant ที่แยกข้อมูลได้',
-      features: ['Multi-customer management', 'Batch declaration', 'NSW automation'],
-      borderColor: C.primary,
-    },
-    {
-      icon: '🏭', title: 'โรงงานผู้ผลิต',
-      desc: 'โรงงานที่ส่งออกสินค้าเอง — ต้องการกรอกข้อมูลง่าย HS Code ถูกต้อง และจัดการสิทธิประโยชน์ BOI/FZ',
-      features: ['Manual declaration form', 'Product master catalog', 'Privilege document upload'],
-      borderColor: C.green,
-    },
-    {
-      icon: '📦', title: 'Logistics Provider',
-      desc: 'ผู้ให้บริการโลจิสติกส์ที่มีลูกค้าหลายราย — ต้องการ dashboard รวม billing และ performance tracking',
-      features: ['Unified dashboard', 'Auto billing', 'Performance reports'],
-      borderColor: C.gold,
-    },
-  ];
+      {
+        icon: '🚢', title: 'Freight Forwarder',
+        desc: 'ตัวแทนออกของ / ตัวแทนเรือ ที่ยื่นใบขนให้ลูกค้าหลายราย — ต้องการระบบ multi-tenant ที่แยกข้อมูลได้',
+        features: ['Multi-customer management', 'Batch declaration', 'NSW automation'],
+        borderColor: C.primary,
+      },
+      {
+        icon: '🏭', title: 'โรงงานผู้ผลิต',
+        desc: 'โรงงานที่ส่งออกสินค้าเอง — ต้องการกรอกข้อมูลง่าย HS Code ถูกต้อง และจัดการสิทธิประโยชน์ BOI/FZ',
+        features: ['Manual declaration form', 'Product master catalog', 'Privilege document upload'],
+        borderColor: C.green,
+      },
+      {
+        icon: '📦', title: 'Logistics Provider',
+        desc: 'ผู้ให้บริการโลจิสติกส์ที่มีลูกค้าหลายราย — ต้องการ dashboard รวม billing และ performance tracking',
+        features: ['Unified dashboard', 'Auto billing', 'Performance reports'],
+        borderColor: C.gold,
+      },
+    ];
   const tagText = cms?.tagText || 'กลุ่มเป้าหมาย';
   const tagColor = cms?.tagColor || C.green;
   const title = cms?.title || 'ออกแบบมาสำหรับธุรกิจส่งออก';
@@ -904,7 +904,7 @@ export default function LandingPage({ onRegister }) {
   useEffect(() => {
     cmsApi.getLandingPage()
       .then(setCmsData)
-      .catch(() => {}); // fallback to defaults
+      .catch(() => { }); // fallback to defaults
   }, []);
 
   // Apply CMS theme as CSS variables
@@ -921,7 +921,7 @@ export default function LandingPage({ onRegister }) {
     if (t.danger) root.style.setProperty('--danger', t.danger);
     return () => {
       // cleanup: remove overrides
-      ['--primary','--accent','--navy','--navy-mid','--success','--warning','--danger']
+      ['--primary', '--accent', '--navy', '--navy-mid', '--success', '--warning', '--danger']
         .forEach(v => root.style.removeProperty(v));
     };
   }, [cmsData?.theme]);

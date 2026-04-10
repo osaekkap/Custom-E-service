@@ -1,6 +1,6 @@
 # Custom-E-service — Master Plan
 
-> อัปเดต: 2026-04-07 | **Phase 6 เสร็จ + Pre-Deploy Audit Phase 1-4 เสร็จ + Phase 5A-5B-5C เสร็จ + Mockup Data ครบ**
+> อัปเดต: 2026-04-10 | **Phase 6 เสร็จ + Pre-Deploy Audit Phase 1-4 เสร็จ + Phase 5A-5B-5C เสร็จ + Mockup Data ครบ + AI Extraction v2 + Official Form Preview**
 
 ---
 
@@ -37,6 +37,8 @@
 | **5C** | **Refresh token rotation + AES-256 encryption + Unit tests** | ✅ เสร็จ |
 | **NewShipment** | **Privilege Flags card (toggle + per-flag file upload)** | ✅ เสร็จ |
 | **Mockup** | **Full mockup data — HHA + DKSH (jobs/billing/invoices)** | ✅ เสร็จ |
+| **AI v2** | **AI Extraction — proactive token refresh, retry 5x, booking data extraction** | ✅ เสร็จ |
+| **FormPreview** | **Official กศก.101/1 form preview (green theme) + Print Preview button** | ✅ เสร็จ |
 
 ---
 

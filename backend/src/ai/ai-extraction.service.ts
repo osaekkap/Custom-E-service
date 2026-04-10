@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger, InternalServerErrorException } from '@nestjs/common';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import * as XLSX from 'xlsx';
 import * as chardet from 'chardet';
@@ -19,12 +19,22 @@ export interface ExtractedDeclaration {
   shipper?: string;
   consignee?: string;
   vessel?: string;
+  voyageNo?: string;
   containerNo?: string;
+  bookingNo?: string;
+  blNo?: string;
+  shippingAgent?: string;
   portOfLoading?: string;
   portOfDischarge?: string;
+  destinationCountry?: string;
   etd?: string;
+  eta?: string;
+  grossWeightKg?: number;
+  packageCount?: number;
+  packageType?: string;
   currency?: string;
   exchangeRate?: number;
+  incoterms?: string;
   items: ExtractedItem[];
   confidence?: 'high' | 'medium' | 'low';
   rawText?: string;
@@ -32,10 +42,15 @@ export interface ExtractedDeclaration {
 
 @Injectable()
 export class AiExtractionService {
+  private readonly logger = new Logger(AiExtractionService.name);
   private genAI: GoogleGenerativeAI;
 
   constructor() {
-    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '');
+    const apiKey = process.env.GEMINI_API_KEY ?? '';
+    if (!apiKey) {
+      this.logger.warn('GEMINI_API_KEY is not set — AI extraction will fail');
+    }
+    this.genAI = new GoogleGenerativeAI(apiKey);
   }
 
   /** Check if a string contains Thai Unicode characters (U+0E00–U+0E7F) */
@@ -134,15 +149,25 @@ export class AiExtractionService {
       parts.push({
         text: `Return ONLY a valid JSON object — no markdown fences, no explanation, just raw JSON:
 {
-  "shipper": "exporter company name",
-  "consignee": "importer/buyer company name",
-  "vessel": "ship name and voyage if present",
-  "containerNo": "container number or null",
+  "shipper": "exporter company name and address",
+  "consignee": "importer/buyer company name and address",
+  "vessel": "ship/vessel name only",
+  "voyageNo": "voyage number or null",
+  "containerNo": "container number(s) or null",
+  "bookingNo": "booking reference number or null",
+  "blNo": "bill of lading number or null",
+  "shippingAgent": "shipping line or agent name or null",
   "portOfLoading": "full port name",
   "portOfDischarge": "destination port name",
+  "destinationCountry": "destination country name or null",
   "etd": "YYYY-MM-DD or null",
+  "eta": "YYYY-MM-DD or null",
+  "grossWeightKg": 1000.0,
+  "packageCount": 10,
+  "packageType": "PACKAGES or CARTONS or PALLETS etc.",
   "currency": "USD",
   "exchangeRate": 35.0,
+  "incoterms": "FOB or CIF or CFR etc.",
   "items": [
     {
       "seqNo": 1,
@@ -158,6 +183,8 @@ export class AiExtractionService {
   "confidence": "high"
 }
 Rules:
+- Extract vessel, voyageNo, containerNo, bookingNo, blNo, shippingAgent from Booking Confirmation if provided
+- Extract grossWeightKg and packageCount/packageType from Packing List or Booking if available
 - descriptionEn must be specific (not just "goods")
 - hsCode: include if written on invoice, else null
 - fobForeign: unit price × quantity = total line FOB in foreign currency
@@ -173,7 +200,7 @@ Your output MUST be valid JSON only. Never include markdown code fences or prose
 If a field is not found, use null. Always extract ALL line items listed.`;
 
     /** Retry a single model up to maxRetries times on 503 */
-    const tryModel = async (modelName: string, maxRetries = 3): Promise<string> => {
+    const tryModel = async (modelName: string, maxRetries = 5): Promise<string> => {
       for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
           const model = this.genAI.getGenerativeModel({ model: modelName, systemInstruction: SYSTEM_INSTRUCTION });
@@ -183,8 +210,10 @@ If a field is not found, use null. Always extract ALL line items listed.`;
           const is503 = err?.message?.includes('503') || err?.status === 503;
           const isLast = attempt === maxRetries - 1;
           if (is503 && !isLast) {
-            // Exponential backoff: 1s, 2s, 4s
-            await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+            // Exponential backoff: 2s, 4s, 8s, 16s
+            const delay = 2000 * Math.pow(2, attempt);
+            this.logger.warn(`Model ${modelName} 503 — retry ${attempt + 1}/${maxRetries} in ${delay}ms`);
+            await new Promise(r => setTimeout(r, delay));
             continue;
           }
           throw err;
@@ -199,15 +228,38 @@ If a field is not found, use null. Always extract ALL line items listed.`;
     for (const candidate of MODEL_CANDIDATES) {
       try {
         raw = await tryModel(candidate);
+        this.logger.log(`AI extraction succeeded with model: ${candidate}`);
         break;
       } catch (err: any) {
         lastError = err;
+        this.logger.warn(`Model ${candidate} failed: ${err?.message}`);
         // Continue to next candidate only on 503/404
         const retryable = err?.message?.includes('503') || err?.message?.includes('404') || err?.status === 503;
-        if (!retryable) throw err;
+        if (!retryable) {
+          // Wrap non-retryable Gemini errors as user-friendly messages
+          const msg = err?.message ?? 'Unknown AI error';
+          if (msg.includes('API_KEY') || msg.includes('API key') || msg.includes('PERMISSION_DENIED')) {
+            throw new InternalServerErrorException('AI API key is invalid or missing. Please contact admin.');
+          }
+          if (msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota')) {
+            throw new BadRequestException('AI quota exceeded. Please try again later.');
+          }
+          if (msg.includes('SAFETY')) {
+            throw new BadRequestException('AI declined to process this document due to content policy. Please try manual entry.');
+          }
+          throw new InternalServerErrorException(`AI extraction error: ${msg.substring(0, 200)}`);
+        }
       }
     }
-    if (!raw) throw new BadRequestException(`AI extraction failed: ${lastError?.message ?? 'all models unavailable'}`);
+    if (!raw) {
+      this.logger.error(`All AI models exhausted. Last error: ${lastError?.message}`);
+      const is503 = lastError?.message?.includes('503');
+      throw new BadRequestException(
+        is503
+          ? 'ระบบ AI มีผู้ใช้งานจำนวนมาก กรุณารอสักครู่แล้วลองใหม่อีกครั้ง'
+          : `AI extraction failed: ${lastError?.message ?? 'all models unavailable'}`,
+      );
+    }
 
     const cleaned = raw
       .replace(/^```json\s*/i, '')

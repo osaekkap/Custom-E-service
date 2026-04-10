@@ -12,9 +12,60 @@ const client = axios.create({
   timeout: 15000, // 15s request timeout
 });
 
-// Attach JWT token on every request
-client.interceptors.request.use((config) => {
+// ─── Proactive token refresh ──────────────────────────────────────
+// Decode JWT expiry without a library (base64url → JSON)
+function getTokenExp(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return payload.exp; // seconds since epoch
+  } catch { return null; }
+}
+
+let _proactiveRefreshPromise = null;
+
+async function ensureFreshToken() {
   const token = localStorage.getItem('access_token');
+  if (!token) return token;
+
+  const exp = getTokenExp(token);
+  if (!exp) return token;
+
+  const nowSec = Math.floor(Date.now() / 1000);
+  const remaining = exp - nowSec;
+
+  // If more than 2 minutes left, token is fine
+  if (remaining > 120) return token;
+
+  // Token expires within 2 min — refresh proactively
+  const refreshToken = localStorage.getItem('refresh_token');
+  if (!refreshToken) return token;
+
+  // Deduplicate: reuse an in-flight proactive refresh
+  if (_proactiveRefreshPromise) return _proactiveRefreshPromise;
+
+  _proactiveRefreshPromise = (async () => {
+    try {
+      const { data } = await axios.post(`${BASE}/auth/refresh`, {
+        refresh_token: refreshToken,
+      });
+      localStorage.setItem('access_token', data.access_token);
+      localStorage.setItem('refresh_token', data.refresh_token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      return data.access_token;
+    } catch {
+      // Proactive refresh failed — let the 401 interceptor handle it later
+      return localStorage.getItem('access_token');
+    } finally {
+      _proactiveRefreshPromise = null;
+    }
+  })();
+
+  return _proactiveRefreshPromise;
+}
+
+// Attach JWT token on every request (refresh proactively if near expiry)
+client.interceptors.request.use(async (config) => {
+  const token = await ensureFreshToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });

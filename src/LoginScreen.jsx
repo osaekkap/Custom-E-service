@@ -13,10 +13,10 @@ export default function LoginScreen({ onRegister }) {
 
   return (
     <div style={{
-      minHeight: '100vh', 
-      background: 'var(--bg-main)', 
+      minHeight: '100vh',
+      background: 'var(--bg-main)',
       display: 'flex',
-      alignItems: 'center', 
+      alignItems: 'center',
       justifyContent: 'center',
       padding: '24px'
     }}>
@@ -26,25 +26,25 @@ export default function LoginScreen({ onRegister }) {
           <div style={{
             width: '56px', height: '56px', borderRadius: '16px', background: 'var(--primary)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize:'28px', margin: '0 auto 16px', color: '#fff'
+            fontSize: '28px', margin: '0 auto 16px', color: '#fff'
           }}>⚓</div>
-          <div className="mono" style={{ fontSize:'18px', fontWeight: 700, letterSpacing: '1.5px', color: 'var(--text-main)' }}>
+          <div className="mono" style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '1.5px', color: 'var(--text-main)' }}>
             CUSTOMS-EDOC
           </div>
-          <div className="text-muted" style={{ fontSize:'16px', marginTop: '6px' }}>
+          <div className="text-muted" style={{ fontSize: '16px', marginTop: '6px' }}>
             ระบบใบขนสินค้าขาออกอิเล็กทรอนิกส์
           </div>
         </div>
 
         {/* Card */}
         <div className="card" style={{ padding: '36px 32px' }}>
-          <h2 style={{ margin: '0 0 28px', fontSize:'24px', fontWeight: 800, color: 'var(--text-main)', textAlign: 'center' }}>
+          <h2 style={{ margin: '0 0 28px', fontSize: '24px', fontWeight: 800, color: 'var(--text-main)', textAlign: 'center' }}>
             Sign in
           </h2>
 
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: '20px' }}>
-              <label className="text-muted" style={{ fontSize:'15px', fontWeight: 600, display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <label className="text-muted" style={{ fontSize: '15px', fontWeight: 600, display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Email
               </label>
               <input
@@ -55,7 +55,7 @@ export default function LoginScreen({ onRegister }) {
                 required
                 style={{
                   width: '100%', padding: '12px 16px', borderRadius: '10px',
-                  border: '1px solid var(--border-main)', fontSize:'17px', color: 'var(--text-main)',
+                  border: '1px solid var(--border-main)', fontSize: '17px', color: 'var(--text-main)',
                   background: 'var(--bg-card)', boxSizing: 'border-box',
                   transition: 'all 0.2s ease'
                 }}
@@ -63,7 +63,7 @@ export default function LoginScreen({ onRegister }) {
             </div>
 
             <div style={{ marginBottom: '28px' }}>
-              <label className="text-muted" style={{ fontSize:'15px', fontWeight: 600, display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <label className="text-muted" style={{ fontSize: '15px', fontWeight: 600, display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Password
               </label>
               <input
@@ -74,7 +74,7 @@ export default function LoginScreen({ onRegister }) {
                 required
                 style={{
                   width: '100%', padding: '12px 16px', borderRadius: '10px',
-                  border: '1px solid var(--border-main)', fontSize:'17px', color: 'var(--text-main)',
+                  border: '1px solid var(--border-main)', fontSize: '17px', color: 'var(--text-main)',
                   background: 'var(--bg-card)', boxSizing: 'border-box',
                   transition: 'all 0.2s ease'
                 }}
@@ -85,7 +85,7 @@ export default function LoginScreen({ onRegister }) {
               <div style={{
                 marginBottom: '20px', padding: '12px 16px', borderRadius: '10px',
                 background: 'var(--danger-light)', border: '1px solid #FECACA',
-                fontSize:'16px', color: 'var(--danger)',
+                fontSize: '16px', color: 'var(--danger)',
               }}>
                 {error}
               </div>
@@ -97,7 +97,7 @@ export default function LoginScreen({ onRegister }) {
               style={{
                 width: '100%', padding: '14px', borderRadius: '10px', border: 'none',
                 background: loading ? 'var(--text-light)' : 'var(--primary)', color: '#fff',
-                fontSize:'18px', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
+                fontSize: '18px', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
                 transition: 'background 0.2s ease, transform 0.1s ease',
               }}
               onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
@@ -109,13 +109,13 @@ export default function LoginScreen({ onRegister }) {
           </form>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: '24px', fontSize:'16px', color: 'var(--text-muted)' }}>
+        <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '16px', color: 'var(--text-muted)' }}>
           ยังไม่มีบัญชี?{' '}
-          <button onClick={onRegister} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 600, fontSize:'16px', cursor: 'pointer', padding: 0 }}>
+          <button onClick={onRegister} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 600, fontSize: '16px', cursor: 'pointer', padding: 0 }}>
             สมัครใช้งาน (B2B)
           </button>
         </div>
-        <div className="text-light" style={{ textAlign: 'center', marginTop: '16px', fontSize:'15px' }}>
+        <div className="text-light" style={{ textAlign: 'center', marginTop: '16px', fontSize: '15px' }}>
           Powered by NSW Thailand · ebXML v2.0
         </div>
       </div>
