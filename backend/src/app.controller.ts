@@ -33,4 +33,26 @@ export class AppController {
       services: { database: dbOk ? 'connected' : 'disconnected' },
     };
   }
+
+  @ApiOperation({ summary: 'HS Code debug check' })
+  @Get('hs-check')
+  async hsCheck() {
+    const counts = await this.prisma.hsMasterItem.groupBy({
+      by: ['customerId'],
+      _count: { id: true },
+    });
+    
+    const customers = await this.prisma.customer.findMany({
+      select: { id: true, code: true, companyNameEn: true }
+    });
+
+    return {
+      total: counts.reduce((acc, c) => acc + c._count.id, 0),
+      byCustomer: counts.map(c => ({
+        customerId: c.customerId,
+        customerCode: customers.find(cust => cust.id === c.customerId)?.code,
+        count: c._count.id
+      }))
+    };
+  }
 }

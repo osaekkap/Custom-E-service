@@ -25,7 +25,11 @@ export class MasterController {
   /** Resolve customerId: SUPER_ADMIN/internal staff use query param, others use JWT */
   private resolveCustomerId(user: RequestUser, queryCustomerId?: string): string {
     if (user.role === Role.SUPER_ADMIN || !user.customerId) {
-      if (!queryCustomerId) throw new BadRequestException('customerId query param is required for admin/internal users');
+      if (!queryCustomerId) {
+        // For Super Admin, if no customerId is provided, we can return null to signify "all" 
+        // but since resolveCustomerId expects a string, we'll return an empty string or handle it specially
+        return queryCustomerId || ''; 
+      }
       return queryCustomerId;
     }
     return user.customerId;
@@ -46,6 +50,16 @@ export class MasterController {
     @Query('customerId') queryCustomerId?: string,
   ) {
     const customerId = this.resolveCustomerId(req.user, queryCustomerId);
+    
+    // Special case for Super Admin to see global list if no customerId provided
+    if (req.user.role === Role.SUPER_ADMIN && !customerId) {
+      return this.masterService.listHsCodes('', search, page ? +page : 1, limit ? +limit : 100);
+    }
+    
+    if (!customerId && req.user.role !== Role.SUPER_ADMIN) {
+      throw new BadRequestException('customerId is required');
+    }
+
     return this.masterService.listHsCodes(customerId, search, page ? +page : 1, limit ? +limit : 100);
   }
 

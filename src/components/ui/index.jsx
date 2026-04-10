@@ -144,3 +144,51 @@ export function RoleBadge({ role }) {
     }}>{m.label}</span>
   );
 }
+
+// ─── HS Code Autocomplete ──────────────────────────────────────────
+export function HsCodeAutocomplete({ value, onChange, hsMaster = [], style = {} }) {
+  const [open, setOpen] = React.useState(false);
+
+  const inputStyle = { width:"100%", background:"#fff", border:`1px solid ${BORDER}`, borderRadius:7, padding:"7px 10px", fontSize:14, color:TEXT, boxSizing:"border-box", ...style };
+
+  const filtered = React.useMemo(() => {
+    const q = (value || "").toLowerCase();
+    if (q.length < 2) return [];
+    return hsMaster.filter(h =>
+      (h.code||"").toLowerCase().includes(q) || (h.desc||"").toLowerCase().includes(q) || (h.thDesc||"").includes(q)
+    ).slice(0, 20);
+  }, [value, hsMaster]);
+
+  return (
+    <div style={{ position:"relative", width:"100%" }}>
+      <input
+        value={value || ""}
+        onChange={e => { onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 200)}
+        placeholder="พิมพ์ HS code หรือคำอธิบาย..."
+        style={inputStyle}
+      />
+      {open && filtered.length > 0 && (
+        <div style={{
+          position:"absolute", top:"100%", left:0, right:0, zIndex:100,
+          background:W, border:`1px solid ${BORDER}`, borderRadius:8,
+          boxShadow:"0 8px 24px rgba(0,0,0,0.12)", maxHeight:240, overflowY:"auto",
+        }}>
+          {filtered.map(h => (
+            <div key={h.code}
+              onMouseDown={() => { onChange(h.code); setOpen(false); }}
+              style={{ padding:"8px 12px", cursor:"pointer", borderBottom:`1px solid ${BORDER2}`, fontSize:13 }}
+              onMouseEnter={e => e.currentTarget.style.background="#F9FAFB"}
+              onMouseLeave={e => e.currentTarget.style.background="transparent"}
+            >
+              <span style={{ fontWeight:700, fontFamily:MONO }}>{h.code}</span>
+              <span style={{ color:TEXT2, marginLeft:8 }}>{h.desc}</span>
+              {h.thDesc && <span style={{ color:TEXT3, marginLeft:6, fontSize:12 }}>({h.thDesc})</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

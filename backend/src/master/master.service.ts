@@ -11,10 +11,10 @@ export class MasterService {
 
   // ─── HS Codes ──────────────────────────────────────────────────────
 
-  async listHsCodes(customerId: string, search?: string, page = 1, limit = 100) {
+  async listHsCodes(customerId?: string, search?: string, page = 1, limit = 100) {
     const skip = (page - 1) * limit;
     const where = {
-      customerId,
+      ...(customerId && { customerId }),
       isActive: true,
       ...(search && {
         OR: [

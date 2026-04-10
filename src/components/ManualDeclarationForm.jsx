@@ -6,6 +6,7 @@ import {
 } from "../data/masterCodes.js";
 import { jobsApi } from "../api/jobsApi.js";
 import { declarationsApi } from "../api/declarationsApi.js";
+import { HsCodeAutocomplete } from "./ui/index.jsx";
 
 // ─── Design tokens (same as factory-portal) ─────────────────────
 const W      = "var(--bg-card)";
@@ -78,53 +79,6 @@ function SectionTitle({ number, title, icon }) {
     <div style={{ display:"flex", alignItems:"center", gap:10, padding:"14px 20px", borderBottom:`1px solid ${BORDER2}` }}>
       <div style={{ width:28, height:28, borderRadius:"50%", background:BLUE, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700 }}>{number}</div>
       <div style={{ fontSize:15, fontWeight:700, color:TEXT }}>{icon} {title}</div>
-    </div>
-  );
-}
-
-// ─── HS Code autocomplete ───────────────────────────────────────
-function HsCodeAutocomplete({ value, onChange, hsMaster }) {
-  const [search, setSearch] = useState("");
-  const [open, setOpen] = useState(false);
-
-  const filtered = useMemo(() => {
-    if (!search || search.length < 2) return [];
-    const q = search.toLowerCase();
-    return hsMaster.filter(h =>
-      h.code.includes(q) || (h.desc||"").toLowerCase().includes(q) || (h.thDesc||"").includes(q)
-    ).slice(0, 20);
-  }, [search, hsMaster]);
-
-  return (
-    <div style={{ position:"relative" }}>
-      <input
-        value={value || search}
-        onChange={e => { setSearch(e.target.value); onChange(""); setOpen(true); }}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setTimeout(() => setOpen(false), 200)}
-        placeholder="พิมพ์ HS code หรือคำอธิบาย..."
-        style={inputStyle}
-      />
-      {open && filtered.length > 0 && (
-        <div style={{
-          position:"absolute", top:"100%", left:0, right:0, zIndex:50,
-          background:W, border:`1px solid ${BORDER}`, borderRadius:8,
-          boxShadow:"0 8px 24px rgba(0,0,0,0.12)", maxHeight:240, overflowY:"auto",
-        }}>
-          {filtered.map(h => (
-            <div key={h.code}
-              onMouseDown={() => { onChange(h.code); setSearch(""); setOpen(false); }}
-              style={{ padding:"8px 12px", cursor:"pointer", borderBottom:`1px solid ${BORDER2}`, fontSize:13 }}
-              onMouseEnter={e => e.currentTarget.style.background="#F9FAFB"}
-              onMouseLeave={e => e.currentTarget.style.background="transparent"}
-            >
-              <span style={{ fontWeight:700, fontFamily:"monospace" }}>{h.code}</span>
-              <span style={{ color:TEXT2, marginLeft:8 }}>{h.desc}</span>
-              {h.thDesc && <span style={{ color:TEXT3, marginLeft:6, fontSize:12 }}>({h.thDesc})</span>}
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -392,6 +346,7 @@ export default function ManualDeclarationForm({ onBack, onSubmit, onCreated, hsM
         descriptionTh: found.thDesc || it.descriptionTh,
         quantityUnit: found.unit || it.quantityUnit,
         dutyRate: parseFloat(found.dutyRate) || 0,
+        statisticsCode: found.statsCode || it.statisticsCode,
       } : it));
     } else {
       updateItem(idx, "hsCode", hsCode);
@@ -699,7 +654,7 @@ export default function ManualDeclarationForm({ onBack, onSubmit, onCreated, hsM
                 <TextInput value={agent.brokerTaxId} onChange={v => setAgent(a=>({...a, brokerTaxId:v}))} placeholder="0105564001234" maxLength={15} />
               </Field>
               <Field label="สาขา (ตัวแทน)">
-                <TextInput value={agent.agentBranch} onChange={v => setAgent(a=>({...a, agentBranch:v}))} placeholder="00000" maxLength={6} />
+                <TextInput value={agent.branch} onChange={v => setAgent(a=>({...a, agentBranch:v}))} placeholder="00000" maxLength={6} />
               </Field>
             </div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:24 }}>

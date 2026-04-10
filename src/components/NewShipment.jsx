@@ -5,7 +5,7 @@ import ManualDeclarationForm from "./ManualDeclarationForm.jsx";
 import CustomsFormPreview from "./CustomsFormPreview.jsx";
 import { W, BG, BORDER, BORDER2, TEXT, TEXT2, TEXT3, BLUE, MONO, Card, SectionHeader, Btn } from "./ui/index.jsx";
 
-function NewShipment({ onBack, onCreated }) {
+function NewShipment({ onBack, onCreated, hsMaster = [] }) {
   const [manualMode, setManualMode] = useState(false);
   const [step, setStep] = useState(1);
   const [submitMethod, setSubmitMethod] = useState("nsw");
@@ -28,6 +28,20 @@ function NewShipment({ onBack, onCreated }) {
     currency: "USD",
   });
   const STEPS = ["Upload documents","AI extraction & verify","Review & submit"];
+
+  const handleHsSelect = (idx, hsCode) => {
+    const found = hsMaster.find(h => h.code === hsCode);
+    setExtracted(prev => ({
+      ...prev,
+      items: prev.items.map((it, i) => i === idx ? {
+        ...it,
+        hsCode,
+        descriptionEn: found ? (found.desc || it.descriptionEn) : it.descriptionEn,
+        descriptionTh: found ? (found.thDesc || it.descriptionTh) : it.descriptionTh,
+        quantityUnit: found ? (found.unit || it.quantityUnit) : it.quantityUnit,
+      } : it),
+    }));
+  };
 
   // Populate form from extracted AI data
   const applyExtracted = (data) => {
@@ -111,6 +125,7 @@ function NewShipment({ onBack, onCreated }) {
       <ManualDeclarationForm
         onBack={() => setManualMode(false)}
         onCreated={(jobId) => { if (onCreated) onCreated(jobId); }}
+        hsMaster={hsMaster}
       />
     );
   }

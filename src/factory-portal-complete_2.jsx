@@ -1,10 +1,11 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { AuthContext } from "./stores/AuthContext.jsx";
 import LoginScreen from "./LoginScreen.jsx";
 import RegisterScreen from "./RegisterScreen.jsx";
 import LandingPage from "./LandingPage.jsx";
 import SuperAdminConsole from "./super-admin-console.jsx";
 import { usePermissions } from "./hooks/usePermissions.js";
+import { masterApi } from "./api/masterApi.js";
 
 // Decomposed components
 import { BG, TEXT, TEXT2, BLUE, RoleBadge, ReadOnlyBanner } from "./components/ui/index.jsx";
@@ -28,6 +29,33 @@ export default function App() {
   const [detailJob, setDetailJob] = useState(null);
   const [showRegister, setShowRegister] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // HS Master cache
+  const [hsMaster, setHsMaster] = useState([]);
+
+  useEffect(() => {
+    if (auth?.token && perms.canViewMasterData) {
+      masterApi.listHsCodes({ limit: 20000 }).then(data => {
+        const arr = data?.data ?? (Array.isArray(data) ? data : []);
+        const unique = [];
+        const seen = new Set();
+        for (const h of arr) {
+          if (!seen.has(h.hsCode)) {
+            seen.add(h.hsCode);
+            unique.push({
+              code: h.hsCode,
+              desc: h.descriptionEn,
+              thDesc: h.descriptionTh,
+              unit: h.statisticsUnit || "C62",
+              dutyRate: h.dutyRate || 0,
+              statsCode: h.statisticsCode
+            });
+          }
+        }
+        setHsMaster(unique);
+      }).catch(err => console.error("Failed to load HS Master:", err));
+    }
+  }, [auth?.token, perms.canViewMasterData]);
 
   // Show register / landing page if not authenticated
   if (!auth?.token) {
@@ -68,7 +96,7 @@ export default function App() {
       case "shipments":       return <ShipmentList onNew={() => handleNav("new")} onDetail={job => handleNav("shipment_detail",job)}/>;
       case "shipment_detail": return <ShipmentDetail job={detailJob} onBack={() => setScreen("shipments")}/>;
       case "new":             return perms.canCreateShipment
-                                ? <NewShipment onBack={() => setScreen("shipments")} onCreated={() => setScreen("shipments")}/>
+                                ? <NewShipment onBack={() => setScreen("shipments")} onCreated={() => setScreen("shipments")} hsMaster={hsMaster}/>
                                 : <AccessDenied/>;
       case "nsw":             return <NSWTracking/>;
       case "declarations":    return perms.canViewDeclarations ? <Declarations readOnly={perms.isReadOnly("declarations")}/> : <AccessDenied/>;
