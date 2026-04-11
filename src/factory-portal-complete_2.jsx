@@ -48,7 +48,10 @@ export default function App() {
               thDesc: h.descriptionTh,
               unit: h.statisticsUnit || "C62",
               dutyRate: h.dutyRate || 0,
-              statsCode: h.statisticsCode
+              statsCode: h.statisticsCode,
+              specificDutyRate: h.specificDutyRate || null,
+              specificDutyUnit: h.specificDutyUnit || null,
+              isExempt: h.isExempt || false
             });
           }
         }

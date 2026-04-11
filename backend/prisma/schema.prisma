@@ -260,6 +260,9 @@ model HsMasterItem {
   statisticsCode  String?  @db.VarChar(20)           // field 26: รหัสสถิติ
   statisticsUnit  String?  @db.VarChar(20)           // field 26: หน่วย e.g. "C62"
   dutyRate        Decimal  @default(0) @db.Decimal(5, 4)  // field 31
+  specificDutyRate Decimal? @db.Decimal(10, 4)       // Specific Duty Amount e.g. 4.20
+  specificDutyUnit String?  @db.VarChar(50)          // Specific Duty Unit e.g. KGM
+  isExempt        Boolean  @default(false)           // ไม่ต้องเสียอากร
   isControlled    Boolean  @default(false)           // ต้องมีใบอนุญาต field 33
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
@@ -737,6 +740,9 @@ model DeclarationItem {
   privilegeRef    String?  @db.VarChar(100)
 
   dutyRate        Decimal  @default(0) @db.Decimal(5, 4)
+  specificDutyRate Decimal? @db.Decimal(10, 4)
+  specificDutyUnit String?  @db.VarChar(50)
+  isExempt        Boolean  @default(false)
   exportDutyThb   Decimal? @db.Decimal(15, 2)
 
   exportLicenseNo     String?  @db.VarChar(100)

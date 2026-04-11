@@ -104,14 +104,17 @@ function MasterData() {
     }).catch(() => setConsignees([])).finally(() => setConLoading(false));
   };
 
-  const openAdd = () => { setHsForm({ hsCode:"", descriptionEn:"", descriptionTh:"", unit:"pcs", dutyRate:"0%", origin:"TH" }); setHsModal("add"); };
+  const openAdd = () => { setHsForm({ hsCode:"", descriptionEn:"", descriptionTh:"", unit:"pcs", dutyRate:"0", specificDutyRate:"", specificDutyUnit:"", isExempt:false, origin:"TH" }); setHsModal("add"); };
   const openEdit = (hs) => {
     setHsForm({
       hsCode: hs.hsCode || hs.code || "",
       descriptionEn: hs.descriptionEn || hs.desc || "",
       descriptionTh: hs.descriptionTh || hs.thDesc || "",
       unit: hs.unit || "pcs",
-      dutyRate: hs.dutyRate || "0%",
+      dutyRate: hs.dutyRate || "0",
+      specificDutyRate: hs.specificDutyRate || "",
+      specificDutyUnit: hs.specificDutyUnit || "",
+      isExempt: hs.isExempt || false,
       origin: hs.origin || "TH",
     });
     setHsModal({ edit: hs });
@@ -122,10 +125,15 @@ function MasterData() {
     if (!hsForm.hsCode || !hsForm.descriptionEn) return alert("กรุณากรอก HS Code และ Description");
     setHsSaving(true);
     try {
+      const payload = {
+        ...hsForm,
+        dutyRate: parseFloat(hsForm.dutyRate) || 0,
+        specificDutyRate: hsForm.specificDutyRate ? parseFloat(hsForm.specificDutyRate) : null,
+      };
       if (hsModal === "add") {
-        await masterApi.createHsCode(hsForm);
+        await masterApi.createHsCode(payload);
       } else {
-        await masterApi.updateHsCode(hsModal.edit.id, hsForm);
+        await masterApi.updateHsCode(hsModal.edit.id, payload);
       }
       fetchHsCodes();
       closeHsModal();
@@ -230,7 +238,26 @@ function MasterData() {
               {FIELD("Description (EN) *", "descriptionEn")}
               {FIELD("Thai Description", "descriptionTh")}
               {FIELD("Unit", "unit")}
-              {FIELD("Duty Rate", "dutyRate", { placeholder:"0%" })}
+              
+              <div style={{ display:"flex", gap:12 }}>
+                <div style={{ flex:1 }}>
+                  {FIELD("Duty Rate (%)", "dutyRate", { type: "number", step: "0.01", placeholder:"0" })}
+                </div>
+                <div style={{ display:"flex", alignItems:"flex-end", paddingBottom:10 }}>
+                  <label style={{ display:"flex", alignItems:"center", gap:6, fontSize:14, color:TEXT, cursor:"pointer" }}>
+                    <input type="checkbox" checked={hsForm.isExempt} onChange={e => setHsForm(f => ({...f, isExempt: e.target.checked}))} />
+                    Exempt (ไม่ต้องเสียอากร)
+                  </label>
+                </div>
+              </div>
+
+              {!hsForm.isExempt && (
+                <div style={{ display:"flex", gap:12, background:"#F8FAFC", padding:12, borderRadius:8, border:`1px solid ${BORDER}` }}>
+                  <div style={{ flex:1 }}>{FIELD("Specific Rate (บาท)", "specificDutyRate", { type: "number", step: "0.0001", placeholder:"0.00" })}</div>
+                  <div style={{ flex:1 }}>{FIELD("Specific Unit (หน่วย)", "specificDutyUnit", { placeholder:"e.g. KGM" })}</div>
+                </div>
+              )}
+              
               {FIELD("Origin", "origin", { placeholder:"TH" })}
             </div>
             <div style={{ display:"flex", gap:10, marginTop:20, justifyContent:"flex-end" }}>
@@ -257,7 +284,7 @@ function MasterData() {
               <div className="table-wrapper"><table style={{ width:"100%", borderCollapse:"collapse", fontSize:14 }}>
                 <thead>
                   <tr style={{ background:BG, borderBottom:`1px solid ${BORDER}` }}>
-                    {["HS Code","Description (EN)","Thai description","Unit","Duty rate","Origin", ...(perms.canEditMasterData ? [""] : [])].map(h=>(
+                    {["HS Code","Description (EN)","Thai description","Unit","Duty rate","Specific Duty","Origin", ...(perms.canEditMasterData ? [""] : [])].map(h=>(
                       <th key={h} style={{ padding:"9px 16px", textAlign:"left", fontSize:13, fontWeight:700, color:TEXT3, textTransform:"uppercase", letterSpacing:"0.5px" }}>{h}</th>
                     ))}
                   </tr>
@@ -271,8 +298,10 @@ function MasterData() {
                     const code = hs.hsCode || hs.code || "";
                     const desc = hs.descriptionEn || hs.desc || "";
                     const thDesc = hs.descriptionTh || hs.thDesc || "";
-                    const dutyRate = hs.dutyRate || "0%";
+                    const dutyRate = hs.dutyRate ? `${hs.dutyRate}%` : "0%";
                     const origin = hs.origin || "TH";
+                    const isExempt = hs.isExempt;
+                    const specific = hs.specificDutyRate ? `${hs.specificDutyRate} บาท / ${hs.specificDutyUnit || 'หน่วย'}` : "-";
                     return (
                       <tr key={hs.id || i} style={{ borderBottom:`1px solid ${BORDER2}`, cursor:"pointer" }}
                         onMouseEnter={e=>e.currentTarget.style.background=ROW_HOVER}
@@ -282,8 +311,9 @@ function MasterData() {
                         <td style={{ padding:"11px 16px", color:TEXT2, fontSize:14 }}>{thDesc}</td>
                         <td style={{ padding:"11px 16px", color:TEXT2 }}>{hs.unit}</td>
                         <td style={{ padding:"11px 16px" }}>
-                          <Tag label={dutyRate} color={dutyRate==="0%"?"#16A34A":"#DC2626"}/>
+                          {isExempt ? <Tag label="Exempt" color="#8B5CF6"/> : <Tag label={dutyRate} color={dutyRate==="0%"?"#16A34A":"#DC2626"}/>}
                         </td>
+                        <td style={{ padding:"11px 16px", color:TEXT2 }}>{isExempt ? "-" : specific}</td>
                         <td style={{ padding:"11px 16px" }}><Tag label={origin} color="#16A34A"/></td>
                         {perms.canEditMasterData && (
                           <td style={{ padding:"11px 16px", display:"flex", gap:6 }}>

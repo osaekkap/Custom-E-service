@@ -25,10 +25,25 @@ export class CreateHsCodeDto {
   statisticsUnit?: string;
 
   @IsOptional()
+  @IsOptional()
   @IsNumber()
   @Min(0)
   @Max(9.9999)
   dutyRate?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  specificDutyRate?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  specificDutyUnit?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isExempt?: boolean;
 
   @IsOptional()
   @IsBoolean()
