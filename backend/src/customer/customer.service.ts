@@ -30,13 +30,26 @@ export class CustomerService {
     }
 
     const { pricePerJob, customsPasswordEnc, ...rest } = dto;
-    return this.prisma.customer.create({
+    const customer = await this.prisma.customer.create({
       data: {
         ...rest,
         ...(pricePerJob !== undefined && { pricePerJob }),
         ...(customsPasswordEnc && { customsPasswordEnc: this.encryption.encrypt(customsPasswordEnc) }),
       },
     });
+
+    // Auto-create default Exporter from company registration data
+    if (customer.companyNameTh && customer.taxId) {
+      await this.upsertDefaultExporter(customer.id, {
+        nameTh: customer.companyNameTh,
+        nameEn: customer.companyNameEn ?? undefined,
+        taxId: customer.taxId,
+        address: customer.address ?? undefined,
+        phone: customer.phone ?? undefined,
+      });
+    }
+
+    return customer;
   }
 
   async findAll(query: QueryCustomerDto) {
@@ -119,7 +132,7 @@ export class CustomerService {
     }
 
     const { pricePerJob, status, customsPasswordEnc, ...rest } = dto as Partial<CreateCustomerDto> & { status?: CustomerStatus };
-    return this.prisma.customer.update({
+    const updated = await this.prisma.customer.update({
       where: { id },
       data: {
         ...rest,
@@ -128,6 +141,60 @@ export class CustomerService {
         ...(customsPasswordEnc && { customsPasswordEnc: this.encryption.encrypt(customsPasswordEnc) }),
       },
     });
+
+    // Sync to default Exporter whenever company data changes
+    if (updated.companyNameTh && updated.taxId) {
+      await this.upsertDefaultExporter(id, {
+        nameTh: updated.companyNameTh,
+        nameEn: updated.companyNameEn ?? undefined,
+        taxId: updated.taxId,
+        address: updated.address ?? undefined,
+        phone: updated.phone ?? undefined,
+      });
+    }
+
+    return updated;
+  }
+
+  /** Upsert the default Exporter record to keep in sync with customer company data */
+  private async upsertDefaultExporter(customerId: string, data: {
+    nameTh: string; nameEn?: string; taxId: string; address?: string; phone?: string;
+  }) {
+    try {
+      // @ts-ignore
+      const existing = await this.prisma.exporter.findFirst({
+        where: { customerId, isDefault: true },
+      });
+      if (existing) {
+        // @ts-ignore
+        await this.prisma.exporter.update({
+          where: { id: existing.id },
+          data: {
+            nameTh: data.nameTh,
+            nameEn: data.nameEn || null,
+            taxId: data.taxId,
+            address: data.address || null,
+            phone: data.phone || null,
+          },
+        });
+      } else {
+        // @ts-ignore
+        await this.prisma.exporter.create({
+          data: {
+            customerId,
+            nameTh: data.nameTh,
+            nameEn: data.nameEn || null,
+            taxId: data.taxId,
+            address: data.address || null,
+            phone: data.phone || null,
+            isDefault: true,
+          },
+        });
+      }
+    } catch (err) {
+      // Non-critical: log but don't throw
+      console.warn('upsertDefaultExporter failed:', err.message);
+    }
   }
 
   async remove(id: string) {

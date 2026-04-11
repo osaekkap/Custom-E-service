@@ -31,6 +31,16 @@ export const masterApi = {
   deleteConsignee: (id) =>
     client.delete(`/master/consignees/${id}`).then((r) => r.data),
 
+  // Brokers
+  listBrokers: () =>
+    client.get('/master/brokers').then((r) => r.data),
+  createBroker: (data) =>
+    client.post('/master/brokers', data).then((r) => r.data),
+  updateBroker: (id, data) =>
+    client.patch(`/master/brokers/${id}`, data).then((r) => r.data),
+  deleteBroker: (id) =>
+    client.delete(`/master/brokers/${id}`).then((r) => r.data),
+
   // Privileges
   listPrivileges: () =>
     client.get('/master/privileges').then((r) => r.data),

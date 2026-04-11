@@ -1,7 +1,7 @@
 import { IsString, IsOptional, IsBoolean, MaxLength } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 
-export class CreateExporterDto {
+export class CreateBrokerDto {
   @IsString()
   @MaxLength(255)
   nameTh: string;
@@ -17,22 +17,8 @@ export class CreateExporterDto {
 
   @IsOptional()
   @IsString()
-  address?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(10)
-  postcode?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  phone?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  agentName?: string;
+  @MaxLength(6)
+  branch?: string;
 
   @IsOptional()
   @IsString()
@@ -42,21 +28,11 @@ export class CreateExporterDto {
   @IsOptional()
   @IsString()
   @MaxLength(255)
-  brokerName?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(15)
-  brokerTaxId?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(6)
-  brokerBranch?: string;
+  agentName?: string;
 
   @IsOptional()
   @IsBoolean()
   isDefault?: boolean;
 }
 
-export class UpdateExporterDto extends PartialType(CreateExporterDto) {}
+export class UpdateBrokerDto extends PartialType(CreateBrokerDto) {}

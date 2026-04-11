@@ -255,9 +255,11 @@ export default function ManualDeclarationForm({ onBack, onSubmit, onCreated, hsM
   const [showXml, setShowXml] = useState(false);
   const [showPdf, setShowPdf] = useState(false);
   const [exportersMaster, setExportersMaster] = useState([]);
+  const [brokersMaster, setBrokersMaster] = useState([]);
 
   useEffect(() => {
     masterApi.listExporters().then(data => setExportersMaster(data || [])).catch(err => console.error("Failed to load exporters", err));
+    masterApi.listBrokers().then(data => setBrokersMaster(Array.isArray(data) ? data : (data?.data ?? []))).catch(err => console.error("Failed to load brokers", err));
   }, []);
 
   // ─── Section 1: Document Control ───────────────────────────
@@ -303,6 +305,27 @@ export default function ManualDeclarationForm({ onBack, onSubmit, onCreated, hsM
       ...prev,
       agentName: found.agentName || prev.agentName,
       cardNo: found.agentCardNo || prev.cardNo,
+      brokerName: found.brokerName || prev.brokerName,
+      brokerTaxId: found.brokerTaxId || prev.brokerTaxId,
+      agentBranch: found.brokerBranch || prev.agentBranch,
+      managerIdCard: found.agentCardNo || prev.managerIdCard,
+      managerName: found.agentName || prev.managerName,
+    }));
+  };
+
+  const handleSelectMasterBroker = (brokerId) => {
+    if (!brokerId) return;
+    const found = brokersMaster.find(b => b.id === brokerId);
+    if (!found) return;
+    setAgent(prev => ({
+      ...prev,
+      brokerName: found.nameTh || prev.brokerName,
+      brokerTaxId: found.taxId || prev.brokerTaxId,
+      agentBranch: found.branch || prev.agentBranch,
+      agentName: found.agentName || prev.agentName,
+      cardNo: found.agentCardNo || prev.cardNo,
+      managerIdCard: found.agentCardNo || prev.managerIdCard,
+      managerName: found.agentName || prev.managerName,
     }));
   };
 
@@ -681,6 +704,16 @@ export default function ManualDeclarationForm({ onBack, onSubmit, onCreated, hsM
             <div style={{ fontSize:14, fontWeight:700, color:TEXT, marginBottom:10, paddingBottom:6, borderBottom:`1px solid ${BORDER2}` }}>
               ตัวแทนออกของ (Agent / Broker)
             </div>
+            <div style={{ marginBottom:14, background:"#F9FAFB", padding:"12px 16px", borderRadius:6, border:`1px solid ${BORDER2}` }}>
+              <Field label="เลือกจาก Master Data (ดึงข้อมูลอัตโนมัติ)">
+                <select onChange={e => handleSelectMasterBroker(e.target.value)} style={selectStyle}>
+                  <option value="">— ไม่ดึงข้อมูล กรอกเอง —</option>
+                  {brokersMaster.map(b => (
+                    <option key={b.id} value={b.id}>{b.taxId} : {b.nameTh}</option>
+                  ))}
+                </select>
+              </Field>
+            </div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:14, marginBottom:16 }}>
               <Field label="ชื่อตัวแทน">
                 <TextInput value={agent.brokerName} onChange={v => setAgent(a=>({...a, brokerName:v}))} placeholder="NKTech Co., Ltd." />
@@ -703,13 +736,13 @@ export default function ManualDeclarationForm({ onBack, onSubmit, onCreated, hsM
 
             {/* Manager */}
             <div style={{ fontSize:14, fontWeight:700, color:TEXT, marginBottom:10, paddingBottom:6, borderBottom:`1px solid ${BORDER2}` }}>
-              ผู้จัดการ (Authorised Person)
+              ผู้ผ่านพิธีการ (Clearance Person)
             </div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
-              <Field label="เลขบัตรประชาชนผู้จัดการ">
+              <Field label="เลขที่บัตรผ่านพิธีการ">
                 <TextInput value={agent.managerIdCard} onChange={v => setAgent(a=>({...a, managerIdCard:v}))} placeholder="1-1234-56789-01-2" maxLength={17} />
               </Field>
-              <Field label="ชื่อผู้จัดการ">
+              <Field label="ชื่อผู้ผ่านพิธีการ">
                 <TextInput value={agent.managerName} onChange={v => setAgent(a=>({...a, managerName:v}))} placeholder="นายสมชาย รักดี" maxLength={35} />
               </Field>
             </div>

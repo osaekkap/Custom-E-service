@@ -206,6 +206,7 @@ model Customer {
   billingItems     BillingItem[]
   billingInvoices  BillingInvoice[]
   exporters        Exporter[]
+  brokers          Broker[]
   privilegeCodes   PrivilegeCode[]
   hsMasterItems    HsMasterItem[]
   consignees       Consignee[]
@@ -284,11 +285,32 @@ model Exporter {
   address       String?  @db.Text
   postcode      String?  @db.VarChar(10)
   phone         String?  @db.VarChar(20)
-  agentName     String?  @db.VarChar(255)
-  agentCardNo   String?  @db.VarChar(50)
+  agentName     String?  @db.VarChar(255)   // ชื่อผู้ผ่านพิธีการ
+  agentCardNo   String?  @db.VarChar(50)    // เลขที่บัตรผ่านพิธีการ
+  brokerName    String?  @db.VarChar(255)   // ชื่อตัวแทนออกของ
+  brokerTaxId   String?  @db.VarChar(15)    // เลขผู้เสียภาษี (ตัวแทน)
+  brokerBranch  String?  @db.VarChar(6)     // สาขา (ตัวแทน)
   isDefault     Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+}
+
+model Broker {
+  id          String   @id @default(uuid())
+  customerId  String?
+  nameTh      String   @db.VarChar(255)    // ชื่อตัวแทนออกของ (ภาษาไทย)
+  nameEn      String?  @db.VarChar(255)    // ชื่อตัวแทนออกของ (ภาษาอังกฤษ)
+  taxId       String   @db.VarChar(15)     // เลขประจำตัวผู้เสียภาษี (ตัวแทน)
+  branch      String?  @db.VarChar(6)      // สาขา (ตัวแทน)
+  agentCardNo String?  @db.VarChar(50)     // เลขที่บัตรผ่านพิธีการ
+  agentName   String?  @db.VarChar(255)    // ชื่อผู้ผ่านพิธีการ
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   customer Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   @@index([customerId])

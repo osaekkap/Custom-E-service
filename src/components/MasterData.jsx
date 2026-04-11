@@ -21,8 +21,15 @@ function MasterData() {
   const [exporters, setExporters] = useState([]);
   const [expLoading, setExpLoading] = useState(false);
   const [expModal, setExpModal] = useState(null);
-  const [expForm, setExpForm] = useState({ nameTh:"", nameEn:"", taxId:"", address:"", phone:"", agentName:"", agentCardNo:"", isDefault:false });
+  const [expForm, setExpForm] = useState({ nameTh:"", nameEn:"", taxId:"", address:"", phone:"", agentName:"", agentCardNo:"", brokerName:"", brokerTaxId:"", brokerBranch:"00000", isDefault:false });
   const [expSaving, setExpSaving] = useState(false);
+
+  // Brokers state
+  const [brokers, setBrokers] = useState([]);
+  const [brokerLoading, setBrokerLoading] = useState(false);
+  const [brokerModal, setBrokerModal] = useState(null);
+  const [brokerForm, setBrokerForm] = useState({ nameTh:"", nameEn:"", taxId:"", branch:"00000", agentCardNo:"", agentName:"", isDefault:false });
+  const [brokerSaving, setBrokerSaving] = useState(false);
 
   // Privileges state
   const [privileges, setPrivileges] = useState([]);
@@ -55,6 +62,7 @@ function MasterData() {
   // Fetch data when tab changes
   useEffect(() => {
     if (tab === "exporters" && exporters.length === 0 && !expLoading) fetchExporters();
+    if (tab === "brokers" && brokers.length === 0 && !brokerLoading) fetchBrokers();
     if (tab === "privilege" && privileges.length === 0 && !privLoading) fetchPrivileges();
     if (tab === "customers" && consignees.length === 0 && !conLoading) fetchConsignees();
   }, [tab]);
@@ -99,6 +107,14 @@ function MasterData() {
     }).catch(() => setPrivileges([])).finally(() => setPrivLoading(false));
   };
 
+  const fetchBrokers = () => {
+    setBrokerLoading(true);
+    masterApi.listBrokers().then(data => {
+      const arr = data?.data ?? (Array.isArray(data) ? data : []);
+      setBrokers(arr);
+    }).catch(() => setBrokers([])).finally(() => setBrokerLoading(false));
+  };
+
   const fetchConsignees = () => {
     setConLoading(true);
     masterApi.listConsignees().then(data => {
@@ -124,7 +140,7 @@ function MasterData() {
   };
   const closeHsModal = () => setHsModal(null);
 
-  const openAddExp = () => { setExpForm({ nameTh:"", nameEn:"", taxId:"", address:"", phone:"", agentName:"", agentCardNo:"", isDefault:false }); setExpModal("add"); };
+  const openAddExp = () => { setExpForm({ nameTh:"", nameEn:"", taxId:"", address:"", phone:"", agentName:"", agentCardNo:"", brokerName:"", brokerTaxId:"", brokerBranch:"00000", isDefault:false }); setExpModal("add"); };
   const openEditExp = (exp) => {
     setExpForm({
       nameTh: exp.nameTh || exp.name || "",
@@ -134,11 +150,63 @@ function MasterData() {
       phone: exp.phone || exp.tel || "",
       agentName: exp.agentName || "",
       agentCardNo: exp.agentCardNo || "",
+      brokerName: exp.brokerName || "",
+      brokerTaxId: exp.brokerTaxId || "",
+      brokerBranch: exp.brokerBranch || "00000",
       isDefault: exp.isDefault || false,
     });
     setExpModal({ edit: exp });
   };
   const closeExpModal = () => setExpModal(null);
+
+  const openAddBroker = () => { setBrokerForm({ nameTh:"", nameEn:"", taxId:"", branch:"00000", agentCardNo:"", agentName:"", isDefault:false }); setBrokerModal("add"); };
+  const openEditBroker = (b) => {
+    setBrokerForm({
+      nameTh: b.nameTh || "",
+      nameEn: b.nameEn || "",
+      taxId: b.taxId || "",
+      branch: b.branch || "00000",
+      agentCardNo: b.agentCardNo || "",
+      agentName: b.agentName || "",
+      isDefault: b.isDefault || false,
+    });
+    setBrokerModal({ edit: b });
+  };
+  const closeBrokerModal = () => setBrokerModal(null);
+
+  const saveBroker = async () => {
+    if (!brokerForm.nameTh) return alert("กรุณากรอกชื่อตัวแทนออกของ (ภาษาไทย)");
+    if (!brokerForm.taxId) return alert("กรุณากรอกเลขผู้เสียภาษี (Tax ID)");
+    setBrokerSaving(true);
+    try {
+      const payload = { ...brokerForm };
+      Object.keys(payload).forEach(key => { if (payload[key] === "") payload[key] = undefined; });
+      if (brokerModal === "add") {
+        await masterApi.createBroker(payload);
+      } else {
+        await masterApi.updateBroker(brokerModal.edit.id, payload);
+      }
+      fetchBrokers();
+      closeBrokerModal();
+    } catch (err) {
+      console.error("Save Broker Error:", err.response?.data);
+      let msg = err?.response?.data?.message || err?.message || "Failed to save broker";
+      if (Array.isArray(msg)) msg = msg.join('\n');
+      alert(`Error Saving:\n${msg}`);
+    } finally {
+      setBrokerSaving(false);
+    }
+  };
+
+  const deleteBroker = async (b) => {
+    if (!window.confirm(`ลบ Broker "${b.nameTh}" ใช่หรือไม่?`)) return;
+    try {
+      await masterApi.deleteBroker(b.id);
+      fetchBrokers();
+    } catch (err) {
+      alert(err?.response?.data?.message || "Failed to delete broker");
+    }
+  };
 
   const saveExp = async () => {
     if (!expForm.nameTh) return alert("กรุณากรอกชื่อ Exporter (ภาษาไทย)");
@@ -273,7 +341,7 @@ function MasterData() {
 
       <div style={{ display:"flex", gap:0, borderBottom:`1px solid ${BORDER}`, marginBottom:18 }}>
         {[
-          ["hs","HS Codes"],["exporters","Exporters"],["privilege","Privilege codes"],["customers","Consignees"],
+          ["hs","HS Codes"],["exporters","Exporters"],["brokers","Brokers"],["privilege","Privilege codes"],["customers","Consignees"],
         ].map(([id,label]) => (
           <button key={id} onClick={() => setTab(id)} style={{
             padding:"10px 18px", background:"none", border:"none",
@@ -342,19 +410,78 @@ function MasterData() {
                 <div style={{ flex:1 }}>{FIELD_EXP("Telephone", "phone")}</div>
               </div>
               {FIELD_EXP("Address", "address")}
-              <div style={{ display:"flex", gap:12 }}>
-                <div style={{ flex:1 }}>{FIELD_EXP("ชื่อผู้ผ่านพิธีการ (Agent Name)", "agentName")}</div>
-                <div style={{ flex:1 }}>{FIELD_EXP("ทะเบียนเลขที่ (Agent Card No.)", "agentCardNo")}</div>
-              </div>
-              
-              <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:8 }}>
-                <input type="checkbox" checked={expForm.isDefault} onChange={e => setExpForm(f => ({...f, isDefault: e.target.checked}))} id="isDefault" />
-                <label htmlFor="isDefault" style={{ fontSize:14, color:TEXT, cursor:"pointer" }}>Set as default exporter</label>
-              </div>
             </div>
             <div style={{ display:"flex", gap:10, marginTop:24, justifyContent:"flex-end" }}>
               <Btn variant="secondary" onClick={closeExpModal}>Cancel</Btn>
               <Btn onClick={saveExp} disabled={expSaving}>{expSaving ? "Saving…" : expModal === "add" ? "Add Exporter" : "Save changes"}</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Broker Modal */}
+      {brokerModal && (
+        <div style={{ position:"fixed", inset:0, background:"#00000060", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <div style={{ background:W, borderRadius:16, padding:28, width:480, maxWidth:"95vw", boxShadow:"0 20px 60px #0003" }}>
+            <h3 style={{ margin:"0 0 20px", fontSize:18, fontWeight:800, color:TEXT }}>
+              {brokerModal === "add" ? "+ Add Broker" : `Edit Broker: ${brokerModal.edit.nameTh}`}
+            </h3>
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              {/* ชื่อตัวแทนออกของ */}
+              <div style={{ display:"flex", gap:12 }}>
+                <div style={{ flex:1 }}>
+                  <label style={{ fontSize:14, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>ชื่อ (ภาษาไทย) *</label>
+                  <input value={brokerForm.nameTh} onChange={e => setBrokerForm(f=>({...f, nameTh:e.target.value}))}
+                    style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"8px 12px", fontSize:14, background:"#FFFFFF", boxSizing:"border-box" }}
+                    placeholder="บริษัท NKTech จำกัด" />
+                </div>
+                <div style={{ flex:1 }}>
+                  <label style={{ fontSize:14, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>ชื่อ (ภาษาอังกฤษ)</label>
+                  <input value={brokerForm.nameEn} onChange={e => setBrokerForm(f=>({...f, nameEn:e.target.value}))}
+                    style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"8px 12px", fontSize:14, background:"#FFFFFF", boxSizing:"border-box" }}
+                    placeholder="NKTech Co., Ltd." />
+                </div>
+              </div>
+              <div style={{ display:"flex", gap:12 }}>
+                <div style={{ flex:2 }}>
+                  <label style={{ fontSize:14, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>เลขผู้เสียภาษี (Tax ID) *</label>
+                  <input value={brokerForm.taxId} onChange={e => setBrokerForm(f=>({...f, taxId:e.target.value}))}
+                    style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"8px 12px", fontSize:14, background:"#FFFFFF", boxSizing:"border-box" }}
+                    placeholder="0105564001234" maxLength={15} />
+                </div>
+                <div style={{ flex:1 }}>
+                  <label style={{ fontSize:14, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>สาขา</label>
+                  <input value={brokerForm.branch} onChange={e => setBrokerForm(f=>({...f, branch:e.target.value}))}
+                    style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"8px 12px", fontSize:14, background:"#FFFFFF", boxSizing:"border-box" }}
+                    placeholder="00000" maxLength={6} />
+                </div>
+              </div>
+              {/* ผู้ผ่านพิธีการ */}
+              <div style={{ borderTop:`1px solid ${BORDER}`, marginTop:8, paddingTop:12 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:TEXT2, marginBottom:8 }}>ผู้ผ่านพิธีการ (Clearance Person)</div>
+                <div style={{ display:"flex", gap:12 }}>
+                  <div style={{ flex:1 }}>
+                    <label style={{ fontSize:14, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>ชื่อผู้ผ่านพิธีการ</label>
+                    <input value={brokerForm.agentName} onChange={e => setBrokerForm(f=>({...f, agentName:e.target.value}))}
+                      style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"8px 12px", fontSize:14, background:"#FFFFFF", boxSizing:"border-box" }}
+                      placeholder="นายสมชาย รักดี" />
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <label style={{ fontSize:14, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>เลขที่บัตรผ่านพิธีการ</label>
+                    <input value={brokerForm.agentCardNo} onChange={e => setBrokerForm(f=>({...f, agentCardNo:e.target.value}))}
+                      style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"8px 12px", fontSize:14, background:"#FFFFFF", boxSizing:"border-box" }}
+                      placeholder="3100602818617" maxLength={50} />
+                  </div>
+                </div>
+              </div>
+              <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:8 }}>
+                <input type="checkbox" checked={brokerForm.isDefault} onChange={e => setBrokerForm(f=>({...f, isDefault:e.target.checked}))} id="brokerIsDefault" />
+                <label htmlFor="brokerIsDefault" style={{ fontSize:14, color:TEXT, cursor:"pointer" }}>Set as default broker</label>
+              </div>
+            </div>
+            <div style={{ display:"flex", gap:10, marginTop:24, justifyContent:"flex-end" }}>
+              <Btn variant="secondary" onClick={closeBrokerModal}>Cancel</Btn>
+              <Btn onClick={saveBroker} disabled={brokerSaving}>{brokerSaving ? "Saving…" : brokerModal === "add" ? "Add Broker" : "Save changes"}</Btn>
             </div>
           </div>
         </div>
@@ -473,6 +600,37 @@ function MasterData() {
               <div style={{ display:"flex", gap:8 }}>
                 <Btn variant="ghost" style={{ fontSize:13, padding:"4px 10px" }} onClick={() => openEditExp(e)}>Edit</Btn>
                 <Btn variant="danger" style={{ fontSize:13, padding:"4px 10px" }} onClick={() => deleteExporter(e)}>Delete</Btn>
+              </div>
+            </div>
+          ))}
+        </Card>
+      )}
+
+      {tab==="brokers" && (
+        <Card>
+          <SectionHeader title="Broker profiles" sub="ตัวแทนออกของ — ใช้ในใบกำกับสินค้า" right={<Btn onClick={openAddBroker}>+ Add</Btn>}/>
+          {brokerLoading ? <LoadingState /> : brokers.length === 0 ? <EmptyState message="ยังไม่มี Broker — กด + Add เพื่อเพิ่ม" /> : brokers.map((b,i) => (
+            <div key={b.id || i} style={{ padding:"16px 20px", display:"flex", justifyContent:"space-between", alignItems:"flex-start", borderBottom:`1px solid ${BORDER2}` }}>
+              <div>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
+                  <span style={{ fontSize:15, fontWeight:700, color:TEXT }}>{b.nameTh}</span>
+                  {b.nameEn && <span style={{ fontSize:14, color:TEXT2 }}>{b.nameEn}</span>}
+                  {b.isDefault && <Tag label="Default" color="#16A34A"/>}
+                </div>
+                <div style={{ fontSize:14, color:TEXT3, marginBottom:2 }}>
+                  Tax ID: <span style={{ fontFamily:MONO }}>{b.taxId}</span>
+                  {b.branch && <span style={{ marginLeft:8 }}>สาขา: {b.branch}</span>}
+                </div>
+                {(b.agentName || b.agentCardNo) && (
+                  <div style={{ fontSize:14, color:TEXT3, marginTop:4, padding:"6px 10px", background:"#F8FAFC", borderRadius:6, border:`1px solid ${BORDER}` }}>
+                    <span style={{ fontWeight:600 }}>ผู้ผ่านพิธีการ:</span> {b.agentName || "-"}
+                    {b.agentCardNo && <span style={{ fontFamily:MONO, marginLeft:6 }}>(บัตร: {b.agentCardNo})</span>}
+                  </div>
+                )}
+              </div>
+              <div style={{ display:"flex", gap:8 }}>
+                <Btn variant="ghost" style={{ fontSize:13, padding:"4px 10px" }} onClick={() => openEditBroker(b)}>Edit</Btn>
+                <Btn variant="danger" style={{ fontSize:13, padding:"4px 10px" }} onClick={() => deleteBroker(b)}>Delete</Btn>
               </div>
             </div>
           ))}

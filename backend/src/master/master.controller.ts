@@ -9,6 +9,7 @@ import { CreateHsCodeDto, UpdateHsCodeDto } from './dto/hs-code.dto';
 import { CreateExporterDto, UpdateExporterDto } from './dto/exporter.dto';
 import { CreateConsigneeDto, UpdateConsigneeDto } from './dto/consignee.dto';
 import { CreatePrivilegeDto, UpdatePrivilegeDto } from './dto/privilege.dto';
+import { CreateBrokerDto, UpdateBrokerDto } from './dto/broker.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -230,6 +231,65 @@ export class MasterController {
   @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN)
   async deleteConsignee(@Request() req: { user: RequestUser }, @Param('id', ParseUUIDPipe) id: string, @Query('customerId') qCid?: string) {
     return this.masterService.deleteConsignee(await this.resolveCustomerIdForWrite(req.user, qCid), id);
+  }
+
+  // ─── Brokers ──────────────────────────────────────────────────────
+
+  @ApiOperation({ summary: 'รายการตัวแทนออกของ (Brokers)' })
+  @ApiResponse({ status: 200, description: 'List of brokers' })
+  @Get('brokers')
+  @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN, Role.MANAGER, Role.STAFF, Role.USER, Role.CUSTOMER_ADMIN, Role.CUSTOMER)
+  listBrokers(@Request() req: { user: RequestUser }, @Query('customerId') qCid?: string) {
+    let cid = this.resolveCustomerId(req.user, qCid);
+    if (!cid && req.user.role === Role.SUPER_ADMIN) {
+      return this.masterService.listBrokers(null);
+    }
+    return this.masterService.listBrokers(cid);
+  }
+
+  @ApiOperation({ summary: 'สร้างตัวแทนออกของใหม่' })
+  @ApiResponse({ status: 201, description: 'Broker created' })
+  @Post('brokers')
+  @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN)
+  async createBroker(@Request() req: { user: RequestUser }, @Body() dto: CreateBrokerDto, @Query('customerId') qCid?: string) {
+    let cid = this.resolveCustomerId(req.user, qCid);
+    if (!cid && req.user.role === Role.SUPER_ADMIN) {
+      return this.masterService.createBroker(null, dto);
+    }
+    cid = await this.resolveCustomerIdForWrite(req.user, qCid);
+    return this.masterService.createBroker(cid, dto);
+  }
+
+  @ApiOperation({ summary: 'แก้ไขตัวแทนออกของ' })
+  @ApiResponse({ status: 200, description: 'Broker updated' })
+  @Patch('brokers/:id')
+  @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN)
+  async updateBroker(
+    @Request() req: { user: RequestUser },
+    @Param('id') id: string,
+    @Body() dto: UpdateBrokerDto,
+    @Query('customerId') qCid?: string,
+  ) {
+    let cid = this.resolveCustomerId(req.user, qCid);
+    if (!cid && req.user.role === Role.SUPER_ADMIN) {
+      return this.masterService.updateBroker(null, id, dto);
+    }
+    cid = await this.resolveCustomerIdForWrite(req.user, qCid);
+    return this.masterService.updateBroker(cid, id, dto);
+  }
+
+  @ApiOperation({ summary: 'ลบตัวแทนออกของ' })
+  @ApiResponse({ status: 200, description: 'Broker deleted' })
+  @Delete('brokers/:id')
+  @HttpCode(HttpStatus.OK)
+  @Roles(Role.SUPER_ADMIN, Role.TENANT_ADMIN)
+  async deleteBroker(@Request() req: { user: RequestUser }, @Param('id') id: string, @Query('customerId') qCid?: string) {
+    let cid = this.resolveCustomerId(req.user, qCid);
+    if (!cid && req.user.role === Role.SUPER_ADMIN) {
+      return this.masterService.deleteBroker(null, id);
+    }
+    cid = await this.resolveCustomerIdForWrite(req.user, qCid);
+    return this.masterService.deleteBroker(cid, id);
   }
 
   // ─── Privileges ────────────────────────────────────────────────────

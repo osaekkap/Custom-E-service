@@ -32,7 +32,7 @@ export class CustomerController {
   @ApiOperation({ summary: 'ดูข้อมูลบริษัทของตัวเอง (TENANT_ADMIN)' })
   @ApiResponse({ status: 200, description: 'Customer profile' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @Roles(Role.TENANT_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.TENANT_ADMIN, Role.SUPER_ADMIN, Role.CUSTOMER_ADMIN, Role.CUSTOMER, Role.MANAGER, Role.STAFF, Role.USER)
   @Get('my')
   findMy(@Request() req: { user: RequestUser }) {
     return this.customerService.findOne(req.user.customerId!);

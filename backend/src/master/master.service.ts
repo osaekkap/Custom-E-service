@@ -4,6 +4,7 @@ import { CreateHsCodeDto, UpdateHsCodeDto } from './dto/hs-code.dto';
 import { CreateExporterDto, UpdateExporterDto } from './dto/exporter.dto';
 import { CreateConsigneeDto, UpdateConsigneeDto } from './dto/consignee.dto';
 import { CreatePrivilegeDto, UpdatePrivilegeDto } from './dto/privilege.dto';
+import { CreateBrokerDto, UpdateBrokerDto } from './dto/broker.dto';
 
 @Injectable()
 export class MasterService {
@@ -62,9 +63,11 @@ export class MasterService {
 
   // ─── Exporters ─────────────────────────────────────────────────────
 
-  async listExporters(customerId: string) {
+  async listExporters(customerId: string | null) {
     return this.prisma.exporter.findMany({
-      where: { customerId },
+      where: customerId
+        ? { OR: [{ customerId }, { customerId: null }] }
+        : {},
       orderBy: [{ isDefault: 'desc' }, { nameTh: 'asc' }],
     });
   }
@@ -94,6 +97,9 @@ export class MasterService {
           phone: dto.phone || null,
           agentName: dto.agentName || null,
           agentCardNo: dto.agentCardNo || null,
+          brokerName: dto.brokerName || null,
+          brokerTaxId: dto.brokerTaxId || null,
+          brokerBranch: dto.brokerBranch || null,
           isDefault: !!dto.isDefault,
         },
       });
@@ -125,6 +131,9 @@ export class MasterService {
         phone: dto.phone || null,
         agentName: dto.agentName || null,
         agentCardNo: dto.agentCardNo || null,
+        brokerName: dto.brokerName || null,
+        brokerTaxId: dto.brokerTaxId || null,
+        brokerBranch: dto.brokerBranch || null,
         isDefault: !!dto.isDefault,
       },
     });
@@ -226,6 +235,85 @@ export class MasterService {
   private async assertPrivilegeExists(customerId: string, id: string) {
     const item = await this.prisma.privilegeCode.findFirst({ where: { id, customerId } });
     if (!item) throw new NotFoundException(`Privilege ${id} not found`);
+    return item;
+  }
+
+  // ─── Brokers ───────────────────────────────────────────────────────
+
+  async listBrokers(customerId: string | null) {
+    // @ts-ignore
+    return this.prisma.broker.findMany({
+      where: customerId
+        ? { OR: [{ customerId }, { customerId: null }] }
+        : {},
+      orderBy: [{ isDefault: 'desc' }, { nameTh: 'asc' }],
+    });
+  }
+
+  async createBroker(customerId: string | null, dto: CreateBrokerDto) {
+    if (dto.isDefault) {
+      // @ts-ignore
+      await this.prisma.broker.updateMany({
+        where: { customerId, isDefault: true },
+        data: { isDefault: false },
+      });
+    }
+    try {
+      // @ts-ignore
+      return await this.prisma.broker.create({
+        data: {
+          customerId: customerId || null,
+          nameTh: dto.nameTh.trim(),
+          nameEn: dto.nameEn?.trim() || null,
+          taxId: dto.taxId.trim(),
+          branch: dto.branch || null,
+          agentCardNo: dto.agentCardNo || null,
+          agentName: dto.agentName || null,
+          isDefault: !!dto.isDefault,
+        },
+      });
+    } catch (err) {
+      console.error('Broker Creation Error:', err);
+      throw new BadRequestException(`Database Error: ${err.message}`);
+    }
+  }
+
+  async updateBroker(customerId: string | null, id: string, dto: UpdateBrokerDto) {
+    await this.assertBrokerExists(customerId, id);
+    if (dto.isDefault) {
+      // @ts-ignore
+      await this.prisma.broker.updateMany({
+        where: { customerId, isDefault: true, id: { not: id } },
+        data: { isDefault: false },
+      });
+    }
+    // @ts-ignore
+    return this.prisma.broker.update({
+      where: { id },
+      data: {
+        nameTh: dto.nameTh,
+        nameEn: dto.nameEn || null,
+        taxId: dto.taxId,
+        branch: dto.branch || null,
+        agentCardNo: dto.agentCardNo || null,
+        agentName: dto.agentName || null,
+        isDefault: dto.isDefault !== undefined ? !!dto.isDefault : undefined,
+      },
+    });
+  }
+
+  async deleteBroker(customerId: string | null, id: string) {
+    await this.assertBrokerExists(customerId, id);
+    // @ts-ignore
+    await this.prisma.broker.delete({ where: { id } });
+    return { message: 'Broker deleted' };
+  }
+
+  private async assertBrokerExists(customerId: string | null, id: string) {
+    const whereCondition = customerId ? { id, customerId } : { id };
+    // @ts-ignore
+    const item = await this.prisma.broker.findFirst({ where: whereCondition });
+    if (!item) throw new NotFoundException(`Broker ${id} not found`);
     return item;
   }
 }
