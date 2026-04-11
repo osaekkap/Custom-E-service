@@ -30,6 +30,16 @@ export class CreateExporterDto {
   phone?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  agentName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  agentCardNo?: string;
+
+  @IsOptional()
   @IsBoolean()
   isDefault?: boolean;
 }

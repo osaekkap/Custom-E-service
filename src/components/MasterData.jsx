@@ -20,6 +20,9 @@ function MasterData() {
   // Exporters state
   const [exporters, setExporters] = useState([]);
   const [expLoading, setExpLoading] = useState(false);
+  const [expModal, setExpModal] = useState(null);
+  const [expForm, setExpForm] = useState({ nameTh:"", nameEn:"", taxId:"", address:"", phone:"", agentName:"", agentCardNo:"", isDefault:false });
+  const [expSaving, setExpSaving] = useState(false);
 
   // Privileges state
   const [privileges, setPrivileges] = useState([]);
@@ -121,6 +124,51 @@ function MasterData() {
   };
   const closeHsModal = () => setHsModal(null);
 
+  const openAddExp = () => { setExpForm({ nameTh:"", nameEn:"", taxId:"", address:"", phone:"", agentName:"", agentCardNo:"", isDefault:false }); setExpModal("add"); };
+  const openEditExp = (exp) => {
+    setExpForm({
+      nameTh: exp.nameTh || exp.name || "",
+      nameEn: exp.nameEn || "",
+      taxId: exp.taxId || "",
+      address: exp.address || "",
+      phone: exp.phone || exp.tel || "",
+      agentName: exp.agentName || "",
+      agentCardNo: exp.agentCardNo || "",
+      isDefault: exp.isDefault || false,
+    });
+    setExpModal({ edit: exp });
+  };
+  const closeExpModal = () => setExpModal(null);
+
+  const saveExp = async () => {
+    if (!expForm.nameTh) return alert("กรุณากรอกชื่อ Exporter (ภาษาไทย)");
+    if (!expForm.taxId) return alert("กรุณากรอกเลขผู้เสียภาษี (Tax ID)");
+    
+    setExpSaving(true);
+    try {
+      // Clean data: convert empty strings to undefined to satisfy @IsOptional() backend validation
+      const payload = { ...expForm };
+      Object.keys(payload).forEach(key => {
+        if (payload[key] === "") payload[key] = undefined;
+      });
+
+      if (expModal === "add") {
+        await masterApi.createExporter(payload);
+      } else {
+        await masterApi.updateExporter(expModal.edit.id, payload);
+      }
+      fetchExporters();
+      closeExpModal();
+    } catch (err) {
+      console.error("Save Exporter Error:", err.response?.data);
+      let msg = err?.response?.data?.message || err?.message || "Failed to save exporter";
+      if (Array.isArray(msg)) msg = msg.join('\n');
+      alert(`Error Saving:\n${msg}`);
+    } finally {
+      setExpSaving(false);
+    }
+  };
+
   const saveHs = async () => {
     if (!hsForm.hsCode || !hsForm.descriptionEn) return alert("กรุณากรอก HS Code และ Description");
     setHsSaving(true);
@@ -178,6 +226,15 @@ function MasterData() {
     <div key={key}>
       <label style={{ fontSize:14, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>{label}</label>
       <input value={hsForm[key]} onChange={e => setHsForm(f => ({...f, [key]: e.target.value}))}
+        style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"8px 12px", fontSize:14, background:"#FFFFFF", boxSizing:"border-box" }}
+        {...(opts||{})} />
+    </div>
+  );
+
+  const FIELD_EXP = (label, key, opts) => (
+    <div key={key}>
+      <label style={{ fontSize:14, color:TEXT3, fontWeight:600, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.5px" }}>{label}</label>
+      <input value={expForm[key]} onChange={e => setExpForm(f => ({...f, [key]: e.target.value}))}
         style={{ width:"100%", border:`1px solid ${BORDER}`, borderRadius:8, padding:"8px 12px", fontSize:14, background:"#FFFFFF", boxSizing:"border-box" }}
         {...(opts||{})} />
     </div>
@@ -263,6 +320,41 @@ function MasterData() {
             <div style={{ display:"flex", gap:10, marginTop:20, justifyContent:"flex-end" }}>
               <Btn variant="secondary" onClick={closeHsModal}>Cancel</Btn>
               <Btn onClick={saveHs} disabled={hsSaving}>{hsSaving ? "Saving…" : hsModal === "add" ? "Add HS Code" : "Save changes"}</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Exporter Modal */}
+      {expModal && (
+        <div style={{ position:"fixed", inset:0, background:"#00000060", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <div style={{ background:W, borderRadius:16, padding:28, width:480, maxWidth:"95vw", boxShadow:"0 20px 60px #0003" }}>
+            <h3 style={{ margin:"0 0 20px", fontSize:18, fontWeight:800, color:TEXT }}>
+              {expModal === "add" ? "+ Add Exporter" : `Edit Exporter: ${expModal.edit.nameTh || expModal.edit.name}`}
+            </h3>
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              <div style={{ display:"flex", gap:12 }}>
+                <div style={{ flex:1 }}>{FIELD_EXP("Exporter Name (TH) *", "nameTh")}</div>
+                <div style={{ flex:1 }}>{FIELD_EXP("Exporter Name (EN)", "nameEn")}</div>
+              </div>
+              <div style={{ display:"flex", gap:12 }}>
+                <div style={{ flex:1 }}>{FIELD_EXP("Tax ID", "taxId")}</div>
+                <div style={{ flex:1 }}>{FIELD_EXP("Telephone", "phone")}</div>
+              </div>
+              {FIELD_EXP("Address", "address")}
+              <div style={{ display:"flex", gap:12 }}>
+                <div style={{ flex:1 }}>{FIELD_EXP("ชื่อผู้ผ่านพิธีการ (Agent Name)", "agentName")}</div>
+                <div style={{ flex:1 }}>{FIELD_EXP("ทะเบียนเลขที่ (Agent Card No.)", "agentCardNo")}</div>
+              </div>
+              
+              <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:8 }}>
+                <input type="checkbox" checked={expForm.isDefault} onChange={e => setExpForm(f => ({...f, isDefault: e.target.checked}))} id="isDefault" />
+                <label htmlFor="isDefault" style={{ fontSize:14, color:TEXT, cursor:"pointer" }}>Set as default exporter</label>
+              </div>
+            </div>
+            <div style={{ display:"flex", gap:10, marginTop:24, justifyContent:"flex-end" }}>
+              <Btn variant="secondary" onClick={closeExpModal}>Cancel</Btn>
+              <Btn onClick={saveExp} disabled={expSaving}>{expSaving ? "Saving…" : expModal === "add" ? "Add Exporter" : "Save changes"}</Btn>
             </div>
           </div>
         </div>
@@ -360,20 +452,27 @@ function MasterData() {
 
       {tab==="exporters" && (
         <Card>
-          <SectionHeader title="Exporter profiles" sub="Used in declaration header" right={<Btn onClick={() => alert("เพิ่ม Exporter — feature coming soon")}>+ Add</Btn>}/>
+          <SectionHeader title="Exporter profiles" sub="Used in declaration header" right={<Btn onClick={openAddExp}>+ Add</Btn>}/>
           {expLoading ? <LoadingState /> : exporters.length === 0 ? <EmptyState message="ยังไม่มี Exporter" /> : exporters.map((e,i) => (
-            <div key={e.id || i} style={{ padding:"16px 20px", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+            <div key={e.id || i} style={{ padding:"16px 20px", display:"flex", justifyContent:"space-between", alignItems:"flex-start", borderBottom: `1px solid ${BORDER2}` }}>
               <div>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-                  <span style={{ fontSize:15, fontWeight:700, color:TEXT }}>{e.name}</span>
+                  <span style={{ fontSize:15, fontWeight:700, color:TEXT }}>{e.nameTh || e.name}</span>
+                  {e.nameEn && <span style={{ fontSize:14, color:TEXT2 }}>{e.nameEn}</span>}
                   {e.isDefault && <Tag label="Default" color="#16A34A"/>}
                 </div>
                 {e.taxId && <div style={{ fontSize:14, color:TEXT3, marginBottom:2 }}>Tax ID: <span style={{ fontFamily:MONO }}>{e.taxId}</span></div>}
                 {e.address && <div style={{ fontSize:14, color:TEXT3, marginBottom:2 }}>{e.address}</div>}
-                {e.tel && <div style={{ fontSize:14, color:TEXT3 }}>{e.tel}</div>}
+                {(e.phone || e.tel) && <div style={{ fontSize:14, color:TEXT3 }}>Phone: {e.phone || e.tel}</div>}
+                {(e.agentName || e.agentCardNo) && (
+                  <div style={{ fontSize:14, color:TEXT3, marginTop:4, padding:"6px 10px", background:"#F8FAFC", borderRadius:6, border:`1px solid ${BORDER}` }}>
+                     <span style={{fontWeight:600}}>Agent:</span> {e.agentName || "-"} {e.agentCardNo && <span style={{fontFamily:MONO, marginLeft:6}}>(No. {e.agentCardNo})</span>}
+                  </div>
+                )}
               </div>
               <div style={{ display:"flex", gap:8 }}>
-                <Btn variant="danger" style={{ fontSize:14 }} onClick={() => deleteExporter(e)}>Delete</Btn>
+                <Btn variant="ghost" style={{ fontSize:13, padding:"4px 10px" }} onClick={() => openEditExp(e)}>Edit</Btn>
+                <Btn variant="danger" style={{ fontSize:13, padding:"4px 10px" }} onClick={() => deleteExporter(e)}>Delete</Btn>
               </div>
             </div>
           ))}

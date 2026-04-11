@@ -70,7 +70,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     // ─── Prisma validation error ─────────────────────────────────
     else if (exception instanceof Prisma.PrismaClientValidationError) {
       status = HttpStatus.BAD_REQUEST;
-      message = 'Invalid data provided';
+      message = exception.message || 'Invalid data provided';
       error = 'Validation Error';
     }
 

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateHsCodeDto, UpdateHsCodeDto } from './dto/hs-code.dto';
 import { CreateExporterDto, UpdateExporterDto } from './dto/exporter.dto';
@@ -69,26 +69,65 @@ export class MasterService {
     });
   }
 
-  async createExporter(customerId: string, dto: CreateExporterDto) {
-    // ถ้า isDefault=true ให้ reset ตัวอื่นก่อน
+  async createExporter(customerId: string | null, dto: CreateExporterDto) {
+
+    // 1. ถ้าอันใหม่เป็น Default ให้ปลดอันเก่าของลูกค้ารายนี้ออกก่อน
     if (dto.isDefault) {
+      // @ts-ignore: Bypass cache type issues
       await this.prisma.exporter.updateMany({
         where: { customerId, isDefault: true },
         data: { isDefault: false },
       });
     }
-    return this.prisma.exporter.create({ data: { customerId, ...dto } });
+
+    // 2. บันทึกข้อมูล
+    try {
+      // @ts-ignore: Bypass cache type issues
+      return await this.prisma.exporter.create({
+        data: {
+          customerId: customerId || null,
+          nameTh: dto.nameTh.trim(),
+          nameEn: dto.nameEn?.trim() || null,
+          taxId: dto.taxId.trim(),
+          address: dto.address || null,
+          postcode: dto.postcode || null,
+          phone: dto.phone || null,
+          agentName: dto.agentName || null,
+          agentCardNo: dto.agentCardNo || null,
+          isDefault: !!dto.isDefault,
+        },
+      });
+    } catch (err) {
+      console.error('Exporter Creation Error:', err);
+      if (err.code === 'P2002') throw new ConflictException('Exporter with this Tax ID already exists');
+      throw new BadRequestException(`Database Error: ${err.message}`);
+    }
   }
 
-  async updateExporter(customerId: string, id: string, dto: UpdateExporterDto) {
+  async updateExporter(customerId: string | null, id: string, dto: UpdateExporterDto) {
     await this.assertExporterExists(customerId, id);
     if (dto.isDefault) {
+      // @ts-ignore: Bypass cache type issues
       await this.prisma.exporter.updateMany({
         where: { customerId, isDefault: true, id: { not: id } },
         data: { isDefault: false },
       });
     }
-    return this.prisma.exporter.update({ where: { id }, data: dto });
+    // @ts-ignore: Bypass cache type issues
+    return this.prisma.exporter.update({
+      where: { id },
+      data: {
+        nameTh: dto.nameTh,
+        nameEn: dto.nameEn || null,
+        taxId: dto.taxId,
+        address: dto.address || null,
+        postcode: dto.postcode || null,
+        phone: dto.phone || null,
+        agentName: dto.agentName || null,
+        agentCardNo: dto.agentCardNo || null,
+        isDefault: !!dto.isDefault,
+      },
+    });
   }
 
   async deleteExporter(customerId: string, id: string) {
@@ -97,8 +136,10 @@ export class MasterService {
     return { message: 'Exporter deleted' };
   }
 
-  private async assertExporterExists(customerId: string, id: string) {
-    const item = await this.prisma.exporter.findFirst({ where: { id, customerId } });
+  private async assertExporterExists(customerId: string | null, id: string) {
+    const whereCondition = customerId ? { id, customerId } : { id };
+    // @ts-ignore: Bypass cache type issues
+    const item = await this.prisma.exporter.findFirst({ where: whereCondition });
     if (!item) throw new NotFoundException(`Exporter ${id} not found`);
     return item;
   }

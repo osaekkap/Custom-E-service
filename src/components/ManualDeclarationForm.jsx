@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   COUNTRIES, CURRENCIES, UNITS, PORTS, TRANSPORT_MODES,
   PACKAGE_TYPES, CUSTOMS_PORTS, CARGO_TYPES, INCOTERMS,
@@ -6,6 +6,7 @@ import {
 } from "../data/masterCodes.js";
 import { jobsApi } from "../api/jobsApi.js";
 import { declarationsApi } from "../api/declarationsApi.js";
+import { masterApi } from "../api/masterApi.js";
 import { HsCodeAutocomplete } from "./ui/index.jsx";
 
 // ─── Design tokens (same as factory-portal) ─────────────────────
@@ -253,6 +254,11 @@ export default function ManualDeclarationForm({ onBack, onSubmit, onCreated, hsM
   const [xmlPreview, setXmlPreview] = useState(null);
   const [showXml, setShowXml] = useState(false);
   const [showPdf, setShowPdf] = useState(false);
+  const [exportersMaster, setExportersMaster] = useState([]);
+
+  useEffect(() => {
+    masterApi.listExporters().then(data => setExportersMaster(data || [])).catch(err => console.error("Failed to load exporters", err));
+  }, []);
 
   // ─── Section 1: Document Control ───────────────────────────
   const [doc, setDoc] = useState({
@@ -280,6 +286,25 @@ export default function ManualDeclarationForm({ onBack, onSubmit, onCreated, hsM
     brokerName: "", brokerTaxId: "", agentBranch: "00000",
     cardNo: "", agentName: "", managerIdCard: "", managerName: "",
   });
+
+  const handleSelectMasterExporter = (exporterId) => {
+    if (!exporterId) return;
+    const found = exportersMaster.find(e => e.id === exporterId);
+    if (!found) return;
+    setExporter(prev => ({
+      ...prev,
+      taxId: found.taxId || "",
+      branch: found.branch || "00000",
+      nameTh: found.nameTh || "",
+      nameEn: found.nameEn || "",
+      address: found.address || "",
+    }));
+    setAgent(prev => ({
+      ...prev,
+      agentName: found.agentName || prev.agentName,
+      cardNo: found.agentCardNo || prev.cardNo,
+    }));
+  };
 
   // ─── Section 3: Invoice & Consignee ────────────────────────
   const [invoice, setInvoice] = useState({
@@ -621,6 +646,16 @@ export default function ManualDeclarationForm({ onBack, onSubmit, onCreated, hsM
             {/* Exporter */}
             <div style={{ fontSize:14, fontWeight:700, color:TEXT, marginBottom:10, paddingBottom:6, borderBottom:`1px solid ${BORDER2}` }}>
               ผู้ส่งออก (Exporter)
+            </div>
+            <div style={{ marginBottom: 16, background:"#F9FAFB", padding:"12px 16px", borderRadius:6, border:`1px solid ${BORDER2}` }}>
+              <Field label="เลือกจาก Master Data (ดึงข้อมูลอัตโนมัติ)">
+                <select onChange={e => handleSelectMasterExporter(e.target.value)} style={selectStyle}>
+                  <option value="">— ไม่ดึงข้อมูล กรอกเอง —</option>
+                  {exportersMaster.map(exp => (
+                    <option key={exp.id} value={exp.id}>{exp.taxId} : {exp.nameTh}</option>
+                  ))}
+                </select>
+              </Field>
             </div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:14, marginBottom:20 }}>
               <Field label="เลขประจำตัวผู้เสียภาษี" required>
