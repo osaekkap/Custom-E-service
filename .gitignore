@@ -33,3 +33,9 @@ yarn-error.log*
 # Vite cache
 .vite/
 .claude/settings.local.json
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
